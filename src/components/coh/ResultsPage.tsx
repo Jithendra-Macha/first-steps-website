@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Btn } from "./SharedComponents";
 import { HOTELS } from "@/data/hotels";
 import type { Hotel } from "@/data/hotels";
+export type { Hotel };
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -313,9 +314,9 @@ function CompareTray({ hotels, onRemove, onClear }: { hotels: Hotel[]; onRemove:
 }
 
 /* ── Hotel Card (kept identical) ── */
-function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared, onCompare }: {
+function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared, onCompare, onBookClick }: {
   hotel: Hotel; isActive: boolean; onClick: () => void; index: number;
-  compareMode: boolean; isCompared: boolean; onCompare: () => void;
+  compareMode: boolean; isCompared: boolean; onCompare: () => void; onBookClick?: () => void;
 }) {
   const [hov, setHov] = useState(false);
   const [fav, setFav] = useState(false);
@@ -528,7 +529,9 @@ function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared
           height: 30, padding: "0 18px", fontSize: ".7rem",
           borderRadius: 8, background: NAVY, color: "#fff",
           letterSpacing: ".02em",
-        }}>
+        }}
+          onClick={e => { e.stopPropagation(); onBookClick?.(); }}
+        >
           Book now →
         </Btn>
       </div>
@@ -736,7 +739,7 @@ function MapPanel({ hotels, activeIdx, onPin }: { hotels: Hotel[]; activeIdx: nu
 }
 
 /* ── Results Page ── */
-export default function ResultsPage({ query, onGoHome, onSearch }: { query: string; onGoHome: () => void; onSearch: (q: string) => void }) {
+export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }: { query: string; onGoHome: () => void; onSearch: (q: string) => void; onHotelClick?: (hotel: Hotel) => void }) {
   const [sort, setSort] = useState("rec");
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [city, setCity] = useState(query);
@@ -935,6 +938,7 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
                 compareMode={compareMode}
                 isCompared={compareIds.has(h.id)}
                 onCompare={() => toggleCompare(h.id)}
+                onBookClick={() => onHotelClick?.(h)}
               />
             ))}
           </div>
