@@ -48,7 +48,7 @@ export function DealsSection({ onSearch }: { onSearch: (q: string) => void }) {
       <SectionHeader title="🔥 Deals of the" accent="Day" sub="Limited-time prices — refreshed every 24 hours" link="View all deals →" onLink={() => onSearch("Manhattan")} />
       <div style={{ display: "flex", gap: 8, marginBottom: "1.2rem", flexWrap: "wrap", overflowX: mob ? "auto" : "visible" }}>
         {tabs.map(tb => (
-          <button key={tb} onClick={() => setTab(tb)} style={{ padding: "5px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === tb ? t.text : t.border}`, background: tab === tb ? t.text : t.bgCard, color: tab === tb ? (t.dark ? "#0d1f38" : "#fff") : t.textSecondary, cursor: "pointer", fontFamily: "inherit", transition: "all .16s", whiteSpace: "nowrap", flexShrink: 0 }}>{tb}</button>
+          <button key={tb} onClick={() => setTab(tb)} style={{ padding: "5px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === tb ? t.text : t.border}`, background: tab === tb ? t.text : t.bgCard, color: tab === tb ? (t.dark ? "#111" : "#fff") : t.textSecondary, cursor: "pointer", fontFamily: "inherit", transition: "all .16s", whiteSpace: "nowrap", flexShrink: 0 }}>{tb}</button>
         ))}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(4,1fr)", gap: 14 }}>

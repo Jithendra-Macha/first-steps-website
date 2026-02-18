@@ -19,20 +19,20 @@ export function useThemeColors() {
   }, []);
   return {
     dark,
-    bg: dark ? "#0d1f38" : "#fafafa",
-    bgPage: dark ? "#081424" : "#f8f8f8",
-    bgCard: dark ? "#132d4a" : "#fff",
-    bgInput: dark ? "#1a3a5c" : "#fff",
-    text: dark ? "#e8edf3" : "#0a0a0a",
-    textSecondary: dark ? "#8ea4be" : "#888",
-    textMuted: dark ? "#5c7a99" : "#bbb",
-    border: dark ? "#1e3a58" : "#e8e8e8",
-    navy: dark ? "#e8edf3" : "#0d1f38",
-    navBg: dark ? "rgba(13,31,56,.97)" : "rgba(255,255,255,.97)",
-    navBgSolid: dark ? "#0d1f38" : "#fff",
-    cardHover: dark ? "#1a3a5c" : "#f8f8f8",
-    shadow: dark ? "rgba(0,0,0,.3)" : "rgba(0,0,0,.07)",
-    dropdownBg: dark ? "#132d4a" : "#fff",
+    bg: dark ? "#0d0d0d" : "#fafafa",
+    bgPage: dark ? "#080808" : "#f8f8f8",
+    bgCard: dark ? "#161616" : "#fff",
+    bgInput: dark ? "#1e1e1e" : "#fff",
+    text: dark ? "#e8e8e8" : "#0a0a0a",
+    textSecondary: dark ? "#999" : "#888",
+    textMuted: dark ? "#666" : "#bbb",
+    border: dark ? "#2a2a2a" : "#e8e8e8",
+    navy: dark ? "#e8e8e8" : "#0d1f38",
+    navBg: dark ? "rgba(13,13,13,.97)" : "rgba(255,255,255,.97)",
+    navBgSolid: dark ? "#0d0d0d" : "#fff",
+    cardHover: dark ? "#1e1e1e" : "#f8f8f8",
+    shadow: dark ? "rgba(0,0,0,.4)" : "rgba(0,0,0,.07)",
+    dropdownBg: dark ? "#161616" : "#fff",
     accent: A,
   };
 }
@@ -164,7 +164,7 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <ThemeToggleBtn />
             <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
-              <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: t.dark ? "#1a3a5c" : "#f0f0f0", border: "none", width: 36, height: 36, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", color: t.text }}>
+              <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: t.dark ? "#1e1e1e" : "#f0f0f0", border: "none", width: 36, height: 36, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", color: t.text }}>
                 {user ? (user.email?.[0] || "U").toUpperCase() : "👤"}
               </button>
               {userMenuOpen && userDropdown}
@@ -189,8 +189,8 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
           ))}
           <ThemeToggleBtn />
           <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: t.dark ? "#1a3a5c" : "#f0f0f0", border: `1.5px solid ${t.border}`, height: 40, borderRadius: 24, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "0 12px 0 6px" }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: user ? A : (t.dark ? "#5c7a99" : "#ccc"), display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".72rem", fontWeight: 700, color: "#fff" }}>
+            <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: t.dark ? "#1e1e1e" : "#f0f0f0", border: `1.5px solid ${t.border}`, height: 40, borderRadius: 24, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "0 12px 0 6px" }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: user ? A : (t.dark ? "#666" : "#ccc"), display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".72rem", fontWeight: 700, color: "#fff" }}>
                 {user ? (user.email?.[0] || "U").toUpperCase() : "👤"}
               </div>
               <span style={{ fontSize: "1rem", color: t.text }}>☰</span>
@@ -535,7 +535,7 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
   const mob = useIsMobile();
 
   return (
-    <div style={{ background: "radial-gradient(ellipse at 65% -10%,#1a3060 0%,#0d1f38 50%,#050d1a 100%)", padding: mob ? "3rem 4% 3.5rem" : "5rem 5% 6rem", textAlign: "center", position: "relative" }}>
+    <div style={{ background: "radial-gradient(ellipse at 65% -10%,#1a1a1a 0%,#0d0d0d 50%,#050505 100%)", padding: mob ? "3rem 4% 3.5rem" : "5rem 5% 6rem", textAlign: "center", position: "relative" }}>
       <div style={{ position: "absolute", inset: 0, opacity: .04, pointerEvents: "none", backgroundImage: "linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px)", backgroundSize: "44px 44px" }} />
       <div style={{ position: "absolute", top: "-60px", left: "20%", width: 400, height: 400, borderRadius: "50%", background: "rgba(255,77,0,.06)", filter: "blur(80px)", pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: 0, right: "15%", width: 300, height: 300, borderRadius: "50%", background: "rgba(30,80,180,.12)", filter: "blur(60px)", pointerEvents: "none" }} />
