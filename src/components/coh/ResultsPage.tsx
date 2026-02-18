@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Btn } from "./SharedComponents";
 import { HOTELS } from "@/data/hotels";
 import type { Hotel } from "@/data/hotels";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 const A = "#ff4d00";
 const NAVY = "#0d1f38";
@@ -266,99 +268,143 @@ function HotelCard({ hotel: h, isActive, onClick }: { hotel: Hotel; isActive: bo
   );
 }
 
-/* ── Map Panel ── */
+/* ── Interactive Mapbox Panel ── */
+const MAPBOX_TOKEN = "pk.eyJ1Ijoiaml0aGVuZHJhbWFjaGEiLCJhIjoiY21sc2E5YTNvMDN6ZDNjcHpoZnR3M20ydSJ9.EXkOsQuxBxKS_BUo0xLPLQ";
+
 function MapPanel({ hotels, activeIdx, onPin }: { hotels: Hotel[]; activeIdx: number | null; onPin: (i: number) => void }) {
-  return (
-    <div style={{ flex: 1, background: "#e8edf2", position: "relative", overflow: "hidden" }}>
-      {/* Grid lines */}
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 40% 45%,rgba(30,80,160,.08) 0%,transparent 70%)" }} />
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
 
-      {/* Landmass shapes */}
-      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: .12 }} viewBox="0 0 400 600">
-        <path d="M120,80 L180,60 L220,70 L240,120 L260,140 L250,200 L200,220 L180,280 L160,320 L140,360 L130,400 L120,380 L100,340 L90,280 L100,200 L110,140 Z" fill="#1a2744" />
-        <path d="M240,200 L300,180 L340,200 L350,260 L330,300 L300,320 L270,300 L260,260 Z" fill="#1a2744" />
-      </svg>
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainer.current || map.current) return;
 
-      {/* Pins */}
-      {hotels.slice(0, 8).map((h, i) => {
-        const px = [52, 36, 18, 86, 55, 37, 69, 96][i];
-        const py = [26, 49, 9, 32, 68, 80, 74, 15][i];
-        const active = activeIdx === i;
-        return (
-          <div
-            key={h.id}
-            onClick={() => onPin(i)}
-            style={{
-              position: "absolute", left: `${px}%`, top: `${py}%`,
-              cursor: "pointer", zIndex: active ? 10 : 5,
-              transform: active ? "scale(1.2)" : "scale(1)",
-              transition: "all .2s",
-            }}
-          >
-            <div style={{
-              background: active ? A : "#fff",
-              color: active ? "#fff" : BLK,
-              fontSize: ".66rem", fontWeight: 800,
-              padding: "5px 10px", borderRadius: 8,
-              boxShadow: active ? `0 4px 14px rgba(255,77,0,.35)` : "0 2px 10px rgba(0,0,0,.18)",
-              whiteSpace: "nowrap",
-              border: active ? `2px solid ${A}` : "1px solid #ddd",
-            }}>
-              ${h.rate}
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/light-v11",
+      center: [-73.985, 40.748],
+      zoom: 12.5,
+      pitchWithRotate: false,
+    });
+
+    map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+
+    return () => {
+      map.current?.remove();
+      map.current = null;
+    };
+  }, []);
+
+  // Update markers when hotels change
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Clear old markers
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+
+    hotels.forEach((h, i) => {
+      const el = document.createElement("div");
+      el.className = "mapbox-hotel-pin";
+      el.innerHTML = `<div class="pin-price" data-idx="${i}">$${h.rate}</div>`;
+      el.style.cssText = "cursor:pointer;z-index:1;";
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: "bottom" })
+        .setLngLat([h.lng, h.lat])
+        .addTo(map.current!);
+
+      el.addEventListener("click", () => onPin(i));
+
+      el.addEventListener("mouseenter", () => {
+        popupRef.current?.remove();
+        popupRef.current = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false, maxWidth: "220px" })
+          .setLngLat([h.lng, h.lat])
+          .setHTML(`
+            <div style="font-family:system-ui;padding:4px 0;">
+              <div style="font-weight:800;font-size:.82rem;color:#0a0a0a;margin-bottom:3px;">${h.name}</div>
+              <div style="font-size:.7rem;color:#888;margin-bottom:6px;">${h.addr}</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span style="background:${h.rating >= 4.7 ? "#0a7c4e" : "#1565c0"};color:#fff;font-size:.68rem;font-weight:800;padding:2px 6px;border-radius:4px;">${h.rating}</span>
+                <span style="font-size:.68rem;color:#888;">(${h.reviews.toLocaleString()} reviews)</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:4px;">
+                ${h.origRate ? `<span style="font-size:.7rem;color:#bbb;text-decoration:line-through;">$${h.origRate}/hr</span>` : ""}
+                <span style="font-size:1.1rem;font-weight:900;color:#0a0a0a;">$${h.rate}</span>
+                <span style="font-size:.68rem;color:#888;">/hr</span>
+              </div>
             </div>
-            {/* Pin tail */}
-            <div style={{
-              width: 0, height: 0,
-              borderLeft: "5px solid transparent",
-              borderRight: "5px solid transparent",
-              borderTop: `6px solid ${active ? A : "#fff"}`,
-              margin: "0 auto",
-            }} />
-          </div>
-        );
-      })}
+          `)
+          .addTo(map.current!);
+      });
 
-      {/* Location label */}
-      <div style={{
-        position: "absolute", bottom: 16, right: 16,
-        background: "rgba(255,255,255,.92)",
-        borderRadius: 8, padding: "8px 14px",
-        fontSize: ".7rem", fontWeight: 600, color: SEC,
-        backdropFilter: "blur(6px)",
-        boxShadow: "0 2px 12px rgba(0,0,0,.1)",
-      }}>
-        📍 Manhattan, New York
-      </div>
+      el.addEventListener("mouseleave", () => {
+        popupRef.current?.remove();
+      });
 
-      {/* Zoom controls */}
-      <div style={{ position: "absolute", top: 12, right: 12, display: "flex", flexDirection: "column", gap: 1, borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,.12)" }}>
-        {["+", "−"].map(c => (
-          <div key={c} style={{
-            width: 32, height: 32,
-            background: "rgba(255,255,255,.95)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "1.1rem", fontWeight: 500, cursor: "pointer",
-            color: "#555",
-            borderBottom: c === "+" ? `1px solid ${BRD}` : "none",
-          }}>{c}</div>
-        ))}
-      </div>
+      markersRef.current.push(marker);
+    });
+  }, [hotels, onPin]);
 
-      {/* Resize handle */}
-      <div style={{
-        position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
-        width: 16, height: 40, background: "rgba(255,255,255,.7)",
-        borderRadius: "0 6px 6px 0", display: "flex",
-        alignItems: "center", justifyContent: "center",
-        cursor: "col-resize", boxShadow: "2px 0 6px rgba(0,0,0,.08)",
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {[0, 1, 2].map(i => (
-            <div key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "#bbb" }} />
-          ))}
-        </div>
-      </div>
+  // Highlight active pin
+  useEffect(() => {
+    markersRef.current.forEach((marker, i) => {
+      const el = marker.getElement();
+      const pin = el.querySelector(".pin-price") as HTMLElement;
+      if (!pin) return;
+      const isActive = activeIdx === i;
+      pin.style.background = isActive ? "#ff4d00" : "#fff";
+      pin.style.color = isActive ? "#fff" : "#0a0a0a";
+      pin.style.border = isActive ? "2px solid #ff4d00" : "1.5px solid #ddd";
+      pin.style.boxShadow = isActive ? "0 4px 14px rgba(255,77,0,.35)" : "0 2px 10px rgba(0,0,0,.18)";
+      pin.style.transform = isActive ? "scale(1.2)" : "scale(1)";
+      el.style.zIndex = isActive ? "10" : "1";
+    });
+
+    // Fly to active hotel
+    if (activeIdx !== null && hotels[activeIdx] && map.current) {
+      map.current.flyTo({
+        center: [hotels[activeIdx].lng, hotels[activeIdx].lat],
+        zoom: 14,
+        duration: 800,
+      });
+    }
+  }, [activeIdx, hotels]);
+
+  return (
+    <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+      <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
+      <style>{`
+        .pin-price {
+          background: #fff;
+          color: #0a0a0a;
+          font-size: .72rem;
+          font-weight: 800;
+          padding: 5px 10px;
+          border-radius: 8px;
+          border: 1.5px solid #ddd;
+          box-shadow: 0 2px 10px rgba(0,0,0,.18);
+          white-space: nowrap;
+          transition: all .2s;
+          font-family: system-ui, -apple-system, sans-serif;
+        }
+        .pin-price:hover {
+          background: #ff4d00 !important;
+          color: #fff !important;
+          border-color: #ff4d00 !important;
+          transform: scale(1.15) !important;
+        }
+        .mapboxgl-popup-content {
+          border-radius: 12px !important;
+          padding: 12px 14px !important;
+          box-shadow: 0 8px 30px rgba(0,0,0,.15) !important;
+        }
+        .mapboxgl-popup-tip {
+          border-top-color: #fff !important;
+        }
+      `}</style>
     </div>
   );
 }
