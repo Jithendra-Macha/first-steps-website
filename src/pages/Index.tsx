@@ -1,12 +1,48 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useCallback } from "react";
+import { Nav, Hero, TrustRow } from "@/components/coh/SharedComponents";
+import { DealsSection, ZonesSection, WhySection, AirportsSection, NJSection, OccasionsSection, HowItWorks, Stats, Footer } from "@/components/coh/LandingSections";
+import ResultsPage from "@/components/coh/ResultsPage";
+
+const A = "#ff4d00";
+const NAVY = "#0d1f38";
 
 const Index = () => {
+  const [page, setPage] = useState<"landing" | "results">("landing");
+  const [query, setQuery] = useState("Manhattan, New York");
+
+  const goSearch = useCallback((q: string) => {
+    setQuery(q || "Manhattan");
+    setPage("results");
+    window.scrollTo(0, 0);
+  }, []);
+
+  const goHome = useCallback(() => {
+    setPage("landing");
+    window.scrollTo(0, 0);
+  }, []);
+
+  if (page === "results") {
+    return <ResultsPage query={query} onGoHome={goHome} onSearch={goSearch} />;
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div>
+      {/* promo bar */}
+      <div style={{ background: NAVY, padding: ".55rem 5%", display: "flex", alignItems: "center", justifyContent: "center", gap: ".8rem" }}>
+        <span style={{ fontSize: ".72rem", color: "rgba(255,255,255,.75)" }}>🎉 New: Book by the hour in New Jersey — <a onClick={() => goSearch("Hoboken, NJ")} style={{ color: A, fontWeight: 700, cursor: "pointer" }}>Explore NJ Hotels →</a></span>
       </div>
+      <Nav onSearch={goSearch} />
+      <Hero onSearch={goSearch} />
+      <TrustRow />
+      <DealsSection onSearch={goSearch} />
+      <ZonesSection onSearch={goSearch} />
+      <WhySection />
+      <AirportsSection onSearch={goSearch} />
+      <NJSection onSearch={goSearch} />
+      <OccasionsSection onSearch={goSearch} />
+      <HowItWorks />
+      <Stats />
+      <Footer />
     </div>
   );
 };
