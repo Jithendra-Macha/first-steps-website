@@ -259,12 +259,67 @@ function LocationIcon({ type, color }: { type: string; color: string }) {
   return <>{icons[type] || icons.county}</>;
 }
 
+/* ── Mapbox Geocoding ── */
+const MAPBOX_TOKEN = "pk.eyJ1Ijoiaml0aGVuZHJhbWFjaGEiLCJhIjoiY21sc2E5YTNvMDN6ZDNjcHpoZnR3M20ydSJ9.EXkOsQuxBxKS_BUo0xLPLQ";
+
+interface GeocodedPlace {
+  id: string;
+  name: string;
+  fullAddress: string;
+  lat: number;
+  lng: number;
+  type: string; // "address", "poi", "place", "neighborhood", etc.
+}
+
+function useGeocodeSuggestions(query: string) {
+  const [suggestions, setSuggestions] = useState<GeocodedPlace[]>([]);
+  const [loading, setLoading] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!query.trim() || query.trim().length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    timerRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
+          `access_token=${MAPBOX_TOKEN}&country=us&types=address,poi,place,neighborhood&limit=5&autocomplete=true`
+        );
+        const data = await res.json();
+        const places: GeocodedPlace[] = (data.features || []).map((f: any) => ({
+          id: f.id,
+          name: f.text,
+          fullAddress: f.place_name,
+          lat: f.center[1],
+          lng: f.center[0],
+          type: f.place_type?.[0] || "place",
+        }));
+        setSuggestions(places);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
+
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [query]);
+
+  return { suggestions, loading };
+}
+
 /* ── Location Dropdown ── */
 function LocationDropdown({ value, onChange, onSelect }: { value: string; onChange: (v: string) => void; onSelect: (loc: USLocation) => void }) {
   const [open, setOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const results = useMemo(() => searchLocations(value), [value]);
+  const { suggestions: geoSuggestions, loading: geoLoading } = useGeocodeSuggestions(value);
   const mob = useIsMobile();
   const t = useThemeColors();
 
@@ -293,9 +348,18 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
     region: { bg: "#f0f9ff", text: "#0284c7", border: "#bae6fd", iconBg: "#e0f2fe" },
   };
 
+  const geoTypeStyles: Record<string, { bg: string; text: string; border: string; iconBg: string; label: string }> = {
+    address: { bg: "#fff2ee", text: "#e54d00", border: "#ffd6c4", iconBg: "#ffe8dd", label: "ADDRESS" },
+    poi: { bg: "#f0f9ff", text: "#0369a1", border: "#bae6fd", iconBg: "#e0f2fe", label: "PLACE" },
+    place: { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0", iconBg: "#d1fae5", label: "CITY" },
+    neighborhood: { bg: "#fffbeb", text: "#d97706", border: "#fde68a", iconBg: "#fef3c7", label: "AREA" },
+  };
+
   const getStyle = (type: string) => typeStyles[type] || typeStyles.city;
+  const getGeoStyle = (type: string) => geoTypeStyles[type] || geoTypeStyles.address;
 
   let flatIdx = 0;
+  const hasContent = results.length > 0 || geoSuggestions.length > 0 || (value.trim().length > 3);
 
   return (
     <div ref={ref} style={{ position: "relative", flex: 1, minWidth: 0 }}>
@@ -308,10 +372,10 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
         placeholder="Address, city or neighborhood..."
         style={{ border: "none", outline: "none", fontSize: ".88rem", color: "#111", width: "100%", background: "transparent", fontFamily: "'Inter', system-ui, sans-serif" }}
       />
-      {open && (results.length > 0 || (value.trim().length > 3)) && (
+      {open && hasContent && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
       )}
-      {open && (results.length > 0 || (value.trim().length > 3)) && (
+      {open && hasContent && (
         <div style={{
           position: mob ? "fixed" : "absolute",
           top: mob ? "auto" : "calc(100% + 14px)",
@@ -323,23 +387,97 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           borderRadius: mob ? "20px 20px 0 0" : 20,
           boxShadow: "0 25px 80px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.04)",
           zIndex: 9999,
-          maxHeight: mob ? "70vh" : 480,
+          maxHeight: mob ? "70vh" : 520,
           overflowY: "auto",
           padding: "8px 0",
           fontFamily: "'Inter', system-ui, sans-serif",
         }}>
-          {/* Drag handle on mobile */}
           {mob && <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ddd", margin: "6px auto 8px" }} />}
 
           <div style={{ padding: "10px 22px 6px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: ".62rem", fontWeight: 800, color: "#b0b0b0", textTransform: "uppercase", letterSpacing: ".12em" }}>
-              {value.trim() ? `${results.length} results` : "Popular Destinations"}
+              {value.trim() ? `${results.length + geoSuggestions.length} results` : "Popular Destinations"}
             </span>
             {value.trim() && (
               <button onClick={() => { onChange(""); }} style={{ fontSize: ".6rem", color: A, fontWeight: 700, background: "none", border: "none", cursor: "pointer", padding: "2px 6px" }}>Clear</button>
             )}
           </div>
 
+          {/* Geocoded address suggestions */}
+          {value.trim().length >= 3 && (geoSuggestions.length > 0 || geoLoading) && (
+            <div style={{ marginBottom: 4 }}>
+              <div style={{ padding: "10px 22px 6px", display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: "1rem" }}>📍</span>
+                <span style={{ fontSize: ".75rem", fontWeight: 800, color: NAVY, letterSpacing: ".02em" }}>Addresses & Places</span>
+                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BRD}, transparent)` }} />
+                {geoLoading && <span style={{ fontSize: ".58rem", fontWeight: 600, color: A }}>Searching...</span>}
+              </div>
+              <div style={{ padding: "0 14px 4px" }}>
+                {geoSuggestions.map((place) => {
+                  const gs = getGeoStyle(place.type);
+                  const gIdx = flatIdx++;
+                  const isHovered = hoveredIdx === gIdx;
+                  return (
+                    <div
+                      key={place.id}
+                      onClick={() => { onChange(place.fullAddress); setOpen(false); }}
+                      onMouseEnter={() => setHoveredIdx(gIdx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 11,
+                        padding: "10px 12px", cursor: "pointer",
+                        borderRadius: 14,
+                        background: isHovered ? gs.bg : "transparent",
+                        border: `1.5px solid ${isHovered ? gs.border : "transparent"}`,
+                        transition: "all .18s ease",
+                      }}
+                    >
+                      <div style={{
+                        width: 38, height: 38, borderRadius: 11,
+                        background: isHovered ? "#fff" : gs.iconBg,
+                        border: `1.5px solid ${gs.border}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
+                        transform: isHovered ? "scale(1.08) rotate(-3deg)" : "scale(1) rotate(0)",
+                        transition: "all .2s ease",
+                        boxShadow: isHovered ? `0 4px 12px ${gs.border}` : "none",
+                      }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={gs.text} strokeWidth="1.8" strokeLinecap="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                        </svg>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontSize: ".85rem", fontWeight: 700, color: isHovered ? gs.text : "#1a1a1a",
+                          lineHeight: 1.2, transition: "color .15s",
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        }}>{place.name}</div>
+                        <div style={{
+                          fontSize: ".68rem", color: "#999", marginTop: 2,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        }}>{place.fullAddress}</div>
+                        <span style={{
+                          display: "inline-block", marginTop: 3,
+                          fontSize: ".56rem", fontWeight: 800, color: gs.text,
+                          background: gs.bg, border: `1px solid ${gs.border}`,
+                          padding: "2px 8px", borderRadius: 20, textTransform: "uppercase", letterSpacing: ".06em",
+                        }}>
+                          {gs.label}
+                        </span>
+                      </div>
+                      {isHovered && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={gs.text} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, opacity: .6 }}>
+                          <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                        </svg>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Predefined location results */}
           {Array.from(grouped.entries()).map(([state, locs]) => {
             const stateInfo = getStateDisplay(state);
             return (
@@ -411,36 +549,6 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
               </div>
             );
           })}
-
-          {/* Use address directly option */}
-          {value.trim() && value.trim().length > 3 && results.length === 0 && (
-            <div
-              onClick={() => { setOpen(false); }}
-              style={{ padding: "14px 22px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${BRD}` }}
-              onMouseEnter={e => e.currentTarget.style.background = "#f8f8f8"}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-            >
-              <div style={{ width: 38, height: 38, borderRadius: 11, background: "#fff2ee", border: `1.5px solid #ffd6c4`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="1.8" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: ".85rem", fontWeight: 700, color: "#1a1a1a" }}>Search "{value.trim()}"</div>
-                <span style={{ fontSize: ".64rem", color: "#999" }}>Use this address to find nearby hotels</span>
-              </div>
-            </div>
-          )}
-
-          {value.trim() && value.trim().length > 3 && results.length > 0 && (
-            <div
-              onClick={() => { setOpen(false); }}
-              style={{ padding: "12px 22px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, borderTop: `1px solid ${BRD}`, marginTop: 4 }}
-              onMouseEnter={e => e.currentTarget.style.background = "#f8f8f8"}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-              <span style={{ fontSize: ".76rem", fontWeight: 700, color: A }}>Search by address: "{value.trim()}"</span>
-            </div>
-          )}
 
           <div style={{ padding: "10px 22px 14px", borderTop: `1px solid ${BRD}`, marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round">
