@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SectionHeader, Btn, useIsMobile } from "./SharedComponents";
+import { SectionHeader, Btn, useIsMobile, useThemeColors } from "./SharedComponents";
 import { DEALS_DATA, ZONE_DATA, OCC_DATA, WHY_CARDS } from "@/data/hotels";
 
 const A = "#ff4d00";
@@ -7,7 +7,6 @@ const NAVY = "#0d1f38";
 const BLK = "#0a0a0a";
 const SEC = "#888";
 const BRD = "#e8e8e8";
-const BG = "#fafafa";
 
 /* ── Deal Card ── */
 function DealCard({ deal: d, onSearch }: { deal: typeof DEALS_DATA[0]; onSearch: (q: string) => void }) {
@@ -42,13 +41,14 @@ function DealCard({ deal: d, onSearch }: { deal: typeof DEALS_DATA[0]; onSearch:
 export function DealsSection({ onSearch }: { onSearch: (q: string) => void }) {
   const [tab, setTab] = useState("All");
   const mob = useIsMobile();
+  const t = useThemeColors();
   const tabs = ["All", "Manhattan", "Brooklyn", "Queens", "The Bronx", "New Jersey"];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: BG }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bg }}>
       <SectionHeader title="🔥 Deals of the" accent="Day" sub="Limited-time prices — refreshed every 24 hours" link="View all deals →" onLink={() => onSearch("Manhattan")} />
       <div style={{ display: "flex", gap: 8, marginBottom: "1.2rem", flexWrap: "wrap", overflowX: mob ? "auto" : "visible" }}>
-        {tabs.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "5px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === t ? BLK : BRD}`, background: tab === t ? BLK : "#fff", color: tab === t ? "#fff" : SEC, cursor: "pointer", fontFamily: "inherit", transition: "all .16s", whiteSpace: "nowrap", flexShrink: 0 }}>{t}</button>
+        {tabs.map(tb => (
+          <button key={tb} onClick={() => setTab(tb)} style={{ padding: "5px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === tb ? t.text : t.border}`, background: tab === tb ? t.text : t.bgCard, color: tab === tb ? (t.dark ? "#0d1f38" : "#fff") : t.textSecondary, cursor: "pointer", fontFamily: "inherit", transition: "all .16s", whiteSpace: "nowrap", flexShrink: 0 }}>{tb}</button>
         ))}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(4,1fr)", gap: 14 }}>
@@ -78,8 +78,9 @@ function ZoneCard({ zone: z, onSearch }: { zone: typeof ZONE_DATA[0]; onSearch: 
 
 export function ZonesSection({ onSearch }: { onSearch: (q: string) => void }) {
   const mob = useIsMobile();
+  const t = useThemeColors();
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: "#fff" }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bgCard }}>
       <SectionHeader title="Browse by" accent="Neighborhood" link="All areas →" onLink={() => onSearch("New York")} />
       <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(5,1fr)", gap: mob ? 10 : 14 }}>
         {ZONE_DATA.slice(0, mob ? 4 : 5).map(z => <ZoneCard key={z.key} zone={z} onSearch={onSearch} />)}
@@ -92,36 +93,37 @@ export function ZonesSection({ onSearch }: { onSearch: (q: string) => void }) {
 export function WhySection() {
   const [hrs, setHrs] = useState(4);
   const mob = useIsMobile();
+  const t = useThemeColors();
   const RATE = 28, total = hrs * RATE, saving = 280 - total, pct = ((hrs - 2) / 10) * 78 + 12;
   return (
-    <section style={{ padding: mob ? "3rem 4%" : "4.5rem 5% 4rem", background: "#fff" }}>
+    <section style={{ padding: mob ? "3rem 4%" : "4.5rem 5% 4rem", background: t.bgCard }}>
       <div style={{ textAlign: "center", marginBottom: mob ? "2rem" : "3rem" }}>
         <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: A, marginBottom: ".8rem" }}>The smarter way to stay</div>
-        <h2 style={{ fontSize: "clamp(1.9rem,3.8vw,2.8rem)", fontWeight: 900, color: NAVY, letterSpacing: "-.04em", lineHeight: 1.1, marginBottom: ".9rem" }}>Pay for hours,<br />not the whole night</h2>
-        <p style={{ fontSize: ".96rem", color: "#666", maxWidth: 520, margin: "0 auto", lineHeight: 1.65 }}>A full hotel night costs $280+ in New York. With CoupleOfHours, you only pay for the time you actually use.</p>
+        <h2 style={{ fontSize: "clamp(1.9rem,3.8vw,2.8rem)", fontWeight: 900, color: t.navy, letterSpacing: "-.04em", lineHeight: 1.1, marginBottom: ".9rem" }}>Pay for hours,<br />not the whole night</h2>
+        <p style={{ fontSize: ".96rem", color: t.textSecondary, maxWidth: 520, margin: "0 auto", lineHeight: 1.65 }}>A full hotel night costs $280+ in New York. With CoupleOfHours, you only pay for the time you actually use.</p>
       </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: mob ? 14 : 28, marginBottom: mob ? "2rem" : "3.5rem", flexWrap: "wrap", flexDirection: mob ? "column" : "row" }}>
-        <div style={{ background: "#f8f9fa", border: `1.5px solid ${BRD}`, borderRadius: 18, padding: "24px 26px", width: mob ? "100%" : 268 }}>
-          <div style={{ fontSize: ".68rem", fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>Traditional hotel night</div>
-          <div style={{ fontSize: "2.4rem", fontWeight: 900, letterSpacing: "-.05em", color: "#c0392b", textDecoration: "line-through", opacity: .65, lineHeight: 1, marginBottom: 6 }}>$280<span style={{ fontSize: ".78rem", fontWeight: 400, color: "#aaa", textDecoration: "none" }}>/night</span></div>
-          <div style={{ fontSize: ".74rem", color: "#999", marginBottom: 12 }}>Paying for 14+ hours you don't use</div>
-          <div style={{ background: "#e4e4e4", borderRadius: 6, height: 7 }}><div style={{ height: "100%", borderRadius: 6, background: "#c0392b", width: "20%" }} /></div>
-          <div style={{ fontSize: ".64rem", color: "#aaa", marginTop: 5 }}>14 hours unused 😔</div>
+        <div style={{ background: t.bg, border: `1.5px solid ${t.border}`, borderRadius: 18, padding: "24px 26px", width: mob ? "100%" : 268 }}>
+          <div style={{ fontSize: ".68rem", fontWeight: 700, color: t.textSecondary, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>Traditional hotel night</div>
+          <div style={{ fontSize: "2.4rem", fontWeight: 900, letterSpacing: "-.05em", color: "#c0392b", textDecoration: "line-through", opacity: .65, lineHeight: 1, marginBottom: 6 }}>$280<span style={{ fontSize: ".78rem", fontWeight: 400, color: t.textMuted, textDecoration: "none" }}>/night</span></div>
+          <div style={{ fontSize: ".74rem", color: t.textSecondary, marginBottom: 12 }}>Paying for 14+ hours you don't use</div>
+          <div style={{ background: t.border, borderRadius: 6, height: 7 }}><div style={{ height: "100%", borderRadius: 6, background: "#c0392b", width: "20%" }} /></div>
+          <div style={{ fontSize: ".64rem", color: t.textMuted, marginTop: 5 }}>14 hours unused 😔</div>
         </div>
-        {!mob && <div style={{ fontSize: ".76rem", fontWeight: 800, color: "#ccc", letterSpacing: ".12em" }}>VS</div>}
-        <div style={{ background: "#fff", border: `2px solid ${A}`, borderRadius: 18, padding: "28px 26px", width: mob ? "100%" : 268, position: "relative", boxShadow: `0 8px 36px rgba(255,77,0,.14)` }}>
+        {!mob && <div style={{ fontSize: ".76rem", fontWeight: 800, color: t.textMuted, letterSpacing: ".12em" }}>VS</div>}
+        <div style={{ background: t.bgCard, border: `2px solid ${A}`, borderRadius: 18, padding: "28px 26px", width: mob ? "100%" : 268, position: "relative", boxShadow: `0 8px 36px rgba(255,77,0,.14)` }}>
           <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: A, color: "#fff", fontSize: ".6rem", fontWeight: 800, padding: "4px 14px", borderRadius: 20, letterSpacing: ".06em", whiteSpace: "nowrap" }}>✨ Smarter</div>
-          <div style={{ fontSize: ".68rem", fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>CoupleOfHours</div>
-          <div style={{ fontSize: "2.4rem", fontWeight: 900, letterSpacing: "-.05em", color: NAVY, lineHeight: 1, marginBottom: 6 }}>${total}<span style={{ fontSize: ".78rem", fontWeight: 400, color: "#aaa" }}>/stay</span></div>
-          <div style={{ fontSize: ".74rem", color: "#999", marginBottom: 12 }}>Only pay for the hours you need</div>
-          <div style={{ background: "#e8e8e8", borderRadius: 6, height: 7, marginBottom: 5 }}><div style={{ height: "100%", borderRadius: 6, background: A, width: `${pct}%`, transition: "width .4s ease" }} /></div>
-          <div style={{ fontSize: ".64rem", color: "#aaa", marginBottom: 10 }}>{hrs}h · {hrs <= 3 ? "quick visit" : hrs <= 6 ? "perfect stay" : "extended stay"}</div>
-          {saving > 0 && <div style={{ background: "#e8f8f0", color: "#0a7c4e", fontSize: ".72rem", fontWeight: 700, padding: "6px 12px", borderRadius: 8, marginBottom: 14, textAlign: "center" }}>Save ${saving} vs a full night</div>}
-          <div style={{ fontSize: ".65rem", color: "#bbb", marginBottom: 5 }}>Adjust hours:</div>
+          <div style={{ fontSize: ".68rem", fontWeight: 700, color: t.textSecondary, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>CoupleOfHours</div>
+          <div style={{ fontSize: "2.4rem", fontWeight: 900, letterSpacing: "-.05em", color: t.navy, lineHeight: 1, marginBottom: 6 }}>${total}<span style={{ fontSize: ".78rem", fontWeight: 400, color: t.textMuted }}>/stay</span></div>
+          <div style={{ fontSize: ".74rem", color: t.textSecondary, marginBottom: 12 }}>Only pay for the hours you need</div>
+          <div style={{ background: t.border, borderRadius: 6, height: 7, marginBottom: 5 }}><div style={{ height: "100%", borderRadius: 6, background: A, width: `${pct}%`, transition: "width .4s ease" }} /></div>
+          <div style={{ fontSize: ".64rem", color: t.textMuted, marginBottom: 10 }}>{hrs}h · {hrs <= 3 ? "quick visit" : hrs <= 6 ? "perfect stay" : "extended stay"}</div>
+          {saving > 0 && <div style={{ background: t.dark ? "#0a2e1a" : "#e8f8f0", color: "#0a7c4e", fontSize: ".72rem", fontWeight: 700, padding: "6px 12px", borderRadius: 8, marginBottom: 14, textAlign: "center" }}>Save ${saving} vs a full night</div>}
+          <div style={{ fontSize: ".65rem", color: t.textMuted, marginBottom: 5 }}>Adjust hours:</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: ".64rem", color: "#bbb", fontWeight: 600 }}>2h</span>
+            <span style={{ fontSize: ".64rem", color: t.textMuted, fontWeight: 600 }}>2h</span>
             <input type="range" min="2" max="12" value={hrs} onChange={e => setHrs(+e.target.value)} style={{ flex: 1, accentColor: A }} />
-            <span style={{ fontSize: ".64rem", color: "#bbb", fontWeight: 600 }}>12h</span>
+            <span style={{ fontSize: ".64rem", color: t.textMuted, fontWeight: 600 }}>12h</span>
           </div>
         </div>
       </div>
@@ -136,13 +138,14 @@ export function WhySection() {
 
 function WhyCard({ card: v }: { card: typeof WHY_CARDS[0] }) {
   const [hov, setHov] = useState(false);
+  const t = useThemeColors();
   return (
     <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ background: "#fff", border: `1.5px solid ${hov ? "#ddd" : "#f0f0f0"}`, borderRadius: 16, padding: "22px 20px", transform: hov ? "translateY(-3px)" : "none", boxShadow: hov ? "0 8px 28px rgba(0,0,0,.07)" : "none", transition: "all .2s" }}>
+      style={{ background: t.bgCard, border: `1.5px solid ${hov ? t.border : (t.dark ? t.border : "#f0f0f0")}`, borderRadius: 16, padding: "22px 20px", transform: hov ? "translateY(-3px)" : "none", boxShadow: hov ? `0 8px 28px ${t.shadow}` : "none", transition: "all .2s" }}>
       <div style={{ width: 48, height: 48, borderRadius: 12, background: v.ibg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14, fontSize: "1.4rem" }}>{v.icon}</div>
-      <div style={{ fontSize: ".95rem", fontWeight: 800, color: NAVY, marginBottom: 6, lineHeight: 1.3 }}>{v.title}</div>
-      <div style={{ fontSize: ".77rem", color: "#777", lineHeight: 1.6, marginBottom: 12 }}>{v.desc}</div>
-      <div style={{ fontSize: ".74rem", color: "#555", paddingTop: 10, borderTop: "1px solid #f0f0f0" }}>{v.stat}</div>
+      <div style={{ fontSize: ".95rem", fontWeight: 800, color: t.navy, marginBottom: 6, lineHeight: 1.3 }}>{v.title}</div>
+      <div style={{ fontSize: ".77rem", color: t.textSecondary, lineHeight: 1.6, marginBottom: 12 }}>{v.desc}</div>
+      <div style={{ fontSize: ".74rem", color: t.textSecondary, paddingTop: 10, borderTop: `1px solid ${t.dark ? t.border : "#f0f0f0"}` }}>{v.stat}</div>
     </div>
   );
 }
@@ -150,13 +153,14 @@ function WhyCard({ card: v }: { card: typeof WHY_CARDS[0] }) {
 /* ── Airports ── */
 export function AirportsSection({ onSearch }: { onSearch: (q: string) => void }) {
   const mob = useIsMobile();
+  const t = useThemeColors();
   const airports = [
     { code: "JFK", name: "John F. Kennedy International", sub: "Jamaica, Queens, New York", hotels: 22, from: "$12/hr", drive: "5 min drive" },
     { code: "LGA", name: "LaGuardia Airport", sub: "East Elmhurst, Queens", hotels: 18, from: "$14/hr", drive: "3 min drive" },
     { code: "EWR", name: "Newark Liberty International", sub: "Newark, New Jersey", hotels: 15, from: "$10/hr", drive: "4 min drive" },
   ];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: BG }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bg }}>
       <SectionHeader title="Hotels Near" accent="Airports" link="All airport hotels →" onLink={() => onSearch("Near Airport")} />
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap: 14 }}>
         {airports.map(a => (
@@ -169,16 +173,17 @@ export function AirportsSection({ onSearch }: { onSearch: (q: string) => void })
 
 function AirportCard({ airport: a, onSearch }: { airport: { code: string; name: string; sub: string; hotels: number; from: string; drive: string }; onSearch: (q: string) => void }) {
   const [hov, setHov] = useState(false);
+  const t = useThemeColors();
   return (
     <div onClick={() => onSearch(`Near ${a.code}`)} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ background: "#fff", border: `1.5px solid ${hov ? "#ddd" : BRD}`, borderRadius: 16, padding: "1.4rem 1.6rem", cursor: "pointer", transform: hov ? "translateY(-3px)" : "none", boxShadow: hov ? "0 8px 28px rgba(0,0,0,.08)" : "none", transition: "all .2s", position: "relative", overflow: "hidden" }}>
+      style={{ background: t.bgCard, border: `1.5px solid ${hov ? t.border : t.border}`, borderRadius: 16, padding: "1.4rem 1.6rem", cursor: "pointer", transform: hov ? "translateY(-3px)" : "none", boxShadow: hov ? `0 8px 28px ${t.shadow}` : "none", transition: "all .2s", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: "radial-gradient(circle at top right,rgba(255,77,0,.07),transparent 70%)", pointerEvents: "none" }} />
       <div style={{ fontSize: "2.1rem", fontWeight: 900, color: A, letterSpacing: "-.04em", lineHeight: 1, marginBottom: ".4rem" }}>{a.code}</div>
-      <div style={{ fontSize: ".9rem", fontWeight: 700, color: BLK, marginBottom: ".2rem" }}>{a.name}</div>
-      <div style={{ fontSize: ".72rem", color: SEC, marginBottom: ".9rem" }}>{a.sub}</div>
+      <div style={{ fontSize: ".9rem", fontWeight: 700, color: t.text, marginBottom: ".2rem" }}>{a.name}</div>
+      <div style={{ fontSize: ".72rem", color: t.textSecondary, marginBottom: ".9rem" }}>{a.sub}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {[`${a.hotels} hotels`, a.from, a.drive].map((p, i) => (
-          <span key={p} style={{ fontSize: ".64rem", fontWeight: 600, background: i === 0 ? "#fff2ee" : "#f2f2f2", color: i === 0 ? A : SEC, padding: "3px 9px", borderRadius: 20 }}>{p}</span>
+          <span key={p} style={{ fontSize: ".64rem", fontWeight: 600, background: i === 0 ? (t.dark ? "#2a1a10" : "#fff2ee") : (t.dark ? "#1a3a5c" : "#f2f2f2"), color: i === 0 ? A : t.textSecondary, padding: "3px 9px", borderRadius: 20 }}>{p}</span>
         ))}
       </div>
     </div>
@@ -188,13 +193,14 @@ function AirportCard({ airport: a, onSearch }: { airport: { code: string; name: 
 /* ── NJ Section ── */
 export function NJSection({ onSearch }: { onSearch: (q: string) => void }) {
   const mob = useIsMobile();
+  const t = useThemeColors();
   const areas = [
     { area: "Hoboken", sub: "NJ · NYC Skyline Views", hotels: 11, from: "$15/hr", bg: "linear-gradient(135deg,#0a1e35,#0f2d50)" },
     { area: "Jersey City", sub: "NJ · Near PATH Train", hotels: 14, from: "$13/hr", bg: "linear-gradient(135deg,#0d2210,#123018)" },
     { area: "Newark", sub: "NJ · Near EWR Airport", hotels: 9, from: "$10/hr", bg: "linear-gradient(135deg,#160820,#2e1060)" },
   ];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: "#fff" }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bgCard }}>
       <SectionHeader title="Hotels in" accent="New Jersey" link="All NJ hotels →" onLink={() => onSearch("New Jersey")} />
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap: 14 }}>
         {areas.map(a => (
@@ -207,15 +213,16 @@ export function NJSection({ onSearch }: { onSearch: (q: string) => void }) {
 
 function NJCard({ area: a, onSearch }: { area: { area: string; sub: string; hotels: number; from: string; bg: string }; onSearch: (q: string) => void }) {
   const [hov, setHov] = useState(false);
+  const t = useThemeColors();
   return (
     <div onClick={() => onSearch(a.area + ", NJ")} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ borderRadius: 16, overflow: "hidden", border: `1.5px solid ${BRD}`, cursor: "pointer", transform: hov ? "translateY(-3px)" : "none", boxShadow: hov ? "0 8px 28px rgba(0,0,0,.09)" : "none", transition: "all .2s" }}>
+      style={{ borderRadius: 16, overflow: "hidden", border: `1.5px solid ${t.border}`, cursor: "pointer", transform: hov ? "translateY(-3px)" : "none", boxShadow: hov ? `0 8px 28px ${t.shadow}` : "none", transition: "all .2s" }}>
       <div style={{ height: 120, background: a.bg }} />
-      <div style={{ padding: "1rem 1.1rem .9rem", background: "#fff" }}>
-        <div style={{ fontSize: "1rem", fontWeight: 800, color: BLK, marginBottom: ".2rem" }}>{a.area}</div>
-        <div style={{ fontSize: ".7rem", color: SEC, marginBottom: ".7rem" }}>{a.sub}</div>
+      <div style={{ padding: "1rem 1.1rem .9rem", background: t.bgCard }}>
+        <div style={{ fontSize: "1rem", fontWeight: 800, color: t.text, marginBottom: ".2rem" }}>{a.area}</div>
+        <div style={{ fontSize: ".7rem", color: t.textSecondary, marginBottom: ".7rem" }}>{a.sub}</div>
         <div style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
-          <span style={{ fontSize: ".7rem", fontWeight: 700, background: "#f2f2f2", color: BLK, padding: "2px 9px", borderRadius: 20 }}>{a.hotels} hotels</span>
+          <span style={{ fontSize: ".7rem", fontWeight: 700, background: t.dark ? "#1a3a5c" : "#f2f2f2", color: t.text, padding: "2px 9px", borderRadius: 20 }}>{a.hotels} hotels</span>
           <span style={{ fontSize: ".7rem", fontWeight: 700, color: A }}>From {a.from}</span>
         </div>
       </div>
@@ -227,13 +234,14 @@ function NJCard({ area: a, onSearch }: { area: { area: string; sub: string; hote
 export function OccasionsSection({ onSearch }: { onSearch: (q: string) => void }) {
   const [tab, setTab] = useState("💑 All");
   const mob = useIsMobile();
+  const t = useThemeColors();
   const tabs = ["💑 All", "💑 Couples", "✈️ Layover", "💼 Business", "🎂 Celebration"];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: BG }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bg }}>
       <SectionHeader title="Perfect for Every" accent="Occasion" />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "1.4rem" }}>
-        {tabs.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "6px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === t ? BLK : BRD}`, background: tab === t ? BLK : "#fff", color: tab === t ? "#fff" : SEC, cursor: "pointer", fontFamily: "inherit", transition: "all .15s", flexShrink: 0 }}>{t}</button>
+        {tabs.map(tb => (
+          <button key={tb} onClick={() => setTab(tb)} style={{ padding: "6px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === tb ? t.text : t.border}`, background: tab === tb ? t.text : t.bgCard, color: tab === tb ? (t.dark ? "#0d1f38" : "#fff") : t.textSecondary, cursor: "pointer", fontFamily: "inherit", transition: "all .15s", flexShrink: 0 }}>{tb}</button>
         ))}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4,1fr)", gap: mob ? 10 : 14 }}>
@@ -247,12 +255,13 @@ export function OccasionsSection({ onSearch }: { onSearch: (q: string) => void }
 
 function OccasionCard({ occ: o, onSearch }: { occ: typeof OCC_DATA[0]; onSearch: (q: string) => void }) {
   const [hov, setHov] = useState(false);
+  const t = useThemeColors();
   return (
     <div onClick={() => onSearch("Manhattan")} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ background: "#fff", border: `1.5px solid ${hov ? "#d8d8d8" : BRD}`, borderRadius: 16, padding: "1.4rem 1.2rem", display: "flex", flexDirection: "column", gap: ".5rem", cursor: "pointer", transform: hov ? "translateY(-3px)" : "none", boxShadow: hov ? "0 8px 24px rgba(0,0,0,.08)" : "none", transition: "all .2s" }}>
+      style={{ background: t.bgCard, border: `1.5px solid ${hov ? t.border : (t.dark ? t.border : BRD)}`, borderRadius: 16, padding: "1.4rem 1.2rem", display: "flex", flexDirection: "column", gap: ".5rem", cursor: "pointer", transform: hov ? "translateY(-3px)" : "none", boxShadow: hov ? `0 8px 24px ${t.shadow}` : "none", transition: "all .2s" }}>
       <span style={{ fontSize: "1.9rem", lineHeight: 1 }}>{o.emoji}</span>
-      <div style={{ fontSize: ".9rem", fontWeight: 800, color: BLK, lineHeight: 1.2 }}>{o.label}</div>
-      <div style={{ fontSize: ".72rem", color: SEC, lineHeight: 1.55 }}>{o.desc}</div>
+      <div style={{ fontSize: ".9rem", fontWeight: 800, color: t.text, lineHeight: 1.2 }}>{o.label}</div>
+      <div style={{ fontSize: ".72rem", color: t.textSecondary, lineHeight: 1.55 }}>{o.desc}</div>
     </div>
   );
 }
@@ -260,6 +269,7 @@ function OccasionCard({ occ: o, onSearch }: { occ: typeof OCC_DATA[0]; onSearch:
 /* ── How It Works ── */
 export function HowItWorks() {
   const mob = useIsMobile();
+  const t = useThemeColors();
   const steps = [
     { n: "01", icon: "🔍", title: "Search", desc: "Enter a neighborhood in NY or NJ, pick a date and check-in time." },
     { n: "02", icon: "⏱️", title: "Choose Hours", desc: "Select 2, 3, 4, 6, 8 or 12 hours. Pay only for the time you use." },
@@ -267,15 +277,15 @@ export function HowItWorks() {
     { n: "04", icon: "🏨", title: "Check In & Enjoy", desc: "Walk in, check in, use all hotel amenities. Leave when done." },
   ];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: "#fff" }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bgCard }}>
       <SectionHeader title="How it" accent="works" />
-      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4,1fr)", border: `1px solid ${BRD}`, borderRadius: 16, overflow: "hidden" }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4,1fr)", border: `1px solid ${t.border}`, borderRadius: 16, overflow: "hidden" }}>
         {steps.map((s, i) => (
-          <div key={s.n} style={{ padding: mob ? "1.2rem" : "1.8rem 1.6rem", borderRight: mob ? (i % 2 === 0 ? `1px solid ${BRD}` : "none") : (i < 3 ? `1px solid ${BRD}` : "none"), borderBottom: mob && i < 2 ? `1px solid ${BRD}` : "none" }}>
+          <div key={s.n} style={{ padding: mob ? "1.2rem" : "1.8rem 1.6rem", borderRight: mob ? (i % 2 === 0 ? `1px solid ${t.border}` : "none") : (i < 3 ? `1px solid ${t.border}` : "none"), borderBottom: mob && i < 2 ? `1px solid ${t.border}` : "none" }}>
             <div style={{ fontSize: ".7rem", fontWeight: 800, color: A, letterSpacing: ".1em", marginBottom: ".7rem" }}>{s.n}</div>
             <div style={{ fontSize: "1.8rem", marginBottom: ".6rem" }}>{s.icon}</div>
-            <div style={{ fontSize: ".96rem", fontWeight: 800, color: BLK, marginBottom: ".4rem" }}>{s.title}</div>
-            <div style={{ fontSize: ".76rem", color: SEC, lineHeight: 1.65 }}>{s.desc}</div>
+            <div style={{ fontSize: ".96rem", fontWeight: 800, color: t.text, marginBottom: ".4rem" }}>{s.title}</div>
+            <div style={{ fontSize: ".76rem", color: t.textSecondary, lineHeight: 1.65 }}>{s.desc}</div>
           </div>
         ))}
       </div>
@@ -286,12 +296,13 @@ export function HowItWorks() {
 /* ── Stats ── */
 export function Stats() {
   const mob = useIsMobile();
+  const t = useThemeColors();
   return (
-    <div style={{ background: "#fff", borderTop: `1px solid ${BRD}`, borderBottom: `1px solid ${BRD}`, display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4, 1fr)", gap: mob ? "1rem" : 0, alignItems: "center", justifyContent: "center", padding: mob ? "1.6rem 4%" : "2.4rem 5%", textAlign: "center" }}>
+    <div style={{ background: t.bgCard, borderTop: `1px solid ${t.border}`, borderBottom: `1px solid ${t.border}`, display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4, 1fr)", gap: mob ? "1rem" : 0, alignItems: "center", justifyContent: "center", padding: mob ? "1.6rem 4%" : "2.4rem 5%", textAlign: "center" }}>
       {[["150+", "Partner Hotels"], ["NY + NJ", "Currently Available"], ["40K+", "Bookings Completed"], ["4.8★", "Average Guest Rating"]].map(([n, l]) => (
         <div key={n} style={{ textAlign: "center" }}>
-          <div style={{ fontSize: mob ? "1.5rem" : "2rem", fontWeight: 900, color: BLK, letterSpacing: "-.04em", lineHeight: 1 }}>{n}</div>
-          <div style={{ fontSize: ".72rem", color: SEC, fontWeight: 500, marginTop: ".3rem" }}>{l}</div>
+          <div style={{ fontSize: mob ? "1.5rem" : "2rem", fontWeight: 900, color: t.text, letterSpacing: "-.04em", lineHeight: 1 }}>{n}</div>
+          <div style={{ fontSize: ".72rem", color: t.textSecondary, fontWeight: 500, marginTop: ".3rem" }}>{l}</div>
         </div>
       ))}
     </div>
