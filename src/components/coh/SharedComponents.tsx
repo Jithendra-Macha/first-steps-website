@@ -304,13 +304,14 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
         value={value}
         onChange={e => { onChange(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
-        placeholder="City, neighborhood or hotel..."
+        onKeyDown={e => { if (e.key === "Enter" && value.trim()) { setOpen(false); } }}
+        placeholder="Address, city or neighborhood..."
         style={{ border: "none", outline: "none", fontSize: ".88rem", color: "#111", width: "100%", background: "transparent", fontFamily: "'Inter', system-ui, sans-serif" }}
       />
-      {open && results.length > 0 && (
+      {open && (results.length > 0 || (value.trim().length > 3)) && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
       )}
-      {open && results.length > 0 && (
+      {open && (results.length > 0 || (value.trim().length > 3)) && (
         <div style={{
           position: mob ? "fixed" : "absolute",
           top: mob ? "auto" : "calc(100% + 14px)",
@@ -411,11 +412,41 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
             );
           })}
 
+          {/* Use address directly option */}
+          {value.trim() && value.trim().length > 3 && results.length === 0 && (
+            <div
+              onClick={() => { setOpen(false); }}
+              style={{ padding: "14px 22px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${BRD}` }}
+              onMouseEnter={e => e.currentTarget.style.background = "#f8f8f8"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <div style={{ width: 38, height: 38, borderRadius: 11, background: "#fff2ee", border: `1.5px solid #ffd6c4`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="1.8" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: ".85rem", fontWeight: 700, color: "#1a1a1a" }}>Search "{value.trim()}"</div>
+                <span style={{ fontSize: ".64rem", color: "#999" }}>Use this address to find nearby hotels</span>
+              </div>
+            </div>
+          )}
+
+          {value.trim() && value.trim().length > 3 && results.length > 0 && (
+            <div
+              onClick={() => { setOpen(false); }}
+              style={{ padding: "12px 22px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, borderTop: `1px solid ${BRD}`, marginTop: 4 }}
+              onMouseEnter={e => e.currentTarget.style.background = "#f8f8f8"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+              <span style={{ fontSize: ".76rem", fontWeight: 700, color: A }}>Search by address: "{value.trim()}"</span>
+            </div>
+          )}
+
           <div style={{ padding: "10px 22px 14px", borderTop: `1px solid ${BRD}`, marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
-            <span style={{ fontSize: ".68rem", color: "#999", fontStyle: "italic" }}>Search 200+ locations across the US</span>
+            <span style={{ fontSize: ".68rem", color: "#999", fontStyle: "italic" }}>Search by address, city or neighborhood</span>
           </div>
         </div>
       )}
