@@ -535,7 +535,7 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
   const mob = useIsMobile();
 
   return (
-    <div style={{ background: "radial-gradient(ellipse at 65% -10%,#1a1a1a 0%,#0d0d0d 50%,#050505 100%)", padding: mob ? "3rem 4% 3.5rem" : "5rem 5% 6rem", textAlign: "center", position: "relative" }}>
+    <div style={{ background: "radial-gradient(ellipse at 65% -10%,#1a2a42 0%,#0d1f38 50%,#081526 100%)", padding: mob ? "3rem 4% 3.5rem" : "5rem 5% 6rem", textAlign: "center", position: "relative" }}>
       <div style={{ position: "absolute", inset: 0, opacity: .04, pointerEvents: "none", backgroundImage: "linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px)", backgroundSize: "44px 44px" }} />
       <div style={{ position: "absolute", top: "-60px", left: "20%", width: 400, height: 400, borderRadius: "50%", background: "rgba(255,77,0,.06)", filter: "blur(80px)", pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: 0, right: "15%", width: 300, height: 300, borderRadius: "50%", background: "rgba(30,80,180,.12)", filter: "blur(60px)", pointerEvents: "none" }} />
