@@ -126,7 +126,6 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
 function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; onSelect: (d: Date) => void; onClose: () => void }) {
   const [baseMonth, setBaseMonth] = useState(() => selected ? startOfMonth(selected) : startOfMonth(new Date()));
   const today = startOfDay(new Date());
-  const months = [baseMonth, addMonths(baseMonth, 1)];
 
   const getDayColor = (day: Date) => {
     const dow = day.getDay();
@@ -143,29 +142,25 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
   }, [onClose]);
 
   return (
-    <div ref={ref} style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: 16, boxShadow: "0 16px 50px rgba(0,0,0,.2)", border: `1px solid ${BRD}`, padding: "20px 24px 16px", zIndex: 999, width: 620 }}>
+    <div ref={ref} style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: 16, boxShadow: "0 16px 50px rgba(0,0,0,.2)", border: `1px solid ${BRD}`, padding: "20px 24px 16px", zIndex: 999, width: 320 }}>
       {/* header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <button onClick={() => setBaseMonth(m => subMonths(m, 1))} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: "4px 8px", borderRadius: 6 }}>‹</button>
-        <div style={{ display: "flex", gap: 80 }}>
-          {months.map((m, i) => (
-            <span key={i} style={{ fontSize: ".95rem", fontWeight: 700, color: NAVY }}>{format(m, "MMMM yyyy")}</span>
-          ))}
-        </div>
+        <span style={{ fontSize: ".95rem", fontWeight: 700, color: NAVY }}>{format(baseMonth, "MMMM yyyy")}</span>
         <button onClick={() => setBaseMonth(m => addMonths(m, 1))} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: "4px 8px", borderRadius: 6 }}>›</button>
       </div>
 
-      {/* months grid */}
-      <div style={{ display: "flex", gap: 24 }}>
-        {months.map((month, mi) => {
-          const mStart = startOfMonth(month);
-          const mEnd = endOfMonth(month);
+      {/* month grid */}
+      <div>
+        {(() => {
+          const mStart = startOfMonth(baseMonth);
+          const mEnd = endOfMonth(baseMonth);
           const calStart = startOfWeek(mStart);
           const calEnd = endOfWeek(mEnd);
           const days = eachDayOfInterval({ start: calStart, end: calEnd });
 
           return (
-            <div key={mi} style={{ flex: 1 }}>
+            <>
               {/* day headers */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 4 }}>
                 {["S", "M", "T", "W", "T", "F", "S"].map((d, di) => (
@@ -175,7 +170,7 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
               {/* day cells */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
                 {days.map((day, di) => {
-                  const inMonth = isSameMonth(day, month);
+                  const inMonth = isSameMonth(day, baseMonth);
                   const isPast = isBefore(day, today);
                   const isSelected = selected && isSameDay(day, selected);
                   const isToday = isSameDay(day, today);
@@ -212,9 +207,9 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
                   );
                 })}
               </div>
-            </div>
+            </>
           );
-        })}
+        })()}
       </div>
 
       {/* legend */}
