@@ -284,7 +284,7 @@ function MapPanel({ hotels, activeIdx, onPin }: { hotels: Hotel[]; activeIdx: nu
     mapboxgl.accessToken = MAPBOX_TOKEN;
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11",
+      style: "mapbox://styles/mapbox/streets-v12",
       center: [-73.985, 40.748],
       zoom: 12.5,
       pitchWithRotate: false,
