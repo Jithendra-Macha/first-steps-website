@@ -773,11 +773,22 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
 export function TrustRow() {
   const mob = useIsMobile();
   const t = useThemeColors();
-  const items = ["✅ Instant Confirmation", "💳 No Credit Card Hold", "🔒 100% Private & Secure", "🕐 Check-in Any Time", "💰 Best Price Guarantee"];
+  const items = [
+    { icon: "✅", text: "Instant Confirmation" },
+    { icon: "💳", text: "No Credit Card Hold" },
+    { icon: "🔒", text: "100% Private & Secure" },
+    { icon: "🕐", text: "Check-in Any Time" },
+    { icon: "🛡️", text: "Free Cancellation" },
+    { icon: "🏨", text: "Payment at the Hotel" },
+    { icon: "💰", text: "Best Price Guarantee" },
+  ];
   return (
-    <div style={{ background: t.bgCard, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: mob ? "flex-start" : "center", gap: mob ? "1.2rem" : "2.5rem", padding: mob ? ".7rem 5%" : ".9rem 8%", flexWrap: "nowrap", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-      {items.slice(0, mob ? 3 : 5).map(ti => (
-        <div key={ti} style={{ fontSize: ".76rem", fontWeight: 500, color: t.textSecondary, whiteSpace: "nowrap", flexShrink: 0 }}>{ti}</div>
+    <div style={{ background: t.bgCard, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: mob ? "flex-start" : "center", gap: mob ? "1rem" : "2rem", padding: mob ? ".85rem 5%" : "1.1rem 8%", flexWrap: "nowrap", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      {items.slice(0, mob ? 4 : 7).map(ti => (
+        <div key={ti.text} style={{ display: "flex", alignItems: "center", gap: ".4rem", whiteSpace: "nowrap", flexShrink: 0 }}>
+          <span style={{ fontSize: mob ? ".95rem" : "1.1rem" }}>{ti.icon}</span>
+          <span style={{ fontSize: mob ? ".82rem" : ".92rem", fontWeight: 700, color: t.text, letterSpacing: "-.01em" }}>{ti.text}</span>
+        </div>
       ))}
     </div>
   );
