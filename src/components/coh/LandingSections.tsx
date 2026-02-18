@@ -341,7 +341,7 @@ export function Footer() {
     <footer style={{ background: BLK, color: "rgba(255,255,255,.6)", padding: mob ? "2rem 5% 1.5rem" : "3.5rem 8% 2rem" }}>
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1.6fr 1fr 1fr 1fr", gap: mob ? "1.5rem" : "2.5rem", marginBottom: mob ? "1.5rem" : "2.5rem" }}>
         <div>
-          <img src={cohLogo} alt="CoupleOfHours" style={{ height: 36, objectFit: "contain", marginBottom: ".6rem" }} />
+          <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#fff", marginBottom: ".6rem" }}>coupleofhours<span style={{ color: A }}>.com</span></div>
           <p style={{ fontSize: ".76rem", lineHeight: 1.68, maxWidth: 240, marginBottom: "1rem" }}>Hourly hotel bookings across New York & New Jersey. Flexible, private, instant — pay only for the time you need.</p>
           <div style={{ display: "flex", gap: 6 }}>
             {["🔒 SSL Secured", "🇺🇸 New York · NJ"].map(b => (
