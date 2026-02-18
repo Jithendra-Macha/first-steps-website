@@ -7,6 +7,7 @@ import HotelPage, { ConfirmationPage, type BookingData } from "@/components/coh/
 import AuthPage from "@/pages/AuthPage";
 import ProfilePage from "@/pages/ProfilePage";
 import ReservationsPage from "@/pages/ReservationsPage";
+import ListPropertyPage from "@/pages/ListPropertyPage";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Hotel } from "@/data/hotels";
@@ -21,7 +22,7 @@ const A = "#ff4d00";
 const NAVY = "#0d1f38";
 
 const Index = () => {
-  const [page, setPage] = useState<"landing" | "results" | "hotel" | "confirmation" | "profile" | "reservations">("landing");
+  const [page, setPage] = useState<"landing" | "results" | "hotel" | "confirmation" | "profile" | "reservations" | "list-property">("landing");
   const [query, setQuery] = useState("Manhattan, New York");
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
@@ -88,11 +89,18 @@ const Index = () => {
     window.scrollTo(0, 0);
   }, [user]);
 
+  const handleListPropertyClick = useCallback(() => {
+    if (!user) { setShowAuth(true); return; }
+    setPage("list-property");
+    window.scrollTo(0, 0);
+  }, [user]);
+
   const navProps = {
     onSearch: goSearch,
     onAuthClick: handleAuthClick,
     onProfileClick: handleProfileClick,
     onReservationsClick: handleReservationsClick,
+    onListPropertyClick: handleListPropertyClick,
     user,
     onSignOut: signOut,
   };
@@ -113,6 +121,11 @@ const Index = () => {
         {page === "reservations" && (
           <motion.div key="reservations" variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <ReservationsPage onBack={goHome} onSearch={goSearch} />
+          </motion.div>
+        )}
+        {page === "list-property" && (
+          <motion.div key="list-property" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+            <ListPropertyPage onBack={goHome} />
           </motion.div>
         )}
         {page === "hotel" && selectedHotel && (
