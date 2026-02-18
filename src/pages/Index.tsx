@@ -2,13 +2,16 @@ import { useState, useCallback } from "react";
 import { Nav, Hero, TrustRow } from "@/components/coh/SharedComponents";
 import { DealsSection, ZonesSection, WhySection, AirportsSection, NJSection, OccasionsSection, HowItWorks, Stats, Footer } from "@/components/coh/LandingSections";
 import ResultsPage from "@/components/coh/ResultsPage";
+import HotelPage from "@/components/coh/HotelPage";
+import type { Hotel } from "@/data/hotels";
 
 const A = "#ff4d00";
 const NAVY = "#0d1f38";
 
 const Index = () => {
-  const [page, setPage] = useState<"landing" | "results">("landing");
+  const [page, setPage] = useState<"landing" | "results" | "hotel">("landing");
   const [query, setQuery] = useState("Manhattan, New York");
+  const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
 
   const goSearch = useCallback((q: string) => {
     setQuery(q || "Manhattan");
@@ -21,8 +24,23 @@ const Index = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  const goHotel = useCallback((hotel: Hotel) => {
+    setSelectedHotel(hotel);
+    setPage("hotel");
+    window.scrollTo(0, 0);
+  }, []);
+
+  const goBackFromHotel = useCallback(() => {
+    setPage("results");
+    window.scrollTo(0, 0);
+  }, []);
+
+  if (page === "hotel" && selectedHotel) {
+    return <HotelPage hotel={selectedHotel} onBack={goBackFromHotel} />;
+  }
+
   if (page === "results") {
-    return <ResultsPage query={query} onGoHome={goHome} onSearch={goSearch} />;
+    return <ResultsPage query={query} onGoHome={goHome} onSearch={goSearch} onHotelClick={goHotel} />;
   }
 
   return (
