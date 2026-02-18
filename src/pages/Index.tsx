@@ -36,7 +36,7 @@ const Index = () => {
       <TrustRow />
       <DealsSection onSearch={goSearch} />
       <ZonesSection onSearch={goSearch} />
-      <WhySection />
+      
       <AirportsSection onSearch={goSearch} />
       <NJSection onSearch={goSearch} />
       <OccasionsSection onSearch={goSearch} />
