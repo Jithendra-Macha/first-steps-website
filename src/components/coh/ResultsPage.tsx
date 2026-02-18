@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import cohLogo from "@/assets/logo-coh.jpeg";
 import { Btn, useIsMobile, useThemeColors } from "./SharedComponents";
 import { HOTELS } from "@/data/hotels";
 import type { Hotel } from "@/data/hotels";
@@ -883,9 +884,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
         padding: mob ? "0 12px" : "0 24px", height: mob ? 48 : 54,
         gap: mob ? 8 : 16, flexShrink: 0,
       }}>
-        <div onClick={onGoHome} style={{ fontSize: "1.05rem", fontWeight: 900, cursor: "pointer", flexShrink: 0, letterSpacing: "-.02em", color: "#fff" }}>
-          couple<span style={{ color: A }}>.</span>ofhours
-        </div>
+        <img src={cohLogo} alt="CoupleOfHours" onClick={onGoHome} style={{ height: 32, cursor: "pointer", objectFit: "contain" }} />
 
         {/* Search bar */}
         {!mob && (
