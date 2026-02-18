@@ -390,6 +390,36 @@ export function getTypeIcon(type: string): string {
   return TYPE_ICONS[type] || "📍";
 }
 
+// State display names & icons
+const STATE_DISPLAY: Record<string, { name: string; icon: string }> = {
+  NY: { name: "New York", icon: "🗽" },
+  NJ: { name: "New Jersey", icon: "🌊" },
+  CA: { name: "California", icon: "☀️" },
+  FL: { name: "Florida", icon: "🌴" },
+  TX: { name: "Texas", icon: "⛤" },
+  IL: { name: "Illinois", icon: "🌆" },
+  MA: { name: "Massachusetts", icon: "🎓" },
+  PA: { name: "Pennsylvania", icon: "🔔" },
+  CO: { name: "Colorado", icon: "⛰️" },
+  GA: { name: "Georgia", icon: "🍑" },
+  TN: { name: "Tennessee", icon: "🎵" },
+  NV: { name: "Nevada", icon: "🎰" },
+  WA: { name: "Washington", icon: "🌲" },
+  OR: { name: "Oregon", icon: "🦫" },
+  LA: { name: "Louisiana", icon: "⚜️" },
+  AZ: { name: "Arizona", icon: "🌵" },
+  HI: { name: "Hawaii", icon: "🏝️" },
+  SC: { name: "South Carolina", icon: "🌙" },
+  NC: { name: "North Carolina", icon: "🏔️" },
+  VA: { name: "Virginia", icon: "🏛️" },
+  MD: { name: "Maryland", icon: "🦀" },
+  DC: { name: "Washington D.C.", icon: "🏛️" },
+};
+
+export function getStateDisplay(state: string): { name: string; icon: string } {
+  return STATE_DISPLAY[state] || { name: state, icon: "📍" };
+}
+
 export function searchLocations(query: string, limit = 8): USLocation[] {
   if (!query.trim()) {
     return US_LOCATIONS.filter(l => l.popular).slice(0, limit);
