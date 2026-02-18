@@ -14,6 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      hotel_listings: {
+        Row: {
+          additional_amenities: string[] | null
+          additional_policies: string | null
+          age_restriction: number | null
+          available_hours: Json
+          cancellation_policy: string | null
+          check_in_policy: string | null
+          city: string
+          contact_person_email: string | null
+          contact_person_name: string | null
+          contact_person_phone: string | null
+          created_at: string
+          has_accessible: boolean
+          has_bar: boolean
+          has_breakfast: boolean
+          has_business_center: boolean
+          has_concierge: boolean
+          has_ev_charging: boolean
+          has_gym: boolean
+          has_laundry: boolean
+          has_parking: boolean
+          has_pet_friendly: boolean
+          has_pool: boolean
+          has_restaurant: boolean
+          has_room_service: boolean
+          has_spa: boolean
+          has_wifi: boolean
+          hotel_description: string | null
+          hotel_email: string
+          hotel_name: string
+          hotel_phone: string
+          id: string
+          neighborhood: string | null
+          pet_policy: string | null
+          photos: string[] | null
+          room_types: Json
+          smoking_policy: string
+          state: string
+          status: string
+          street_address: string
+          updated_at: string
+          user_id: string
+          zip_code: string
+        }
+        Insert: {
+          additional_amenities?: string[] | null
+          additional_policies?: string | null
+          age_restriction?: number | null
+          available_hours?: Json
+          cancellation_policy?: string | null
+          check_in_policy?: string | null
+          city: string
+          contact_person_email?: string | null
+          contact_person_name?: string | null
+          contact_person_phone?: string | null
+          created_at?: string
+          has_accessible?: boolean
+          has_bar?: boolean
+          has_breakfast?: boolean
+          has_business_center?: boolean
+          has_concierge?: boolean
+          has_ev_charging?: boolean
+          has_gym?: boolean
+          has_laundry?: boolean
+          has_parking?: boolean
+          has_pet_friendly?: boolean
+          has_pool?: boolean
+          has_restaurant?: boolean
+          has_room_service?: boolean
+          has_spa?: boolean
+          has_wifi?: boolean
+          hotel_description?: string | null
+          hotel_email: string
+          hotel_name: string
+          hotel_phone: string
+          id?: string
+          neighborhood?: string | null
+          pet_policy?: string | null
+          photos?: string[] | null
+          room_types?: Json
+          smoking_policy?: string
+          state: string
+          status?: string
+          street_address: string
+          updated_at?: string
+          user_id: string
+          zip_code: string
+        }
+        Update: {
+          additional_amenities?: string[] | null
+          additional_policies?: string | null
+          age_restriction?: number | null
+          available_hours?: Json
+          cancellation_policy?: string | null
+          check_in_policy?: string | null
+          city?: string
+          contact_person_email?: string | null
+          contact_person_name?: string | null
+          contact_person_phone?: string | null
+          created_at?: string
+          has_accessible?: boolean
+          has_bar?: boolean
+          has_breakfast?: boolean
+          has_business_center?: boolean
+          has_concierge?: boolean
+          has_ev_charging?: boolean
+          has_gym?: boolean
+          has_laundry?: boolean
+          has_parking?: boolean
+          has_pet_friendly?: boolean
+          has_pool?: boolean
+          has_restaurant?: boolean
+          has_room_service?: boolean
+          has_spa?: boolean
+          has_wifi?: boolean
+          hotel_description?: string | null
+          hotel_email?: string
+          hotel_name?: string
+          hotel_phone?: string
+          id?: string
+          neighborhood?: string | null
+          pet_policy?: string | null
+          photos?: string[] | null
+          room_types?: Json
+          smoking_policy?: string
+          state?: string
+          status?: string
+          street_address?: string
+          updated_at?: string
+          user_id?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

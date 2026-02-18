@@ -94,11 +94,12 @@ export function SectionHeader({ title, accent, sub, link, onLink }: SectionHeade
 }
 
 /* ── Nav ── */
-export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick, user, onSignOut }: {
+export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick, onListPropertyClick, user, onSignOut }: {
   onSearch: (q: string) => void;
   onAuthClick?: () => void;
   onProfileClick?: () => void;
   onReservationsClick?: () => void;
+  onListPropertyClick?: () => void;
   user?: any;
   onSignOut?: () => void;
 }) {
@@ -176,17 +177,17 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
           </div>
           {menuOpen && (
             <div style={{ position: "absolute", top: 52, left: 0, right: 0, background: t.navBgSolid, borderBottom: `1px solid ${t.border}`, padding: "12px 4%", display: "flex", flexDirection: "column", gap: 12, boxShadow: `0 8px 24px ${t.shadow}`, zIndex: 300 }}>
-              {["Explore Hotels", "List Your Property", "Help"].map(l => (
-                <a key={l} style={{ fontSize: ".82rem", fontWeight: 500, color: t.textSecondary, cursor: "pointer", padding: "6px 0" }}>{l}</a>
+              {[{ label: "Explore Hotels", action: undefined }, { label: "List Your Property", action: onListPropertyClick }, { label: "Help", action: undefined }].map(l => (
+                <a key={l.label} onClick={l.action} style={{ fontSize: ".82rem", fontWeight: 500, color: t.textSecondary, cursor: "pointer", padding: "6px 0" }}>{l.label}</a>
               ))}
             </div>
           )}
         </>
       ) : (
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          {["Explore Hotels", "List Your Property", "Help"].map(l => (
-            <a key={l} style={{ fontSize: ".8rem", fontWeight: 500, color: t.textSecondary, cursor: "pointer", transition: "color .15s" }}
-              onMouseEnter={e => (e.target as HTMLElement).style.color = t.text} onMouseLeave={e => (e.target as HTMLElement).style.color = t.textSecondary}>{l}</a>
+          {[{ label: "Explore Hotels", action: undefined }, { label: "List Your Property", action: onListPropertyClick }, { label: "Help", action: undefined }].map(l => (
+            <a key={l.label} onClick={l.action} style={{ fontSize: ".8rem", fontWeight: 500, color: t.textSecondary, cursor: "pointer", transition: "color .15s" }}
+              onMouseEnter={e => (e.target as HTMLElement).style.color = t.text} onMouseLeave={e => (e.target as HTMLElement).style.color = t.textSecondary}>{l.label}</a>
           ))}
           <ThemeToggleBtn />
           <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
