@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import cohLogo from "@/assets/logo-coh.jpeg";
 import { Btn, useIsMobile } from "./SharedComponents";
 import type { Hotel } from "@/data/hotels";
 import { HOTELS } from "@/data/hotels";
@@ -322,9 +323,7 @@ export function ConfirmationPage({ booking, onHome }: { booking: BookingData; on
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 5%", height: 58,
       }}>
-        <div onClick={onHome} style={{ fontSize: "1.05rem", fontWeight: 900, cursor: "pointer", letterSpacing: "-.02em", color: NAVY }}>
-          couple<span style={{ color: A }}>.</span>ofhours
-        </div>
+        <img src={cohLogo} alt="CoupleOfHours" onClick={onHome} style={{ height: 34, cursor: "pointer", objectFit: "contain" }} />
         <button onClick={onHome} style={{
           background: "#f5f5f5", border: "none", borderRadius: 10,
           padding: "0 16px", height: 36, cursor: "pointer",
@@ -1182,9 +1181,7 @@ export default function HotelPage({ hotel, onBack, onBookingComplete }: { hotel:
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: ".9rem",
           }}>←</button>
-          <div onClick={onBack} style={{ fontSize: "1.05rem", fontWeight: 900, cursor: "pointer", letterSpacing: "-.02em", color: NAVY }}>
-            couple<span style={{ color: A }}>.</span>ofhours
-          </div>
+          <img src={cohLogo} alt="CoupleOfHours" onClick={onBack} style={{ height: 34, cursor: "pointer", objectFit: "contain" }} />
         </div>
 
         {/* Section tabs - hide on mobile */}
