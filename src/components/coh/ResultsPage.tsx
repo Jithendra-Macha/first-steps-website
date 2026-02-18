@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Btn } from "./SharedComponents";
+import { Btn, useIsMobile } from "./SharedComponents";
 import { HOTELS } from "@/data/hotels";
 import type { Hotel } from "@/data/hotels";
 export type { Hotel };
@@ -364,9 +364,9 @@ function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared
       )}
 
       {/* Top section: Image + Info side by side */}
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", flexDirection: "column" }}>
         {/* Image with overlay content */}
-        <div style={{ width: 200, minWidth: 200, position: "relative", overflow: "hidden" }}>
+        <div style={{ width: "100%", minHeight: 160, position: "relative", overflow: "hidden" }}>
           <div style={{
             position: "absolute", inset: 0,
             background: h.photoBg,
@@ -743,8 +743,9 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
   const [sort, setSort] = useState("rec");
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [city, setCity] = useState(query);
-  const [view, setView] = useState<"split" | "list" | "map">("split");
-  const [filtersOpen, setFiltersOpen] = useState(true);
+  const mob = useIsMobile();
+  const [view, setView] = useState<"split" | "list" | "map">(mob ? "list" : "split");
+  const [filtersOpen, setFiltersOpen] = useState(!mob);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
 
@@ -772,14 +773,15 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
       <nav style={{
         background: NAVY,
         display: "flex", alignItems: "center",
-        padding: "0 24px", height: 54,
-        gap: 16, flexShrink: 0,
+        padding: mob ? "0 12px" : "0 24px", height: mob ? 48 : 54,
+        gap: mob ? 8 : 16, flexShrink: 0,
       }}>
         <div onClick={onGoHome} style={{ fontSize: "1.05rem", fontWeight: 900, cursor: "pointer", flexShrink: 0, letterSpacing: "-.02em", color: "#fff" }}>
           couple<span style={{ color: A }}>.</span>ofhours
         </div>
 
         {/* Search bar */}
+        {!mob && (
         <div style={{
           flex: 1, maxWidth: 500,
           display: "flex", alignItems: "center",
@@ -821,6 +823,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
             Search
           </button>
         </div>
+        )}
 
         {/* Compare toggle */}
         <button
@@ -839,7 +842,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
         </button>
 
         {/* View toggles */}
-        <div style={{ display: "flex", gap: 2, marginLeft: 4, background: "rgba(255,255,255,.1)", borderRadius: 8, padding: 2 }}>
+        {!mob && <div style={{ display: "flex", gap: 2, marginLeft: 4, background: "rgba(255,255,255,.1)", borderRadius: 8, padding: 2 }}>
           {([["split", "⬒"], ["list", "☰"], ["map", "🗺"]] as const).map(([v, ico]) => (
             <button
               key={v}
@@ -857,11 +860,11 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
               {ico}
             </button>
           ))}
-        </div>
+        </div>}
 
         {/* Right nav */}
-        <div style={{ display: "flex", alignItems: "center", gap: "1.4rem", marginLeft: "auto" }}>
-          {["Help", "List Property"].map(l => (
+        <div style={{ display: "flex", alignItems: "center", gap: mob ? ".6rem" : "1.4rem", marginLeft: "auto" }}>
+          {!mob && ["Help", "List Property"].map(l => (
             <a key={l} style={{ fontSize: ".76rem", color: "rgba(255,255,255,.55)", cursor: "pointer", fontWeight: 500, transition: "color .15s" }}
               onMouseEnter={e => (e.target as HTMLElement).style.color = "#fff"}
               onMouseLeave={e => (e.target as HTMLElement).style.color = "rgba(255,255,255,.55)"}
@@ -944,8 +947,8 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
           </div>
         )}
 
-        {/* Map */}
-        {view !== "list" && (
+        {/* Map - hide on mobile list view */}
+        {view !== "list" && !mob && (
           <MapPanel
             hotels={sorted}
             activeIdx={activeIdx}
