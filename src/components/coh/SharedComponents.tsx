@@ -9,6 +9,34 @@ const BLK = "#0a0a0a";
 const SEC = "#888";
 const BRD = "#e8e8e8";
 
+/* ── Theme-aware colors hook ── */
+export function useThemeColors() {
+  const [dark, setDark] = useState(document.documentElement.classList.contains("dark"));
+  useEffect(() => {
+    const obs = new MutationObserver(() => setDark(document.documentElement.classList.contains("dark")));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return {
+    dark,
+    bg: dark ? "#0d1f38" : "#fafafa",
+    bgPage: dark ? "#081424" : "#f8f8f8",
+    bgCard: dark ? "#132d4a" : "#fff",
+    bgInput: dark ? "#1a3a5c" : "#fff",
+    text: dark ? "#e8edf3" : "#0a0a0a",
+    textSecondary: dark ? "#8ea4be" : "#888",
+    textMuted: dark ? "#5c7a99" : "#bbb",
+    border: dark ? "#1e3a58" : "#e8e8e8",
+    navy: dark ? "#e8edf3" : "#0d1f38",
+    navBg: dark ? "rgba(13,31,56,.97)" : "rgba(255,255,255,.97)",
+    navBgSolid: dark ? "#0d1f38" : "#fff",
+    cardHover: dark ? "#1a3a5c" : "#f8f8f8",
+    shadow: dark ? "rgba(0,0,0,.3)" : "rgba(0,0,0,.07)",
+    dropdownBg: dark ? "#132d4a" : "#fff",
+    accent: A,
+  };
+}
+
 /* ── Mobile hook ── */
 export function useIsMobile(bp = 768) {
   const [m, setM] = useState(window.innerWidth < bp);
@@ -26,6 +54,7 @@ interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Btn({ children, variant = "accent", style = {}, ...rest }: BtnProps) {
+  const t = useThemeColors();
   const base: React.CSSProperties = {
     border: "none", borderRadius: 10, fontFamily: "inherit", cursor: "pointer",
     fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -34,7 +63,7 @@ export function Btn({ children, variant = "accent", style = {}, ...rest }: BtnPr
   const vars: Record<string, React.CSSProperties> = {
     accent: { background: A, color: "#fff" },
     ghost: { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.9)", border: "1px solid rgba(255,255,255,.2)" },
-    outline: { background: "transparent", color: BLK, border: `1.5px solid ${BRD}` },
+    outline: { background: "transparent", color: t.text, border: `1.5px solid ${t.border}` },
   };
   return <button style={{ ...base, ...(vars[variant] || vars.accent), ...style }} {...rest}>{children}</button>;
 }
@@ -49,13 +78,14 @@ interface SectionHeaderProps {
 }
 
 export function SectionHeader({ title, accent, sub, link, onLink }: SectionHeaderProps) {
+  const t = useThemeColors();
   return (
     <div style={{ marginBottom: "1.6rem", display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
       <div>
-        <h2 style={{ fontSize: "clamp(1.4rem,2.5vw,1.9rem)", fontWeight: 900, color: NAVY, letterSpacing: "-.04em", lineHeight: 1.1 }}>
+        <h2 style={{ fontSize: "clamp(1.4rem,2.5vw,1.9rem)", fontWeight: 900, color: t.navy, letterSpacing: "-.04em", lineHeight: 1.1 }}>
           {title} <span style={{ color: A }}>{accent}</span>
         </h2>
-        {sub && <p style={{ fontSize: ".82rem", color: SEC, marginTop: ".4rem" }}>{sub}</p>}
+        {sub && <p style={{ fontSize: ".82rem", color: t.textSecondary, marginTop: ".4rem" }}>{sub}</p>}
       </div>
       {link && <a onClick={onLink} style={{ fontSize: ".78rem", fontWeight: 700, color: A, cursor: "pointer", flexShrink: 0 }}>{link}</a>}
     </div>
@@ -75,13 +105,13 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const mob = useIsMobile();
+  const t = useThemeColors();
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
 
-  // Close user menu on outside click
   useEffect(() => {
     if (!userMenuOpen) return;
     const h = () => setUserMenuOpen(false);
@@ -90,35 +120,35 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
   }, [userMenuOpen]);
 
   const userDropdown = (
-    <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 8, background: "#fff", borderRadius: 16, boxShadow: "0 12px 40px rgba(0,0,0,.12)", border: `1px solid ${BRD}`, minWidth: 200, zIndex: 400, overflow: "hidden" }}>
+    <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 8, background: t.dropdownBg, borderRadius: 16, boxShadow: `0 12px 40px ${t.shadow}`, border: `1px solid ${t.border}`, minWidth: 200, zIndex: 400, overflow: "hidden" }}>
       {user ? (
         <>
-          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BRD}` }}>
-            <div style={{ fontSize: ".8rem", fontWeight: 700, color: NAVY }}>{user.email}</div>
+          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${t.border}` }}>
+            <div style={{ fontSize: ".8rem", fontWeight: 700, color: t.navy }}>{user.email}</div>
           </div>
-          <button onClick={onProfileClick} style={{ width: "100%", background: "none", border: "none", padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: BLK, textAlign: "left" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+          <button onClick={onProfileClick} style={{ width: "100%", background: "none", border: "none", padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: t.text, textAlign: "left" }}
+            onMouseEnter={e => (e.currentTarget.style.background = t.cardHover)} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
             <span style={{ fontSize: "1rem" }}>👤</span> My Profile
           </button>
-          <button onClick={onReservationsClick} style={{ width: "100%", background: "none", border: "none", padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: BLK, textAlign: "left" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+          <button onClick={onReservationsClick} style={{ width: "100%", background: "none", border: "none", padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: t.text, textAlign: "left" }}
+            onMouseEnter={e => (e.currentTarget.style.background = t.cardHover)} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
             <span style={{ fontSize: "1rem" }}>📋</span> My Reservations
           </button>
-          <div style={{ borderTop: `1px solid ${BRD}` }}>
+          <div style={{ borderTop: `1px solid ${t.border}` }}>
             <button onClick={onSignOut} style={{ width: "100%", background: "none", border: "none", padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: "#e53935", textAlign: "left" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#fff5f5")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+              onMouseEnter={e => (e.currentTarget.style.background = t.dark ? "#2a1515" : "#fff5f5")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <span style={{ fontSize: "1rem" }}>🚪</span> Sign Out
             </button>
           </div>
         </>
       ) : (
         <>
-          <button onClick={onAuthClick} style={{ width: "100%", background: "none", border: "none", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: BLK, textAlign: "left" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+          <button onClick={onAuthClick} style={{ width: "100%", background: "none", border: "none", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: t.text, textAlign: "left" }}
+            onMouseEnter={e => (e.currentTarget.style.background = t.cardHover)} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
             <span style={{ fontSize: "1rem" }}>👤</span> Log in
           </button>
-          <button onClick={onReservationsClick} style={{ width: "100%", background: "none", border: "none", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: BLK, textAlign: "left" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+          <button onClick={onReservationsClick} style={{ width: "100%", background: "none", border: "none", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: t.text, textAlign: "left" }}
+            onMouseEnter={e => (e.currentTarget.style.background = t.cardHover)} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
             <span style={{ fontSize: "1rem" }}>📋</span> My reservations
           </button>
         </>
@@ -127,26 +157,26 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
   );
 
   return (
-    <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? "rgba(255,255,255,.97)" : "#fff", backdropFilter: "blur(14px)", borderBottom: `1px solid ${BRD}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "0 4%" : "0 5%", height: mob ? 52 : 62, boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,.07)" : "none", transition: "box-shadow .25s" }}>
-      <div style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer" }}>couple<span style={{ color: A }}>.</span>ofhours</div>
+    <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? t.navBg : t.navBgSolid, backdropFilter: "blur(14px)", borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "0 4%" : "0 5%", height: mob ? 52 : 62, boxShadow: scrolled ? `0 2px 20px ${t.shadow}` : "none", transition: "box-shadow .25s" }}>
+      <div style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer", color: t.text }}>couple<span style={{ color: A }}>.</span>ofhours</div>
       {mob ? (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <ThemeToggleBtn />
             <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
-              <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: "#f0f0f0", border: "none", width: 36, height: 36, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>
+              <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: t.dark ? "#1a3a5c" : "#f0f0f0", border: "none", width: 36, height: 36, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", color: t.text }}>
                 {user ? (user.email?.[0] || "U").toUpperCase() : "👤"}
               </button>
               {userMenuOpen && userDropdown}
             </div>
-            <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", padding: 6 }}>
+            <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", padding: 6, color: t.text }}>
               {menuOpen ? "✕" : "☰"}
             </button>
           </div>
           {menuOpen && (
-            <div style={{ position: "absolute", top: 52, left: 0, right: 0, background: "#fff", borderBottom: `1px solid ${BRD}`, padding: "12px 4%", display: "flex", flexDirection: "column", gap: 12, boxShadow: "0 8px 24px rgba(0,0,0,.08)", zIndex: 300 }}>
+            <div style={{ position: "absolute", top: 52, left: 0, right: 0, background: t.navBgSolid, borderBottom: `1px solid ${t.border}`, padding: "12px 4%", display: "flex", flexDirection: "column", gap: 12, boxShadow: `0 8px 24px ${t.shadow}`, zIndex: 300 }}>
               {["Explore Hotels", "List Your Property", "Help"].map(l => (
-                <a key={l} style={{ fontSize: ".82rem", fontWeight: 500, color: SEC, cursor: "pointer", padding: "6px 0" }}>{l}</a>
+                <a key={l} style={{ fontSize: ".82rem", fontWeight: 500, color: t.textSecondary, cursor: "pointer", padding: "6px 0" }}>{l}</a>
               ))}
             </div>
           )}
@@ -154,16 +184,16 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
       ) : (
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
           {["Explore Hotels", "List Your Property", "Help"].map(l => (
-            <a key={l} style={{ fontSize: ".8rem", fontWeight: 500, color: SEC, cursor: "pointer", transition: "color .15s" }}
-              onMouseEnter={e => (e.target as HTMLElement).style.color = BLK} onMouseLeave={e => (e.target as HTMLElement).style.color = SEC}>{l}</a>
+            <a key={l} style={{ fontSize: ".8rem", fontWeight: 500, color: t.textSecondary, cursor: "pointer", transition: "color .15s" }}
+              onMouseEnter={e => (e.target as HTMLElement).style.color = t.text} onMouseLeave={e => (e.target as HTMLElement).style.color = t.textSecondary}>{l}</a>
           ))}
           <ThemeToggleBtn />
           <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: "#f0f0f0", border: `1.5px solid ${BRD}`, height: 40, borderRadius: 24, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "0 12px 0 6px" }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: user ? A : "#ccc", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".72rem", fontWeight: 700, color: "#fff" }}>
+            <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: t.dark ? "#1a3a5c" : "#f0f0f0", border: `1.5px solid ${t.border}`, height: 40, borderRadius: 24, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "0 12px 0 6px" }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: user ? A : (t.dark ? "#5c7a99" : "#ccc"), display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".72rem", fontWeight: 700, color: "#fff" }}>
                 {user ? (user.email?.[0] || "U").toUpperCase() : "👤"}
               </div>
-              <span style={{ fontSize: "1rem" }}>☰</span>
+              <span style={{ fontSize: "1rem", color: t.text }}>☰</span>
             </button>
             {userMenuOpen && userDropdown}
           </div>
@@ -234,6 +264,7 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
   const ref = useRef<HTMLDivElement>(null);
   const results = useMemo(() => searchLocations(value), [value]);
   const mob = useIsMobile();
+  const t = useThemeColors();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -285,7 +316,7 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           left: mob ? 0 : -18,
           right: mob ? 0 : "auto",
           width: mob ? "100%" : 440,
-          background: "#fff",
+          background: t.dropdownBg,
           borderRadius: mob ? "20px 20px 0 0" : 20,
           boxShadow: "0 25px 80px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.04)",
           zIndex: 9999,
@@ -395,6 +426,7 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
   const [baseMonth, setBaseMonth] = useState(() => selected ? startOfMonth(selected) : startOfMonth(new Date()));
   const today = startOfDay(new Date());
   const mob = useIsMobile();
+  const t = useThemeColors();
 
   const getDayColor = (day: Date) => {
     const dow = day.getDay();
@@ -416,10 +448,10 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
       bottom: mob ? 0 : "auto",
       left: mob ? 0 : "auto",
       right: mob ? 0 : 0,
-      background: "#fff", borderRadius: mob ? "20px 20px 0 0" : 16,
-      boxShadow: "0 16px 50px rgba(0,0,0,.2)", border: `1px solid ${BRD}`,
-      padding: "20px 24px 16px", zIndex: 9999,
-      width: mob ? "100%" : 320,
+    background: t.bgCard, borderRadius: mob ? "20px 20px 0 0" : 16,
+    boxShadow: `0 16px 50px ${t.shadow}`, border: `1px solid ${t.border}`,
+    padding: "20px 24px 16px", zIndex: 9999,
+    width: mob ? "100%" : 320,
     }}>
       {mob && <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ddd", margin: "0 auto 12px" }} />}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -599,11 +631,12 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
 /* ── Trust Row ── */
 export function TrustRow() {
   const mob = useIsMobile();
+  const t = useThemeColors();
   const items = ["✅ Instant Confirmation", "💳 No Credit Card Hold", "🔒 100% Private & Secure", "🕐 Check-in Any Time", "💰 Best Price Guarantee"];
   return (
-    <div style={{ background: "#fff", borderBottom: `1px solid ${BRD}`, display: "flex", alignItems: "center", justifyContent: mob ? "flex-start" : "center", gap: mob ? "1.2rem" : "2.5rem", padding: mob ? ".7rem 4%" : ".9rem 5%", flexWrap: "nowrap", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-      {items.slice(0, mob ? 3 : 5).map(t => (
-        <div key={t} style={{ fontSize: ".76rem", fontWeight: 500, color: SEC, whiteSpace: "nowrap", flexShrink: 0 }}>{t}</div>
+    <div style={{ background: t.bgCard, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: mob ? "flex-start" : "center", gap: mob ? "1.2rem" : "2.5rem", padding: mob ? ".7rem 4%" : ".9rem 5%", flexWrap: "nowrap", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      {items.slice(0, mob ? 3 : 5).map(ti => (
+        <div key={ti} style={{ fontSize: ".76rem", fontWeight: 500, color: t.textSecondary, whiteSpace: "nowrap", flexShrink: 0 }}>{ti}</div>
       ))}
     </div>
   );
