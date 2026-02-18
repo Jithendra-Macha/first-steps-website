@@ -97,22 +97,25 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
         style={{ border: "none", outline: "none", fontSize: ".88rem", color: "#111", width: "100%", background: "transparent" }}
       />
       {open && results.length > 0 && (
-        <div style={{ position: "absolute", top: "calc(100% + 12px)", left: -18, width: 360, background: "#fff", borderRadius: 14, boxShadow: "0 12px 40px rgba(0,0,0,.18)", border: `1px solid ${BRD}`, overflow: "hidden", zIndex: 999 }}>
-          <div style={{ padding: "10px 14px 6px", fontSize: ".65rem", fontWeight: 700, color: "#bbb", textTransform: "uppercase", letterSpacing: ".06em" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
+      )}
+      {open && results.length > 0 && (
+        <div style={{ position: "absolute", top: "calc(100% + 14px)", left: -18, width: 380, background: "#fff", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.06)", overflow: "hidden", zIndex: 9999, maxHeight: 420, overflowY: "auto" }}>
+          <div style={{ padding: "14px 18px 8px", fontSize: ".65rem", fontWeight: 700, color: "#bbb", textTransform: "uppercase", letterSpacing: ".08em" }}>
             {value.trim() ? "Results" : "Popular Destinations"}
           </div>
           {results.map((loc, i) => (
             <div
               key={`${loc.name}-${loc.state}-${i}`}
               onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", cursor: "pointer", transition: "background .1s" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")}
+              style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 18px", cursor: "pointer", transition: "background .12s" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#f5f5f5")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              <span style={{ fontSize: "1rem", width: 28, textAlign: "center" }}>{getTypeIcon(loc.type)}</span>
+              <span style={{ fontSize: "1.1rem", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f0f0", borderRadius: 8 }}>{getTypeIcon(loc.type)}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: ".84rem", fontWeight: 600, color: "#111" }}>{loc.name}</div>
-                <div style={{ fontSize: ".7rem", color: "#999" }}>{loc.type.charAt(0).toUpperCase() + loc.type.slice(1)} · {loc.state}</div>
+                <div style={{ fontSize: ".88rem", fontWeight: 700, color: "#111" }}>{loc.name}</div>
+                <div style={{ fontSize: ".72rem", color: "#999", marginTop: 1 }}>{loc.type.charAt(0).toUpperCase() + loc.type.slice(1)} · {loc.state}</div>
               </div>
             </div>
           ))}
