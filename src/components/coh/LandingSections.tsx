@@ -2,6 +2,20 @@ import { useState, useEffect } from "react";
 import { SectionHeader, Btn, useIsMobile, useThemeColors } from "./SharedComponents";
 import { DEALS_DATA, ZONE_DATA, OCC_DATA, WHY_CARDS } from "@/data/hotels";
 
+import manhattanImg from "@/assets/zones/manhattan.jpg";
+import brooklynImg from "@/assets/zones/brooklyn.jpg";
+import queensImg from "@/assets/zones/queens.jpg";
+import bronxImg from "@/assets/zones/bronx.jpg";
+import newjerseyImg from "@/assets/zones/newjersey.jpg";
+
+const zoneImages: Record<string, string> = {
+  manhattan: manhattanImg,
+  brooklyn: brooklynImg,
+  queens: queensImg,
+  bronx: bronxImg,
+  newjersey: newjerseyImg,
+};
+
 const A = "#ff4d00";
 const NAVY = "#0d1f38";
 const BLK = "#0a0a0a";
@@ -61,10 +75,15 @@ export function DealsSection({ onSearch }: { onSearch: (q: string) => void }) {
 /* ── Zone Card ── */
 function ZoneCard({ zone: z, onSearch }: { zone: typeof ZONE_DATA[0]; onSearch: (q: string) => void }) {
   const [hov, setHov] = useState(false);
+  const img = zoneImages[z.key];
   return (
     <div onClick={() => onSearch(z.name + ", New York")} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{ borderRadius: 18, overflow: "hidden", cursor: "pointer", position: "relative", height: 220, transform: hov ? "translateY(-6px) scale(1.02)" : "none", boxShadow: hov ? "0 22px 52px rgba(0,0,0,.24)" : "0 2px 8px rgba(0,0,0,.06)", transition: "all .28s cubic-bezier(.25,.46,.45,.94)" }}>
-      <div style={{ position: "absolute", inset: 0, background: z.bg, transform: hov ? "scale(1.06)" : "scale(1)", transition: "transform .35s ease" }} />
+      {img ? (
+        <img src={img} alt={z.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: hov ? "scale(1.08)" : "scale(1)", transition: "transform .5s ease" }} />
+      ) : (
+        <div style={{ position: "absolute", inset: 0, background: z.bg, transform: hov ? "scale(1.06)" : "scale(1)", transition: "transform .35s ease" }} />
+      )}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,.04) 0%,transparent 35%,rgba(0,0,0,.58) 100%)" }} />
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "14px 16px 16px", zIndex: 3 }}>
         <span style={{ fontSize: "1.4rem", display: "block", marginBottom: 4 }}>{z.emoji}</span>
