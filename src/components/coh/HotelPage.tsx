@@ -323,7 +323,7 @@ export function ConfirmationPage({ booking, onHome }: { booking: BookingData; on
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 5%", height: 58,
       }}>
-        <img src={cohLogo} alt="CoupleOfHours" onClick={onHome} style={{ height: 34, cursor: "pointer", objectFit: "contain" }} />
+        <div onClick={onHome} style={{ fontSize: "1.05rem", fontWeight: 900, cursor: "pointer", letterSpacing: "-.02em", color: NAVY }}>coupleofhours<span style={{ color: A }}>.com</span></div>
         <button onClick={onHome} style={{
           background: "#f5f5f5", border: "none", borderRadius: 10,
           padding: "0 16px", height: 36, cursor: "pointer",
@@ -1181,7 +1181,7 @@ export default function HotelPage({ hotel, onBack, onBookingComplete }: { hotel:
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: ".9rem",
           }}>←</button>
-          <img src={cohLogo} alt="CoupleOfHours" onClick={onBack} style={{ height: 34, cursor: "pointer", objectFit: "contain" }} />
+          <div onClick={onBack} style={{ fontSize: "1.05rem", fontWeight: 900, cursor: "pointer", letterSpacing: "-.02em", color: NAVY }}>coupleofhours<span style={{ color: A }}>.com</span></div>
         </div>
 
         {/* Section tabs - hide on mobile */}
