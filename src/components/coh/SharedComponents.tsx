@@ -74,9 +74,10 @@ export function Nav({ onSearch }: { onSearch: (q: string) => void }) {
 }
 
 /* ── Hero ── */
-/* ── Location Dropdown ── */
+/* ── Location Dropdown (Creative) ── */
 function LocationDropdown({ value, onChange, onSelect }: { value: string; onChange: (v: string) => void; onSelect: (loc: USLocation) => void }) {
   const [open, setOpen] = useState(false);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const results = useMemo(() => searchLocations(value), [value]);
 
@@ -85,6 +86,30 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Group results by state
+  const grouped = useMemo(() => {
+    const map = new Map<string, USLocation[]>();
+    results.forEach(loc => {
+      const arr = map.get(loc.state) || [];
+      arr.push(loc);
+      map.set(loc.state, arr);
+    });
+    return map;
+  }, [results]);
+
+  const typeColors: Record<string, { bg: string; text: string; border: string }> = {
+    borough: { bg: "#eef4ff", text: "#2563eb", border: "#bfdbfe" },
+    city: { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" },
+    neighborhood: { bg: "#fefce8", text: "#ca8a04", border: "#fef08a" },
+    county: { bg: "#fdf2f8", text: "#db2777", border: "#fbcfe8" },
+    village: { bg: "#f5f3ff", text: "#7c3aed", border: "#ddd6fe" },
+    town: { bg: "#fff7ed", text: "#ea580c", border: "#fed7aa" },
+  };
+
+  const getColors = (type: string) => typeColors[type] || { bg: "#f8f8f8", text: "#666", border: "#e5e5e5" };
+
+  let flatIdx = 0;
 
   return (
     <div ref={ref} style={{ position: "relative", flex: 1, minWidth: 0 }}>
@@ -100,25 +125,84 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
       )}
       {open && results.length > 0 && (
-        <div style={{ position: "absolute", top: "calc(100% + 14px)", left: -18, width: 380, background: "#fff", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.06)", overflow: "hidden", zIndex: 9999, maxHeight: 420, overflowY: "auto" }}>
-          <div style={{ padding: "14px 18px 8px", fontSize: ".65rem", fontWeight: 700, color: "#bbb", textTransform: "uppercase", letterSpacing: ".08em" }}>
-            {value.trim() ? "Results" : "Popular Destinations"}
+        <div style={{
+          position: "absolute", top: "calc(100% + 14px)", left: -18, width: 420, background: "#fff",
+          borderRadius: 20, boxShadow: "0 25px 80px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.04)",
+          zIndex: 9999, maxHeight: 460, overflowY: "auto", padding: "6px 0",
+        }}>
+          {/* Search status */}
+          <div style={{ padding: "12px 20px 4px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: ".65rem", fontWeight: 800, color: "#ccc", textTransform: "uppercase", letterSpacing: ".1em" }}>
+              {value.trim() ? `${results.length} results` : "Popular Destinations"}
+            </span>
+            <span style={{ fontSize: ".6rem", color: "#ddd", fontWeight: 600 }}>NY · NJ</span>
           </div>
-          {results.map((loc, i) => (
-            <div
-              key={`${loc.name}-${loc.state}-${i}`}
-              onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
-              style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 18px", cursor: "pointer", transition: "background .12s" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#f5f5f5")}
-              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-            >
-              <span style={{ fontSize: "1.1rem", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f0f0", borderRadius: 8 }}>{getTypeIcon(loc.type)}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: ".88rem", fontWeight: 700, color: "#111" }}>{loc.name}</div>
-                <div style={{ fontSize: ".72rem", color: "#999", marginTop: 1 }}>{loc.type.charAt(0).toUpperCase() + loc.type.slice(1)} · {loc.state}</div>
+
+          {Array.from(grouped.entries()).map(([state, locs]) => (
+            <div key={state}>
+              {/* State divider */}
+              <div style={{ padding: "10px 20px 6px", display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: ".68rem", fontWeight: 800, color: NAVY, letterSpacing: ".04em" }}>{state === "NY" ? "🗽 New York" : state === "NJ" ? "🌊 New Jersey" : state}</span>
+                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BRD}, transparent)` }} />
+              </div>
+
+              {/* Location tiles - 2 column grid */}
+              <div style={{ padding: "0 12px 4px", display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {locs.map((loc) => {
+                  const idx = flatIdx++;
+                  const colors = getColors(loc.type);
+                  const isHovered = hoveredIdx === idx;
+                  const currentIdx = idx;
+
+                  return (
+                    <div
+                      key={`${loc.name}-${loc.state}-${currentIdx}`}
+                      onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
+                      onMouseEnter={() => setHoveredIdx(currentIdx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        padding: "10px 14px", cursor: "pointer",
+                        borderRadius: 12,
+                        background: isHovered ? "#f8f8fa" : "transparent",
+                        border: isHovered ? `1.5px solid ${BRD}` : "1.5px solid transparent",
+                        transition: "all .15s ease",
+                        flex: "1 1 calc(50% - 6px)", minWidth: 160,
+                      }}
+                    >
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        background: colors.bg, border: `1.5px solid ${colors.border}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: ".85rem", flexShrink: 0,
+                        transform: isHovered ? "scale(1.1)" : "scale(1)",
+                        transition: "transform .15s",
+                      }}>
+                        {getTypeIcon(loc.type)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: ".84rem", fontWeight: 700, color: "#111", lineHeight: 1.2 }}>{loc.name}</div>
+                        <div style={{
+                          display: "inline-block", marginTop: 3,
+                          fontSize: ".58rem", fontWeight: 700, color: colors.text,
+                          background: colors.bg, border: `1px solid ${colors.border}`,
+                          padding: "1px 7px", borderRadius: 20, textTransform: "uppercase", letterSpacing: ".04em",
+                        }}>
+                          {loc.type}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
+
+          {/* Footer hint */}
+          <div style={{ padding: "10px 20px 14px", borderTop: `1px solid ${BRD}`, marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: ".65rem", color: "#bbb" }}>💡</span>
+            <span style={{ fontSize: ".65rem", color: "#bbb", fontStyle: "italic" }}>Type to search 200+ locations across NY & NJ</span>
+          </div>
         </div>
       )}
     </div>
