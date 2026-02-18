@@ -14,91 +14,309 @@ const BRD = "#e8e8e8";
 /* ── Time Slots ── */
 const TIME_SLOTS = ["6am–12pm", "11am–5pm", "1pm–7pm", "5pm–11pm"];
 
-/* ── Sticky Filter Bar (unique pill design with count badges) ── */
-function FilterBar({ count }: { count: number }) {
-  const [active, setActive] = useState<Set<string>>(new Set());
-  const chips = [
-    { icon: "⚙️", label: "Filters", special: true },
-    { icon: "🕐", label: "Check-in time" },
-    { icon: "⏱️", label: "Duration" },
-    { icon: "🔥", label: "Deals only" },
-    { icon: "⭐", label: "4★ & above" },
-    { icon: "🏊", label: "Pool" },
-    { icon: "💆", label: "Spa" },
-    { icon: "🛏️", label: "Suite" },
-  ];
-  const toggle = (l: string) => setActive(prev => {
-    const s = new Set(prev);
-    s.has(l) ? s.delete(l) : s.add(l);
-    return s;
+/* ── Filter Sidebar ── */
+function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () => void; count: number }) {
+  const [priceRange, setPriceRange] = useState<[number, number]>([10, 40]);
+  const [selectedStars, setSelectedStars] = useState<Set<number>>(new Set());
+  const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(new Set());
+  const [dealsOnly, setDealsOnly] = useState(false);
+
+  const toggleStar = (s: number) => setSelectedStars(prev => {
+    const n = new Set(prev);
+    n.has(s) ? n.delete(s) : n.add(s);
+    return n;
   });
+  const toggleAmenity = (a: string) => setSelectedAmenities(prev => {
+    const n = new Set(prev);
+    n.has(a) ? n.delete(a) : n.add(a);
+    return n;
+  });
+
+  const amenities = ["WiFi", "Pool", "Spa", "Gym", "Rooftop", "Bar", "City View", "Parking", "Room Service"];
+  const activeCount = selectedStars.size + selectedAmenities.size + (dealsOnly ? 1 : 0);
+
+  return (
+    <>
+      {/* Collapsed tab */}
+      {!open && (
+        <button
+          onClick={onToggle}
+          style={{
+            position: "absolute", left: 0, top: 80,
+            background: NAVY, color: "#fff",
+            border: "none", borderRadius: "0 12px 12px 0",
+            padding: "12px 10px", cursor: "pointer",
+            writingMode: "vertical-rl", textOrientation: "mixed",
+            fontSize: ".72rem", fontWeight: 700, fontFamily: "inherit",
+            display: "flex", alignItems: "center", gap: 6,
+            zIndex: 50, boxShadow: "4px 0 16px rgba(0,0,0,.1)",
+            transition: "all .2s",
+          }}
+        >
+          ⚙ Filters
+          {activeCount > 0 && (
+            <span style={{
+              background: A, width: 18, height: 18, borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: ".6rem", fontWeight: 800, writingMode: "horizontal-tb",
+            }}>{activeCount}</span>
+          )}
+        </button>
+      )}
+
+      {/* Expanded sidebar */}
+      <div style={{
+        width: open ? 260 : 0,
+        minWidth: open ? 260 : 0,
+        overflow: "hidden",
+        transition: "all .3s cubic-bezier(.4,0,.2,1)",
+        borderRight: open ? `1px solid ${BRD}` : "none",
+        background: "#fff",
+        display: "flex",
+        flexDirection: "column",
+      }}>
+        <div style={{ padding: "16px 18px", overflowY: "auto", flex: 1 }}>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: ".92rem", fontWeight: 800, color: NAVY }}>Filters</div>
+              <div style={{ fontSize: ".65rem", color: SEC, marginTop: 2 }}>
+                <span style={{ fontWeight: 800, color: A }}>{count}</span> hotels match
+              </div>
+            </div>
+            <button onClick={onToggle} style={{
+              background: "#f5f5f5", border: "none", width: 28, height: 28,
+              borderRadius: 8, cursor: "pointer", fontSize: ".8rem",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>✕</button>
+          </div>
+
+          {/* Price Range */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: ".85rem" }}>💰</span> Price Range
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <div style={{
+                flex: 1, padding: "8px 10px", borderRadius: 8,
+                background: "#f8f8f8", border: `1px solid ${BRD}`,
+                fontSize: ".78rem", fontWeight: 700, color: NAVY, textAlign: "center",
+              }}>
+                ${priceRange[0]}
+              </div>
+              <span style={{ fontSize: ".7rem", color: SEC }}>to</span>
+              <div style={{
+                flex: 1, padding: "8px 10px", borderRadius: 8,
+                background: "#f8f8f8", border: `1px solid ${BRD}`,
+                fontSize: ".78rem", fontWeight: 700, color: NAVY, textAlign: "center",
+              }}>
+                ${priceRange[1]}
+              </div>
+              <span style={{ fontSize: ".65rem", color: SEC }}>/hr</span>
+            </div>
+            {/* Visual price bar */}
+            <div style={{ position: "relative", height: 6, background: "#f0f0f0", borderRadius: 3, margin: "0 4px" }}>
+              <div style={{
+                position: "absolute",
+                left: `${((priceRange[0] - 5) / 45) * 100}%`,
+                right: `${100 - ((priceRange[1] - 5) / 45) * 100}%`,
+                top: 0, bottom: 0,
+                background: `linear-gradient(90deg, ${A}, #ff7340)`,
+                borderRadius: 3,
+              }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: ".6rem", color: "#ccc" }}>
+              <span>$5</span><span>$50</span>
+            </div>
+          </div>
+
+          {/* Star Rating */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: ".85rem" }}>⭐</span> Star Rating
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {[3, 4, 5].map(s => (
+                <button
+                  key={s}
+                  onClick={() => toggleStar(s)}
+                  style={{
+                    flex: 1, padding: "10px 0", borderRadius: 10,
+                    border: selectedStars.has(s) ? `2px solid ${A}` : `1.5px solid ${BRD}`,
+                    background: selectedStars.has(s) ? "#fff5f0" : "#fff",
+                    cursor: "pointer", fontFamily: "inherit",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    transition: "all .15s",
+                  }}
+                >
+                  <span style={{ fontSize: ".8rem", color: "#ffd700" }}>{"★".repeat(s)}</span>
+                  <span style={{
+                    fontSize: ".6rem", fontWeight: 700,
+                    color: selectedStars.has(s) ? A : SEC,
+                  }}>{s} star</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Deals toggle */}
+          <div style={{ marginBottom: 24 }}>
+            <button
+              onClick={() => setDealsOnly(!dealsOnly)}
+              style={{
+                width: "100%", padding: "12px 14px", borderRadius: 12,
+                border: dealsOnly ? `2px solid ${A}` : `1.5px solid ${BRD}`,
+                background: dealsOnly
+                  ? "linear-gradient(135deg, #fff5f0, #ffe8dd)"
+                  : "#fff",
+                cursor: "pointer", fontFamily: "inherit",
+                display: "flex", alignItems: "center", gap: 10,
+                transition: "all .15s",
+              }}
+            >
+              <span style={{ fontSize: "1.1rem" }}>🔥</span>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontSize: ".76rem", fontWeight: 700, color: dealsOnly ? A : NAVY }}>Deals Only</div>
+                <div style={{ fontSize: ".6rem", color: SEC }}>Show discounted hotels</div>
+              </div>
+              <div style={{
+                marginLeft: "auto",
+                width: 36, height: 20, borderRadius: 10,
+                background: dealsOnly ? A : "#ddd",
+                position: "relative", transition: "background .2s",
+              }}>
+                <div style={{
+                  width: 16, height: 16, borderRadius: "50%", background: "#fff",
+                  position: "absolute", top: 2,
+                  left: dealsOnly ? 18 : 2,
+                  transition: "left .2s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,.2)",
+                }} />
+              </div>
+            </button>
+          </div>
+
+          {/* Amenities */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: ".85rem" }}>🏨</span> Amenities
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {amenities.map(a => (
+                <button
+                  key={a}
+                  onClick={() => toggleAmenity(a)}
+                  style={{
+                    padding: "6px 12px", borderRadius: 20,
+                    border: selectedAmenities.has(a) ? `1.5px solid ${A}` : `1px solid #e8e8e8`,
+                    background: selectedAmenities.has(a) ? "#fff5f0" : "#fafafa",
+                    color: selectedAmenities.has(a) ? A : "#777",
+                    fontSize: ".68rem", fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit",
+                    transition: "all .15s",
+                  }}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Clear all */}
+          {activeCount > 0 && (
+            <button
+              onClick={() => { setSelectedStars(new Set()); setSelectedAmenities(new Set()); setDealsOnly(false); }}
+              style={{
+                width: "100%", padding: "10px", borderRadius: 10,
+                background: "transparent", border: `1.5px solid ${BRD}`,
+                color: SEC, fontSize: ".72rem", fontWeight: 600,
+                cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ── Compare Tray ── */
+function CompareTray({ hotels, onRemove, onClear }: { hotels: Hotel[]; onRemove: (id: number) => void; onClear: () => void }) {
+  if (hotels.length === 0) return null;
 
   return (
     <div style={{
-      background: "linear-gradient(to right, #fff, #fefcfb)",
-      borderBottom: `1px solid ${BRD}`,
-      display: "flex",
-      alignItems: "center",
-      padding: "8px 24px",
-      gap: 7,
-      overflowX: "auto",
-      flexShrink: 0,
+      position: "fixed", bottom: 0, left: 0, right: 0,
+      background: NAVY, color: "#fff",
+      padding: "12px 24px",
+      display: "flex", alignItems: "center", gap: 16,
+      zIndex: 300,
+      boxShadow: "0 -4px 24px rgba(0,0,0,.2)",
+      animation: "slideUp .3s ease-out",
     }}>
-      {chips.map(c => {
-        const isActive = active.has(c.label);
-        return (
-          <button
-            key={c.label}
-            onClick={() => toggle(c.label)}
-            style={{
-              height: 34,
-              padding: c.special ? "0 16px" : "0 13px",
-              borderRadius: c.special ? 10 : 20,
-              border: c.special
-                ? "none"
-                : `1.5px solid ${isActive ? A : "#e4e4e4"}`,
-              background: c.special
-                ? (isActive ? NAVY : NAVY)
-                : (isActive ? "#fff5f0" : "#fff"),
-              color: c.special
-                ? "#fff"
-                : (isActive ? A : "#666"),
-              fontSize: ".74rem",
-              fontWeight: c.special ? 700 : 600,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              fontFamily: "inherit",
-              transition: "all .18s",
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              boxShadow: c.special ? "0 2px 8px rgba(13,31,56,.2)" : "none",
-            }}
-          >
-            <span style={{ fontSize: ".78rem" }}>{c.icon}</span>
-            {c.label}
-            {c.special && active.size > 0 && (
-              <span style={{
-                background: A, color: "#fff",
-                fontSize: ".6rem", fontWeight: 800,
-                width: 18, height: 18, borderRadius: "50%",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                marginLeft: 2,
-              }}>{active.size}</span>
-            )}
-          </button>
-        );
-      })}
-      <div style={{ marginLeft: "auto", fontSize: ".72rem", color: SEC, flexShrink: 0, fontWeight: 500 }}>
-        <span style={{ fontWeight: 800, color: A }}>{count}</span> hotels found
+      <div style={{ fontSize: ".72rem", fontWeight: 700, opacity: .7, flexShrink: 0 }}>
+        Compare ({hotels.length}/3)
       </div>
+
+      <div style={{ display: "flex", gap: 10, flex: 1, overflow: "auto" }}>
+        {hotels.map(h => (
+          <div key={h.id} style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: "rgba(255,255,255,.1)", borderRadius: 10,
+            padding: "6px 12px", flexShrink: 0,
+          }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: h.photoBg, flexShrink: 0,
+            }} />
+            <div>
+              <div style={{ fontSize: ".72rem", fontWeight: 700 }}>{h.name}</div>
+              <div style={{ fontSize: ".62rem", opacity: .6 }}>${h.rate}/hr · {h.rating}★</div>
+            </div>
+            <button
+              onClick={() => onRemove(h.id)}
+              style={{
+                background: "rgba(255,255,255,.15)", border: "none",
+                color: "#fff", width: 20, height: 20, borderRadius: "50%",
+                fontSize: ".6rem", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >✕</button>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+        <button onClick={onClear} style={{
+          background: "rgba(255,255,255,.15)", border: "none",
+          color: "#fff", padding: "8px 16px", borderRadius: 8,
+          fontSize: ".72rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+        }}>Clear</button>
+        <button style={{
+          background: A, border: "none", color: "#fff",
+          padding: "8px 20px", borderRadius: 8,
+          fontSize: ".72rem", fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+          boxShadow: `0 4px 12px rgba(255,77,0,.4)`,
+        }}>Compare Now →</button>
+      </div>
+
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
 
-/* ── Hotel Card (vertical stacked design — unique) ── */
-function HotelCard({ hotel: h, isActive, onClick, index }: { hotel: Hotel; isActive: boolean; onClick: () => void; index: number }) {
+/* ── Hotel Card (kept identical) ── */
+function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared, onCompare }: {
+  hotel: Hotel; isActive: boolean; onClick: () => void; index: number;
+  compareMode: boolean; isCompared: boolean; onCompare: () => void;
+}) {
   const [hov, setHov] = useState(false);
   const [fav, setFav] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(0);
@@ -119,10 +337,31 @@ function HotelCard({ hotel: h, isActive, onClick, index }: { hotel: Hotel; isAct
         boxShadow: lit
           ? "0 8px 30px rgba(255,77,0,.1), 0 2px 8px rgba(0,0,0,.06)"
           : "0 1px 3px rgba(0,0,0,.04)",
-        border: isActive ? `2px solid ${A}` : `1px solid ${lit ? "#e0e0e0" : "#f0f0f0"}`,
+        border: isCompared ? `2px solid ${A}` : isActive ? `2px solid ${A}` : `1px solid ${lit ? "#e0e0e0" : "#f0f0f0"}`,
         transform: lit ? "translateY(-2px)" : "none",
+        position: "relative",
       }}
     >
+      {/* Compare checkbox */}
+      {compareMode && (
+        <button
+          onClick={e => { e.stopPropagation(); onCompare(); }}
+          style={{
+            position: "absolute", top: 10, left: 10, zIndex: 10,
+            width: 24, height: 24, borderRadius: 6,
+            background: isCompared ? A : "rgba(255,255,255,.9)",
+            border: isCompared ? `2px solid ${A}` : "2px solid #ddd",
+            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", fontSize: ".7rem", fontWeight: 800,
+            backdropFilter: "blur(4px)",
+            transition: "all .15s",
+          }}
+        >
+          {isCompared && "✓"}
+        </button>
+      )}
+
       {/* Top section: Image + Info side by side */}
       <div style={{ display: "flex" }}>
         {/* Image with overlay content */}
@@ -136,7 +375,7 @@ function HotelCard({ hotel: h, isActive, onClick, index }: { hotel: Hotel; isAct
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(170deg, transparent 40%, rgba(0,0,0,.5) 100%)" }} />
 
           {/* Stars on image */}
-          <div style={{ position: "absolute", top: 10, left: 10, zIndex: 3, display: "flex", gap: 1 }}>
+          <div style={{ position: "absolute", top: 10, left: compareMode ? 38 : 10, zIndex: 3, display: "flex", gap: 1 }}>
             {Array.from({ length: h.stars }).map((_, i) => (
               <span key={i} style={{ fontSize: ".55rem", color: "#ffd700", textShadow: "0 1px 3px rgba(0,0,0,.5)" }}>★</span>
             ))}
@@ -502,6 +741,18 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [city, setCity] = useState(query);
   const [view, setView] = useState<"split" | "list" | "map">("split");
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
+
+  const toggleCompare = (id: number) => {
+    setCompareIds(prev => {
+      const n = new Set(prev);
+      if (n.has(id)) { n.delete(id); }
+      else if (n.size < 3) { n.add(id); }
+      return n;
+    });
+  };
 
   const sorted = [...HOTELS].sort((a, b) => {
     if (sort === "price_asc") return a.rate - b.rate;
@@ -510,9 +761,11 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
     return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
   });
 
+  const comparedHotels = sorted.filter(h => compareIds.has(h.id));
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", background: "#f5f6f8" }}>
-      {/* Nav — dark navy branded bar */}
+      {/* Nav */}
       <nav style={{
         background: NAVY,
         display: "flex", alignItems: "center",
@@ -523,9 +776,9 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
           couple<span style={{ color: A }}>.</span>ofhours
         </div>
 
-        {/* Search bar — frosted glass on dark */}
+        {/* Search bar */}
         <div style={{
-          flex: 1, maxWidth: 540,
+          flex: 1, maxWidth: 500,
           display: "flex", alignItems: "center",
           background: "rgba(255,255,255,.12)",
           borderRadius: 12,
@@ -566,8 +819,24 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
           </button>
         </div>
 
+        {/* Compare toggle */}
+        <button
+          onClick={() => { setCompareMode(!compareMode); if (compareMode) setCompareIds(new Set()); }}
+          style={{
+            height: 32, padding: "0 14px", borderRadius: 8,
+            background: compareMode ? A : "rgba(255,255,255,.1)",
+            border: "none", color: "#fff",
+            fontSize: ".74rem", fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", gap: 6,
+            transition: "all .15s",
+          }}
+        >
+          {compareMode ? "✓ Comparing" : "⚖ Compare"}
+        </button>
+
         {/* View toggles */}
-        <div style={{ display: "flex", gap: 2, marginLeft: 12, background: "rgba(255,255,255,.1)", borderRadius: 8, padding: 2 }}>
+        <div style={{ display: "flex", gap: 2, marginLeft: 4, background: "rgba(255,255,255,.1)", borderRadius: 8, padding: 2 }}>
           {([["split", "⬒"], ["list", "☰"], ["map", "🗺"]] as const).map(([v, ico]) => (
             <button
               key={v}
@@ -599,9 +868,6 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
         </div>
       </nav>
 
-      {/* Filter bar */}
-      <FilterBar count={sorted.length} />
-
       {/* Results header strip */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -610,8 +876,19 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
         borderBottom: `1px solid #f0f0f0`,
         flexShrink: 0,
       }}>
-        <div style={{ fontSize: ".8rem", color: SEC }}>
-          Hourly hotels in <span style={{ fontWeight: 800, color: NAVY }}>{query}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ fontSize: ".8rem", color: SEC }}>
+            Hourly hotels in <span style={{ fontWeight: 800, color: NAVY }}>{query}</span>
+          </div>
+          {compareMode && (
+            <span style={{
+              background: "#fff5f0", color: A,
+              fontSize: ".65rem", fontWeight: 700,
+              padding: "3px 10px", borderRadius: 6,
+            }}>
+              Select up to 3 hotels to compare
+            </span>
+          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: ".7rem", color: SEC }}>Sort:</span>
@@ -634,14 +911,19 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
       </div>
 
       {/* Main content area */}
-      <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0 }}>
+      <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0, position: "relative" }}>
+        {/* Filter Sidebar */}
+        {view !== "map" && (
+          <FilterSidebar open={filtersOpen} onToggle={() => setFiltersOpen(!filtersOpen)} count={sorted.length} />
+        )}
+
         {/* Results list */}
         {view !== "map" && (
           <div style={{
-            flex: view === "list" ? 1 : "0 0 52%",
-            maxWidth: view === "list" ? "100%" : "52%",
+            flex: 1,
             overflowY: "auto",
             padding: "14px 20px",
+            paddingBottom: comparedHotels.length > 0 ? 80 : 14,
           }}>
             {sorted.map((h, i) => (
               <HotelCard
@@ -650,6 +932,9 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
                 isActive={activeIdx === i}
                 onClick={() => setActiveIdx(activeIdx === i ? null : i)}
                 index={i}
+                compareMode={compareMode}
+                isCompared={compareIds.has(h.id)}
+                onCompare={() => toggleCompare(h.id)}
               />
             ))}
           </div>
@@ -664,6 +949,13 @@ export default function ResultsPage({ query, onGoHome, onSearch }: { query: stri
           />
         )}
       </div>
+
+      {/* Compare Tray */}
+      <CompareTray
+        hotels={comparedHotels}
+        onRemove={id => setCompareIds(prev => { const n = new Set(prev); n.delete(id); return n; })}
+        onClear={() => setCompareIds(new Set())}
+      />
     </div>
   );
 }
