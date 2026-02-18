@@ -9,6 +9,17 @@ const BLK = "#0a0a0a";
 const SEC = "#888";
 const BRD = "#e8e8e8";
 
+/* ── Mobile hook ── */
+export function useIsMobile(bp = 768) {
+  const [m, setM] = useState(window.innerWidth < bp);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth < bp);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, [bp]);
+  return m;
+}
+
 /* ── Shared Button ── */
 interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "accent" | "ghost" | "outline";
@@ -54,26 +65,43 @@ export function SectionHeader({ title, accent, sub, link, onLink }: SectionHeade
 /* ── Nav ── */
 export function Nav({ onSearch }: { onSearch: (q: string) => void }) {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const mob = useIsMobile();
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
   return (
-    <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? "rgba(255,255,255,.97)" : "#fff", backdropFilter: "blur(14px)", borderBottom: `1px solid ${BRD}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 5%", height: 62, boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,.07)" : "none", transition: "box-shadow .25s" }}>
-      <div style={{ fontSize: "1.15rem", fontWeight: 900, letterSpacing: "-.02em" }}>couple<span style={{ color: A }}>.</span>ofhours</div>
-      <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-        {["Explore Hotels", "List Your Property", "Help"].map(l => (
-          <a key={l} style={{ fontSize: ".8rem", fontWeight: 500, color: SEC, cursor: "pointer", transition: "color .15s" }}
-            onMouseEnter={e => (e.target as HTMLElement).style.color = BLK} onMouseLeave={e => (e.target as HTMLElement).style.color = SEC}>{l}</a>
-        ))}
-        <Btn style={{ padding: "0 18px", height: 36, fontSize: ".8rem" }}>Sign In</Btn>
-      </div>
+    <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? "rgba(255,255,255,.97)" : "#fff", backdropFilter: "blur(14px)", borderBottom: `1px solid ${BRD}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "0 4%" : "0 5%", height: mob ? 52 : 62, boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,.07)" : "none", transition: "box-shadow .25s" }}>
+      <div style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em" }}>couple<span style={{ color: A }}>.</span>ofhours</div>
+      {mob ? (
+        <>
+          <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", padding: 6 }}>
+            {menuOpen ? "✕" : "☰"}
+          </button>
+          {menuOpen && (
+            <div style={{ position: "absolute", top: 52, left: 0, right: 0, background: "#fff", borderBottom: `1px solid ${BRD}`, padding: "12px 4%", display: "flex", flexDirection: "column", gap: 12, boxShadow: "0 8px 24px rgba(0,0,0,.08)", zIndex: 300 }}>
+              {["Explore Hotels", "List Your Property", "Help"].map(l => (
+                <a key={l} style={{ fontSize: ".82rem", fontWeight: 500, color: SEC, cursor: "pointer", padding: "6px 0" }}>{l}</a>
+              ))}
+              <Btn style={{ padding: "0 18px", height: 36, fontSize: ".8rem", width: "100%" }}>Sign In</Btn>
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+          {["Explore Hotels", "List Your Property", "Help"].map(l => (
+            <a key={l} style={{ fontSize: ".8rem", fontWeight: 500, color: SEC, cursor: "pointer", transition: "color .15s" }}
+              onMouseEnter={e => (e.target as HTMLElement).style.color = BLK} onMouseLeave={e => (e.target as HTMLElement).style.color = SEC}>{l}</a>
+          ))}
+          <Btn style={{ padding: "0 18px", height: 36, fontSize: ".8rem" }}>Sign In</Btn>
+        </div>
+      )}
     </nav>
   );
 }
 
-/* ── Hero ── */
 /* ── SVG Location Icons ── */
 function LocationIcon({ type, color }: { type: string; color: string }) {
   const icons: Record<string, React.ReactNode> = {
@@ -111,12 +139,13 @@ function LocationIcon({ type, color }: { type: string; color: string }) {
   return <>{icons[type] || icons.county}</>;
 }
 
-/* ── Location Dropdown (Creative) ── */
+/* ── Location Dropdown ── */
 function LocationDropdown({ value, onChange, onSelect }: { value: string; onChange: (v: string) => void; onSelect: (loc: USLocation) => void }) {
   const [open, setOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const results = useMemo(() => searchLocations(value), [value]);
+  const mob = useIsMobile();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -162,12 +191,24 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
       )}
       {open && results.length > 0 && (
         <div style={{
-          position: "absolute", top: "calc(100% + 14px)", left: -18, width: 440, background: "#fff",
-          borderRadius: 20, boxShadow: "0 25px 80px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.04)",
-          zIndex: 9999, maxHeight: 480, overflowY: "auto", padding: "8px 0",
+          position: mob ? "fixed" : "absolute",
+          top: mob ? "auto" : "calc(100% + 14px)",
+          bottom: mob ? 0 : "auto",
+          left: mob ? 0 : -18,
+          right: mob ? 0 : "auto",
+          width: mob ? "100%" : 440,
+          background: "#fff",
+          borderRadius: mob ? "20px 20px 0 0" : 20,
+          boxShadow: "0 25px 80px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.04)",
+          zIndex: 9999,
+          maxHeight: mob ? "70vh" : 480,
+          overflowY: "auto",
+          padding: "8px 0",
           fontFamily: "'Inter', system-ui, sans-serif",
         }}>
-          {/* Header */}
+          {/* Drag handle on mobile */}
+          {mob && <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ddd", margin: "6px auto 8px" }} />}
+
           <div style={{ padding: "10px 22px 6px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: ".62rem", fontWeight: 800, color: "#b0b0b0", textTransform: "uppercase", letterSpacing: ".12em" }}>
               {value.trim() ? `${results.length} results` : "Popular Destinations"}
@@ -181,7 +222,6 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
             const stateInfo = getStateDisplay(state);
             return (
               <div key={state} style={{ marginBottom: 4 }}>
-                {/* State header */}
                 <div style={{ padding: "10px 22px 6px", display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: "1rem" }}>{stateInfo.icon}</span>
                   <span style={{ fontSize: ".75rem", fontWeight: 800, color: NAVY, letterSpacing: ".02em" }}>{stateInfo.name}</span>
@@ -189,8 +229,7 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
                   <span style={{ fontSize: ".58rem", fontWeight: 600, color: "#ccc" }}>{locs.length}</span>
                 </div>
 
-                {/* Location tiles */}
-                <div style={{ padding: "0 14px 4px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
+                <div style={{ padding: "0 14px 4px", display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 5 }}>
                   {locs.map((loc) => {
                     const idx = flatIdx++;
                     const s = getStyle(loc.type);
@@ -251,7 +290,6 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
             );
           })}
 
-          {/* Footer */}
           <div style={{ padding: "10px 22px 14px", borderTop: `1px solid ${BRD}`, marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
@@ -264,16 +302,16 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
   );
 }
 
-/* ── Single-Date Calendar (Kayak-inspired) ── */
+/* ── Single-Date Calendar ── */
 function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; onSelect: (d: Date) => void; onClose: () => void }) {
   const [baseMonth, setBaseMonth] = useState(() => selected ? startOfMonth(selected) : startOfMonth(new Date()));
   const today = startOfDay(new Date());
+  const mob = useIsMobile();
 
   const getDayColor = (day: Date) => {
     const dow = day.getDay();
-    if (dow === 5 || dow === 6) return { bg: "#ffe4a0", color: "#8a6d00" }; // weekend = higher
-    if (dow === 0) return { bg: "#ffe4a0", color: "#8a6d00" };
-    return { bg: "#b8f0c8", color: "#1a6e30" }; // weekday = cheaper
+    if (dow === 5 || dow === 6 || dow === 0) return { bg: "#ffe4a0", color: "#8a6d00" };
+    return { bg: "#b8f0c8", color: "#1a6e30" };
   };
 
   const ref = useRef<HTMLDivElement>(null);
@@ -284,15 +322,24 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
   }, [onClose]);
 
   return (
-    <div ref={ref} style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: 16, boxShadow: "0 16px 50px rgba(0,0,0,.2)", border: `1px solid ${BRD}`, padding: "20px 24px 16px", zIndex: 999, width: 320 }}>
-      {/* header */}
+    <div ref={ref} style={{
+      position: mob ? "fixed" : "absolute",
+      top: mob ? "auto" : "calc(100% + 8px)",
+      bottom: mob ? 0 : "auto",
+      left: mob ? 0 : "auto",
+      right: mob ? 0 : 0,
+      background: "#fff", borderRadius: mob ? "20px 20px 0 0" : 16,
+      boxShadow: "0 16px 50px rgba(0,0,0,.2)", border: `1px solid ${BRD}`,
+      padding: "20px 24px 16px", zIndex: 9999,
+      width: mob ? "100%" : 320,
+    }}>
+      {mob && <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ddd", margin: "0 auto 12px" }} />}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <button onMouseDown={e => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setBaseMonth(m => subMonths(m, 1)); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: "4px 8px", borderRadius: 6 }}>‹</button>
         <span style={{ fontSize: ".95rem", fontWeight: 700, color: NAVY }}>{format(baseMonth, "MMMM yyyy")}</span>
         <button onMouseDown={e => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setBaseMonth(m => addMonths(m, 1)); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: "4px 8px", borderRadius: 6 }}>›</button>
       </div>
 
-      {/* month grid */}
       <div>
         {(() => {
           const mStart = startOfMonth(baseMonth);
@@ -300,16 +347,13 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
           const calStart = startOfWeek(mStart);
           const calEnd = endOfWeek(mEnd);
           const days = eachDayOfInterval({ start: calStart, end: calEnd });
-
           return (
             <>
-              {/* day headers */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 4 }}>
                 {["S", "M", "T", "W", "T", "F", "S"].map((d, di) => (
                   <div key={di} style={{ textAlign: "center", fontSize: ".7rem", fontWeight: 700, color: "#999", padding: "4px 0" }}>{d}</div>
                 ))}
               </div>
-              {/* day cells */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
                 {days.map((day, di) => {
                   const inMonth = isSameMonth(day, baseMonth);
@@ -317,26 +361,16 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
                   const isSelected = selected && isSameDay(day, selected);
                   const isToday = isSameDay(day, today);
                   const { bg, color: textColor } = getDayColor(day);
-
                   if (!inMonth) return <div key={di} />;
-
                   return (
-                    <button
-                      key={di}
-                      disabled={isPast}
-                      onClick={() => { onSelect(day); onClose(); }}
+                    <button key={di} disabled={isPast} onClick={() => { onSelect(day); onClose(); }}
                       style={{
-                        width: "100%",
-                        aspectRatio: "1",
-                        border: isSelected ? `2px solid ${NAVY}` : "none",
-                        borderRadius: 8,
+                        width: "100%", aspectRatio: "1",
+                        border: isSelected ? `2px solid ${NAVY}` : "none", borderRadius: 8,
                         background: isSelected ? NAVY : isPast ? "#f5f5f5" : bg,
                         color: isSelected ? "#fff" : isPast ? "#ccc" : textColor,
-                        fontSize: ".82rem",
-                        fontWeight: isToday || isSelected ? 800 : 600,
-                        cursor: isPast ? "default" : "pointer",
-                        transition: "transform .1s",
-                        position: "relative",
+                        fontSize: ".82rem", fontWeight: isToday || isSelected ? 800 : 600,
+                        cursor: isPast ? "default" : "pointer", transition: "transform .1s", position: "relative",
                       }}
                       onMouseEnter={e => { if (!isPast) e.currentTarget.style.transform = "scale(1.1)"; }}
                       onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
@@ -354,8 +388,7 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
         })()}
       </div>
 
-      {/* legend */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BRD}` }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BRD}`, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           <span style={{ width: 14, height: 14, borderRadius: 4, background: "#b8f0c8", display: "inline-block" }} />
           <span style={{ fontSize: ".7rem", fontWeight: 600, color: "#1a6e30" }}>Cheaper</span>
@@ -364,8 +397,6 @@ function HeroCalendar({ selected, onSelect, onClose }: { selected: Date | null; 
           <span style={{ width: 14, height: 14, borderRadius: 4, background: "#ffe4a0", display: "inline-block" }} />
           <span style={{ fontSize: ".7rem", fontWeight: 600, color: "#8a6d00" }}>Average</span>
         </div>
-        <div style={{ flex: 1 }} />
-        <span style={{ fontSize: ".68rem", color: "#999" }}>Based on average hourly rates</span>
       </div>
     </div>
   );
@@ -381,61 +412,82 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
   const HOUR_OPTIONS = ["4", "5", "6", "8", "10", "12"];
   const pills = ["Near JFK Airport", "Manhattan Midtown", "Brooklyn Heights", "Jersey City", "Upper East Side"];
   const fmtDate = (d: Date | null) => d ? format(d, "EEE M/d") : "Select date";
+  const mob = useIsMobile();
 
   return (
-    <div style={{ background: "radial-gradient(ellipse at 65% -10%,#1a3060 0%,#0d1f38 50%,#050d1a 100%)", padding: "5rem 5% 6rem", textAlign: "center", position: "relative" }}>
+    <div style={{ background: "radial-gradient(ellipse at 65% -10%,#1a3060 0%,#0d1f38 50%,#050d1a 100%)", padding: mob ? "3rem 4% 3.5rem" : "5rem 5% 6rem", textAlign: "center", position: "relative" }}>
       <div style={{ position: "absolute", inset: 0, opacity: .04, pointerEvents: "none", backgroundImage: "linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px)", backgroundSize: "44px 44px" }} />
       <div style={{ position: "absolute", top: "-60px", left: "20%", width: 400, height: 400, borderRadius: "50%", background: "rgba(255,77,0,.06)", filter: "blur(80px)", pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: 0, right: "15%", width: 300, height: 300, borderRadius: "50%", background: "rgba(30,80,180,.12)", filter: "blur(60px)", pointerEvents: "none" }} />
 
-      <h1 style={{ fontSize: "clamp(2rem,5.5vw,3.6rem)", fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-.04em", marginBottom: "1.1rem", position: "relative" }}>
-        Find hourly hotel rooms<br />
-        <span style={{ background: "linear-gradient(90deg,#ff7340,#ff4d00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>across New York & New Jersey</span>
+      <h1 style={{ fontSize: "clamp(1.6rem,5.5vw,3.6rem)", fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-.04em", marginBottom: "1.1rem", position: "relative" }}>
+        Find hourly hotel rooms{!mob && <br />}
+        {mob ? " " : ""}<span style={{ background: "linear-gradient(90deg,#ff7340,#ff4d00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>across New York & New Jersey</span>
       </h1>
-      <p style={{ fontFamily: "Georgia,serif", fontStyle: "italic", fontSize: "clamp(.95rem,2.2vw,1.2rem)", color: "rgba(255,255,255,.72)", marginBottom: "2.4rem", lineHeight: 1.7, position: "relative" }}>
-        Pay only for the hours you need — perfect for layovers, day stays,<br />business meetings & couple escapes.
+      <p style={{ fontFamily: "Georgia,serif", fontStyle: "italic", fontSize: "clamp(.85rem,2.2vw,1.2rem)", color: "rgba(255,255,255,.72)", marginBottom: mob ? "1.6rem" : "2.4rem", lineHeight: 1.7, position: "relative" }}>
+        Pay only for the hours you need — perfect for layovers, day stays,{!mob && <br />}business meetings & couple escapes.
       </p>
 
       {/* search bar */}
       <div style={{ maxWidth: 860, margin: "0 auto 1.4rem", position: "relative", zIndex: 100 }}>
-        <div style={{ background: "#fff", borderRadius: 14, display: "flex", alignItems: "center", boxShadow: "0 12px 48px rgba(0,0,0,.28)", height: 58, position: "relative" }}>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 18px", gap: 10, height: "100%", minWidth: 0 }}>
+        <div style={{
+          background: "#fff", borderRadius: 14,
+          display: "flex",
+          flexDirection: mob ? "column" : "row",
+          alignItems: mob ? "stretch" : "center",
+          boxShadow: "0 12px 48px rgba(0,0,0,.28)",
+          height: mob ? "auto" : 58,
+          position: "relative",
+        }}>
+          {/* Location */}
+          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: mob ? "12px 16px" : "0 18px", gap: 10, height: mob ? "auto" : "100%", minWidth: 0 }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
             <LocationDropdown value={city} onChange={setCity} onSelect={(loc) => setCity(`${loc.name}, ${loc.state}`)} />
           </div>
 
-          <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />
+          {mob ? <div style={{ height: 1, background: BRD }} /> : <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />}
 
-          <div onClick={() => setCalOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 18px", minWidth: 170, cursor: "pointer", height: "100%", flexShrink: 0, background: calOpen ? "#f9f9f9" : "transparent", position: "relative" }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={date ? A : "#bbb"} strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-            <div>
-              <div style={{ fontSize: ".66rem", color: "#bbb", fontWeight: 600, lineHeight: 1, marginBottom: 2 }}>CHECK-IN</div>
-              <div style={{ fontSize: ".84rem", fontWeight: date ? 700 : 400, color: date ? "#111" : "#bbb", lineHeight: 1 }}>{fmtDate(date)}</div>
-            </div>
-            {calOpen && <HeroCalendar selected={date} onSelect={setDate} onClose={() => setCalOpen(false)} />}
-          </div>
-
-          <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />
-
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            <div onClick={() => setHoursOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 16px", minWidth: 130, cursor: "pointer", height: 58, background: hoursOpen ? "#f9f9f9" : "transparent" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+          {/* Date + Duration row on mobile */}
+          <div style={{ display: "flex", alignItems: mob ? "center" : "center", height: mob ? "auto" : "100%" }}>
+            <div onClick={() => setCalOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "10px 16px" : "0 18px", minWidth: mob ? 0 : 170, cursor: "pointer", height: mob ? "auto" : "100%", flexShrink: 0, flex: mob ? 1 : "none", background: calOpen ? "#f9f9f9" : "transparent", position: "relative" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={date ? A : "#bbb"} strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
               <div>
-                <div style={{ fontSize: ".66rem", color: "#bbb", fontWeight: 600, lineHeight: 1, marginBottom: 2 }}>DURATION</div>
-                <div style={{ fontSize: ".84rem", fontWeight: 700, color: "#111", lineHeight: 1 }}>{hours} Hours</div>
+                <div style={{ fontSize: ".66rem", color: "#bbb", fontWeight: 600, lineHeight: 1, marginBottom: 2 }}>CHECK-IN</div>
+                <div style={{ fontSize: ".84rem", fontWeight: date ? 700 : 400, color: date ? "#111" : "#bbb", lineHeight: 1 }}>{fmtDate(date)}</div>
               </div>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
+              {calOpen && <HeroCalendar selected={date} onSelect={setDate} onClose={() => setCalOpen(false)} />}
             </div>
-            {hoursOpen && (
-              <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, background: "#fff", borderRadius: 12, boxShadow: "0 8px 28px rgba(0,0,0,.14)", border: `1px solid ${BRD}`, overflow: "hidden", zIndex: 999 }}>
-                {HOUR_OPTIONS.map(opt => (
-                  <div key={opt} onClick={() => { setHours(opt); setHoursOpen(false); }} style={{ padding: "10px 16px", fontSize: ".84rem", fontWeight: hours === opt ? 700 : 400, color: hours === opt ? A : "#333", background: hours === opt ? "#fff8f5" : "#fff", cursor: "pointer" }}>{opt} Hours</div>
-                ))}
+
+            <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />
+
+            <div style={{ position: "relative", flexShrink: 0, flex: mob ? 1 : "none" }}>
+              <div onClick={() => setHoursOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "10px 16px" : "0 16px", minWidth: mob ? 0 : 130, cursor: "pointer", height: mob ? "auto" : 58, background: hoursOpen ? "#f9f9f9" : "transparent" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                <div>
+                  <div style={{ fontSize: ".66rem", color: "#bbb", fontWeight: 600, lineHeight: 1, marginBottom: 2 }}>DURATION</div>
+                  <div style={{ fontSize: ".84rem", fontWeight: 700, color: "#111", lineHeight: 1 }}>{hours} Hours</div>
+                </div>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
               </div>
-            )}
+              {hoursOpen && (
+                <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, background: "#fff", borderRadius: 12, boxShadow: "0 8px 28px rgba(0,0,0,.14)", border: `1px solid ${BRD}`, overflow: "hidden", zIndex: 9999 }}>
+                  {HOUR_OPTIONS.map(opt => (
+                    <div key={opt} onClick={() => { setHours(opt); setHoursOpen(false); }} style={{ padding: "10px 16px", fontSize: ".84rem", fontWeight: hours === opt ? 700 : 400, color: hours === opt ? A : "#333", background: hours === opt ? "#fff8f5" : "#fff", cursor: "pointer" }}>{opt} Hours</div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          <button onClick={() => onSearch(city || "Manhattan")} style={{ background: A, color: "#fff", border: "none", height: "100%", padding: "0 30px", fontSize: ".9rem", fontWeight: 700, fontFamily: "inherit", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 8, borderRadius: "0 14px 14px 0", transition: "background .15s" }} onMouseEnter={e => e.currentTarget.style.background = "#e03d00"} onMouseLeave={e => e.currentTarget.style.background = A}>
+          <button onClick={() => onSearch(city || "Manhattan")} style={{
+            background: A, color: "#fff", border: "none",
+            height: mob ? 48 : "100%",
+            padding: mob ? "0" : "0 30px",
+            fontSize: ".9rem", fontWeight: 700, fontFamily: "inherit", cursor: "pointer", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            borderRadius: mob ? "0 0 14px 14px" : "0 14px 14px 0",
+            transition: "background .15s",
+          }} onMouseEnter={e => e.currentTarget.style.background = "#e03d00"} onMouseLeave={e => e.currentTarget.style.background = A}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
             Search
           </button>
@@ -444,7 +496,7 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
         <span style={{ fontSize: ".72rem", color: "rgba(255,255,255,.4)", fontWeight: 500 }}>Popular:</span>
-        {pills.map(p => (
+        {pills.slice(0, mob ? 3 : 5).map(p => (
           <button key={p} onClick={() => onSearch(p)} style={{ background: "rgba(255,255,255,.09)", border: "1px solid rgba(255,255,255,.16)", color: "rgba(255,255,255,.78)", borderRadius: 20, padding: "5px 14px", fontSize: ".72rem", fontWeight: 600, cursor: "pointer" }}
             onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.18)"; e.currentTarget.style.color = "#fff"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.09)"; e.currentTarget.style.color = "rgba(255,255,255,.78)"; }}>
@@ -458,10 +510,12 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
 
 /* ── Trust Row ── */
 export function TrustRow() {
+  const mob = useIsMobile();
+  const items = ["✅ Instant Confirmation", "💳 No Credit Card Hold", "🔒 100% Private & Secure", "🕐 Check-in Any Time", "💰 Best Price Guarantee"];
   return (
-    <div style={{ background: "#fff", borderBottom: `1px solid ${BRD}`, display: "flex", alignItems: "center", justifyContent: "center", gap: "2.5rem", padding: ".9rem 5%", flexWrap: "wrap" }}>
-      {["✅ Instant Confirmation", "💳 No Credit Card Hold", "🔒 100% Private & Secure", "🕐 Check-in Any Time", "💰 Best Price Guarantee"].map(t => (
-        <div key={t} style={{ fontSize: ".76rem", fontWeight: 500, color: SEC }}>{t}</div>
+    <div style={{ background: "#fff", borderBottom: `1px solid ${BRD}`, display: "flex", alignItems: "center", justifyContent: mob ? "flex-start" : "center", gap: mob ? "1.2rem" : "2.5rem", padding: mob ? ".7rem 4%" : ".9rem 5%", flexWrap: "nowrap", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      {items.slice(0, mob ? 3 : 5).map(t => (
+        <div key={t} style={{ fontSize: ".76rem", fontWeight: 500, color: SEC, whiteSpace: "nowrap", flexShrink: 0 }}>{t}</div>
       ))}
     </div>
   );

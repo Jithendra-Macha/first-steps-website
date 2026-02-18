@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SectionHeader, Btn } from "./SharedComponents";
+import { SectionHeader, Btn, useIsMobile } from "./SharedComponents";
 import { DEALS_DATA, ZONE_DATA, OCC_DATA, WHY_CARDS } from "@/data/hotels";
 
 const A = "#ff4d00";
@@ -41,17 +41,18 @@ function DealCard({ deal: d, onSearch }: { deal: typeof DEALS_DATA[0]; onSearch:
 
 export function DealsSection({ onSearch }: { onSearch: (q: string) => void }) {
   const [tab, setTab] = useState("All");
+  const mob = useIsMobile();
   const tabs = ["All", "Manhattan", "Brooklyn", "Queens", "The Bronx", "New Jersey"];
   return (
-    <section style={{ padding: "3rem 5%", background: BG }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: BG }}>
       <SectionHeader title="🔥 Deals of the" accent="Day" sub="Limited-time prices — refreshed every 24 hours" link="View all deals →" onLink={() => onSearch("Manhattan")} />
-      <div style={{ display: "flex", gap: 8, marginBottom: "1.2rem", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: "1.2rem", flexWrap: "wrap", overflowX: mob ? "auto" : "visible" }}>
         {tabs.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "5px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === t ? BLK : BRD}`, background: tab === t ? BLK : "#fff", color: tab === t ? "#fff" : SEC, cursor: "pointer", fontFamily: "inherit", transition: "all .16s" }}>{t}</button>
+          <button key={t} onClick={() => setTab(t)} style={{ padding: "5px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === t ? BLK : BRD}`, background: tab === t ? BLK : "#fff", color: tab === t ? "#fff" : SEC, cursor: "pointer", fontFamily: "inherit", transition: "all .16s", whiteSpace: "nowrap", flexShrink: 0 }}>{t}</button>
         ))}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
-        {DEALS_DATA.map(d => <DealCard key={d.id} deal={d} onSearch={onSearch} />)}
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(4,1fr)", gap: 14 }}>
+        {DEALS_DATA.slice(0, mob ? 2 : 4).map(d => <DealCard key={d.id} deal={d} onSearch={onSearch} />)}
       </div>
     </section>
   );
@@ -76,11 +77,12 @@ function ZoneCard({ zone: z, onSearch }: { zone: typeof ZONE_DATA[0]; onSearch: 
 }
 
 export function ZonesSection({ onSearch }: { onSearch: (q: string) => void }) {
+  const mob = useIsMobile();
   return (
-    <section style={{ padding: "3rem 5%", background: "#fff" }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: "#fff" }}>
       <SectionHeader title="Browse by" accent="Neighborhood" link="All areas →" onLink={() => onSearch("New York")} />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14 }}>
-        {ZONE_DATA.map(z => <ZoneCard key={z.key} zone={z} onSearch={onSearch} />)}
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(5,1fr)", gap: mob ? 10 : 14 }}>
+        {ZONE_DATA.slice(0, mob ? 4 : 5).map(z => <ZoneCard key={z.key} zone={z} onSearch={onSearch} />)}
       </div>
     </section>
   );
@@ -89,24 +91,25 @@ export function ZonesSection({ onSearch }: { onSearch: (q: string) => void }) {
 /* ── Why Section ── */
 export function WhySection() {
   const [hrs, setHrs] = useState(4);
+  const mob = useIsMobile();
   const RATE = 28, total = hrs * RATE, saving = 280 - total, pct = ((hrs - 2) / 10) * 78 + 12;
   return (
-    <section style={{ padding: "4.5rem 5% 4rem", background: "#fff" }}>
-      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+    <section style={{ padding: mob ? "3rem 4%" : "4.5rem 5% 4rem", background: "#fff" }}>
+      <div style={{ textAlign: "center", marginBottom: mob ? "2rem" : "3rem" }}>
         <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: A, marginBottom: ".8rem" }}>The smarter way to stay</div>
         <h2 style={{ fontSize: "clamp(1.9rem,3.8vw,2.8rem)", fontWeight: 900, color: NAVY, letterSpacing: "-.04em", lineHeight: 1.1, marginBottom: ".9rem" }}>Pay for hours,<br />not the whole night</h2>
         <p style={{ fontSize: ".96rem", color: "#666", maxWidth: 520, margin: "0 auto", lineHeight: 1.65 }}>A full hotel night costs $280+ in New York. With CoupleOfHours, you only pay for the time you actually use.</p>
       </div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 28, marginBottom: "3.5rem", flexWrap: "wrap" }}>
-        <div style={{ background: "#f8f9fa", border: `1.5px solid ${BRD}`, borderRadius: 18, padding: "24px 26px", width: 268 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: mob ? 14 : 28, marginBottom: mob ? "2rem" : "3.5rem", flexWrap: "wrap", flexDirection: mob ? "column" : "row" }}>
+        <div style={{ background: "#f8f9fa", border: `1.5px solid ${BRD}`, borderRadius: 18, padding: "24px 26px", width: mob ? "100%" : 268 }}>
           <div style={{ fontSize: ".68rem", fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>Traditional hotel night</div>
           <div style={{ fontSize: "2.4rem", fontWeight: 900, letterSpacing: "-.05em", color: "#c0392b", textDecoration: "line-through", opacity: .65, lineHeight: 1, marginBottom: 6 }}>$280<span style={{ fontSize: ".78rem", fontWeight: 400, color: "#aaa", textDecoration: "none" }}>/night</span></div>
           <div style={{ fontSize: ".74rem", color: "#999", marginBottom: 12 }}>Paying for 14+ hours you don't use</div>
           <div style={{ background: "#e4e4e4", borderRadius: 6, height: 7 }}><div style={{ height: "100%", borderRadius: 6, background: "#c0392b", width: "20%" }} /></div>
           <div style={{ fontSize: ".64rem", color: "#aaa", marginTop: 5 }}>14 hours unused 😔</div>
         </div>
-        <div style={{ fontSize: ".76rem", fontWeight: 800, color: "#ccc", letterSpacing: ".12em" }}>VS</div>
-        <div style={{ background: "#fff", border: `2px solid ${A}`, borderRadius: 18, padding: "28px 26px", width: 268, position: "relative", boxShadow: `0 8px 36px rgba(255,77,0,.14)` }}>
+        {!mob && <div style={{ fontSize: ".76rem", fontWeight: 800, color: "#ccc", letterSpacing: ".12em" }}>VS</div>}
+        <div style={{ background: "#fff", border: `2px solid ${A}`, borderRadius: 18, padding: "28px 26px", width: mob ? "100%" : 268, position: "relative", boxShadow: `0 8px 36px rgba(255,77,0,.14)` }}>
           <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: A, color: "#fff", fontSize: ".6rem", fontWeight: 800, padding: "4px 14px", borderRadius: 20, letterSpacing: ".06em", whiteSpace: "nowrap" }}>✨ Smarter</div>
           <div style={{ fontSize: ".68rem", fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>CoupleOfHours</div>
           <div style={{ fontSize: "2.4rem", fontWeight: 900, letterSpacing: "-.05em", color: NAVY, lineHeight: 1, marginBottom: 6 }}>${total}<span style={{ fontSize: ".78rem", fontWeight: 400, color: "#aaa" }}>/stay</span></div>
@@ -122,7 +125,7 @@ export function WhySection() {
           </div>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4,1fr)", gap: mob ? 10 : 16 }}>
         {WHY_CARDS.map((v, i) => (
           <WhyCard key={i} card={v} />
         ))}
@@ -146,15 +149,16 @@ function WhyCard({ card: v }: { card: typeof WHY_CARDS[0] }) {
 
 /* ── Airports ── */
 export function AirportsSection({ onSearch }: { onSearch: (q: string) => void }) {
+  const mob = useIsMobile();
   const airports = [
     { code: "JFK", name: "John F. Kennedy International", sub: "Jamaica, Queens, New York", hotels: 22, from: "$12/hr", drive: "5 min drive" },
     { code: "LGA", name: "LaGuardia Airport", sub: "East Elmhurst, Queens", hotels: 18, from: "$14/hr", drive: "3 min drive" },
     { code: "EWR", name: "Newark Liberty International", sub: "Newark, New Jersey", hotels: 15, from: "$10/hr", drive: "4 min drive" },
   ];
   return (
-    <section style={{ padding: "3rem 5%", background: BG }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: BG }}>
       <SectionHeader title="Hotels Near" accent="Airports" link="All airport hotels →" onLink={() => onSearch("Near Airport")} />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap: 14 }}>
         {airports.map(a => (
           <AirportCard key={a.code} airport={a} onSearch={onSearch} />
         ))}
@@ -183,15 +187,16 @@ function AirportCard({ airport: a, onSearch }: { airport: { code: string; name: 
 
 /* ── NJ Section ── */
 export function NJSection({ onSearch }: { onSearch: (q: string) => void }) {
+  const mob = useIsMobile();
   const areas = [
     { area: "Hoboken", sub: "NJ · NYC Skyline Views", hotels: 11, from: "$15/hr", bg: "linear-gradient(135deg,#0a1e35,#0f2d50)" },
     { area: "Jersey City", sub: "NJ · Near PATH Train", hotels: 14, from: "$13/hr", bg: "linear-gradient(135deg,#0d2210,#123018)" },
     { area: "Newark", sub: "NJ · Near EWR Airport", hotels: 9, from: "$10/hr", bg: "linear-gradient(135deg,#160820,#2e1060)" },
   ];
   return (
-    <section style={{ padding: "3rem 5%", background: "#fff" }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: "#fff" }}>
       <SectionHeader title="Hotels in" accent="New Jersey" link="All NJ hotels →" onLink={() => onSearch("New Jersey")} />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap: 14 }}>
         {areas.map(a => (
           <NJCard key={a.area} area={a} onSearch={onSearch} />
         ))}
@@ -221,16 +226,17 @@ function NJCard({ area: a, onSearch }: { area: { area: string; sub: string; hote
 /* ── Occasions ── */
 export function OccasionsSection({ onSearch }: { onSearch: (q: string) => void }) {
   const [tab, setTab] = useState("💑 All");
+  const mob = useIsMobile();
   const tabs = ["💑 All", "💑 Couples", "✈️ Layover", "💼 Business", "🎂 Celebration"];
   return (
-    <section style={{ padding: "3rem 5%", background: BG }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: BG }}>
       <SectionHeader title="Perfect for Every" accent="Occasion" />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "1.4rem" }}>
         {tabs.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "6px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === t ? BLK : BRD}`, background: tab === t ? BLK : "#fff", color: tab === t ? "#fff" : SEC, cursor: "pointer", fontFamily: "inherit", transition: "all .15s" }}>{t}</button>
+          <button key={t} onClick={() => setTab(t)} style={{ padding: "6px 16px", borderRadius: 20, fontSize: ".74rem", fontWeight: 600, border: `1.5px solid ${tab === t ? BLK : BRD}`, background: tab === t ? BLK : "#fff", color: tab === t ? "#fff" : SEC, cursor: "pointer", fontFamily: "inherit", transition: "all .15s", flexShrink: 0 }}>{t}</button>
         ))}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4,1fr)", gap: mob ? 10 : 14 }}>
         {OCC_DATA.map(o => (
           <OccasionCard key={o.label} occ={o} onSearch={onSearch} />
         ))}
@@ -253,6 +259,7 @@ function OccasionCard({ occ: o, onSearch }: { occ: typeof OCC_DATA[0]; onSearch:
 
 /* ── How It Works ── */
 export function HowItWorks() {
+  const mob = useIsMobile();
   const steps = [
     { n: "01", icon: "🔍", title: "Search", desc: "Enter a neighborhood in NY or NJ, pick a date and check-in time." },
     { n: "02", icon: "⏱️", title: "Choose Hours", desc: "Select 2, 3, 4, 6, 8 or 12 hours. Pay only for the time you use." },
@@ -260,11 +267,11 @@ export function HowItWorks() {
     { n: "04", icon: "🏨", title: "Check In & Enjoy", desc: "Walk in, check in, use all hotel amenities. Leave when done." },
   ];
   return (
-    <section style={{ padding: "3rem 5%", background: "#fff" }}>
+    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: "#fff" }}>
       <SectionHeader title="How it" accent="works" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: `1px solid ${BRD}`, borderRadius: 16, overflow: "hidden" }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4,1fr)", border: `1px solid ${BRD}`, borderRadius: 16, overflow: "hidden" }}>
         {steps.map((s, i) => (
-          <div key={s.n} style={{ padding: "1.8rem 1.6rem", borderRight: i < 3 ? `1px solid ${BRD}` : "none" }}>
+          <div key={s.n} style={{ padding: mob ? "1.2rem" : "1.8rem 1.6rem", borderRight: mob ? (i % 2 === 0 ? `1px solid ${BRD}` : "none") : (i < 3 ? `1px solid ${BRD}` : "none"), borderBottom: mob && i < 2 ? `1px solid ${BRD}` : "none" }}>
             <div style={{ fontSize: ".7rem", fontWeight: 800, color: A, letterSpacing: ".1em", marginBottom: ".7rem" }}>{s.n}</div>
             <div style={{ fontSize: "1.8rem", marginBottom: ".6rem" }}>{s.icon}</div>
             <div style={{ fontSize: ".96rem", fontWeight: 800, color: BLK, marginBottom: ".4rem" }}>{s.title}</div>
@@ -278,11 +285,12 @@ export function HowItWorks() {
 
 /* ── Stats ── */
 export function Stats() {
+  const mob = useIsMobile();
   return (
-    <div style={{ background: "#fff", borderTop: `1px solid ${BRD}`, borderBottom: `1px solid ${BRD}`, display: "flex", alignItems: "center", justifyContent: "center", gap: "3.5rem", padding: "2.4rem 5%", flexWrap: "wrap" }}>
+    <div style={{ background: "#fff", borderTop: `1px solid ${BRD}`, borderBottom: `1px solid ${BRD}`, display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4, 1fr)", gap: mob ? "1rem" : 0, alignItems: "center", justifyContent: "center", padding: mob ? "1.6rem 4%" : "2.4rem 5%", textAlign: "center" }}>
       {[["150+", "Partner Hotels"], ["NY + NJ", "Currently Available"], ["40K+", "Bookings Completed"], ["4.8★", "Average Guest Rating"]].map(([n, l]) => (
         <div key={n} style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", fontWeight: 900, color: BLK, letterSpacing: "-.04em", lineHeight: 1 }}>{n}</div>
+          <div style={{ fontSize: mob ? "1.5rem" : "2rem", fontWeight: 900, color: BLK, letterSpacing: "-.04em", lineHeight: 1 }}>{n}</div>
           <div style={{ fontSize: ".72rem", color: SEC, fontWeight: 500, marginTop: ".3rem" }}>{l}</div>
         </div>
       ))}
@@ -292,14 +300,15 @@ export function Stats() {
 
 /* ── Footer ── */
 export function Footer() {
+  const mob = useIsMobile();
   const cols = [
     { title: "Explore NY", links: ["Manhattan Hotels", "Brooklyn Hotels", "Queens Hotels", "The Bronx Hotels", "Staten Island"] },
     { title: "Airports & NJ", links: ["Hotels Near JFK", "Hotels Near LGA", "Hotels Near EWR", "Jersey City Hotels", "Hoboken Hotels"] },
     { title: "Company", links: ["About Us", "List Your Hotel", "Privacy Policy", "Terms of Service", "Contact Us"] },
   ];
   return (
-    <footer style={{ background: BLK, color: "rgba(255,255,255,.6)", padding: "3.5rem 5% 2rem" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 1fr", gap: "2.5rem", marginBottom: "2.5rem" }}>
+    <footer style={{ background: BLK, color: "rgba(255,255,255,.6)", padding: mob ? "2rem 4% 1.5rem" : "3.5rem 5% 2rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1.6fr 1fr 1fr 1fr", gap: mob ? "1.5rem" : "2.5rem", marginBottom: mob ? "1.5rem" : "2.5rem" }}>
         <div>
           <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#fff", marginBottom: ".6rem" }}>couple<span style={{ color: A }}>.</span>ofhours</div>
           <p style={{ fontSize: ".76rem", lineHeight: 1.68, maxWidth: 240, marginBottom: "1rem" }}>Hourly hotel bookings across New York & New Jersey. Flexible, private, instant — pay only for the time you need.</p>
@@ -309,7 +318,7 @@ export function Footer() {
             ))}
           </div>
         </div>
-        {cols.map(col => (
+        {(mob ? cols.slice(0, 2) : cols).map(col => (
           <div key={col.title}>
             <div style={{ fontSize: ".7rem", fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: ".9rem" }}>{col.title}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: ".5rem" }}>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Btn } from "./SharedComponents";
+import { Btn, useIsMobile } from "./SharedComponents";
 import type { Hotel } from "@/data/hotels";
 import { HOTELS } from "@/data/hotels";
 import mapboxgl from "mapbox-gl";
@@ -843,7 +843,7 @@ function AmenitySection({ hotel }: { hotel: Hotel }) {
       <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: NAVY, marginBottom: 16 }}>
         What's included <span style={{ color: A }}>with your stay</span>
       </h3>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
         {allAmenities.slice(0, 9).map((a, i) => (
           <div key={i} style={{
             display: "flex", alignItems: "center", gap: 10,
@@ -1155,6 +1155,7 @@ export default function HotelPage({ hotel, onBack, onBookingComplete }: { hotel:
   const [fav, setFav] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const mob = useIsMobile();
 
   const sections = [
     { id: "overview", label: "Overview" },
@@ -1186,7 +1187,8 @@ export default function HotelPage({ hotel, onBack, onBookingComplete }: { hotel:
           </div>
         </div>
 
-        {/* Section tabs */}
+        {/* Section tabs - hide on mobile */}
+        {!mob && (
         <div style={{ display: "flex", gap: 4 }}>
           {sections.map(s => (
             <button
@@ -1207,6 +1209,7 @@ export default function HotelPage({ hotel, onBack, onBookingComplete }: { hotel:
             >{s.label}</button>
           ))}
         </div>
+        )}
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
@@ -1283,7 +1286,7 @@ export default function HotelPage({ hotel, onBack, onBookingComplete }: { hotel:
         <PhotoGallery hotel={hotel} />
 
         {/* Two column layout */}
-        <div style={{ display: "flex", gap: 30, marginTop: 30 }}>
+        <div style={{ display: "flex", flexDirection: mob ? "column" : "row", gap: mob ? 24 : 30, marginTop: 30 }}>
           {/* Left column */}
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 40 }}>
             {/* Highlights */}
@@ -1344,7 +1347,7 @@ export default function HotelPage({ hotel, onBack, onBookingComplete }: { hotel:
           </div>
 
           {/* Right column: Sticky booking card */}
-          <div style={{ width: 360, flexShrink: 0 }}>
+          <div style={{ width: mob ? "100%" : 360, flexShrink: 0 }}>
             <BookingCard
               hotel={hotel}
               selectedSlot={selectedSlot}
