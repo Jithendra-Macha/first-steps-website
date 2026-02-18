@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Btn, useIsMobile } from "./SharedComponents";
+import { Btn, useIsMobile, useThemeColors } from "./SharedComponents";
 import { HOTELS } from "@/data/hotels";
 import type { Hotel } from "@/data/hotels";
 export type { Hotel };
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isBefore, startOfDay, isToday } from "date-fns";
 
 const A = "#ff4d00";
 const NAVY = "#0d1f38";
@@ -12,11 +13,115 @@ const BLK = "#0a0a0a";
 const SEC = "#888";
 const BRD = "#e8e8e8";
 
+/* ── Nav Date Picker ── */
+function NavDatePicker({ selectedDate, onSelect }: { selectedDate: Date; onSelect: (d: Date) => void }) {
+  const [open, setOpen] = useState(false);
+  const [viewMonth, setViewMonth] = useState(startOfMonth(selectedDate));
+  const ref = useRef<HTMLDivElement>(null);
+  const t = useThemeColors();
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const days = eachDayOfInterval({ start: startOfWeek(startOfMonth(viewMonth)), end: endOfWeek(endOfMonth(viewMonth)) });
+  const today = startOfDay(new Date());
+
+  const label = isToday(selectedDate) ? "Today" : format(selectedDate, "MMM d");
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", gap: 5,
+          padding: "0 14px", height: "100%",
+          background: "transparent", border: "none",
+          fontSize: ".76rem", color: "rgba(255,255,255,.65)",
+          cursor: "pointer", fontFamily: "inherit",
+          transition: "color .15s",
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+        onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,.65)"}
+      >
+        📅 {label}
+      </button>
+      {open && (
+        <>
+          <div style={{ position: "fixed", inset: 0, zIndex: 998 }} onClick={() => setOpen(false)} />
+          <div style={{
+            position: "absolute", top: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)",
+            background: t.bgCard, borderRadius: 16, padding: 16,
+            boxShadow: `0 16px 48px ${t.shadow}`, border: `1px solid ${t.border}`,
+            zIndex: 999, width: 300,
+          }}>
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <button onClick={() => setViewMonth(subMonths(viewMonth, 1))} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: t.text, padding: 4 }}>‹</button>
+              <span style={{ fontSize: ".82rem", fontWeight: 800, color: t.text }}>{format(viewMonth, "MMMM yyyy")}</span>
+              <button onClick={() => setViewMonth(addMonths(viewMonth, 1))} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: t.text, padding: 4 }}>›</button>
+            </div>
+            {/* Weekday headers */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 4 }}>
+              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(d => (
+                <div key={d} style={{ textAlign: "center", fontSize: ".6rem", fontWeight: 700, color: t.textSecondary, padding: "4px 0" }}>{d}</div>
+              ))}
+            </div>
+            {/* Days */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2 }}>
+              {days.map(day => {
+                const inMonth = isSameMonth(day, viewMonth);
+                const selected = isSameDay(day, selectedDate);
+                const past = isBefore(day, today);
+                const todayDay = isSameDay(day, today);
+                return (
+                  <button
+                    key={day.toISOString()}
+                    disabled={past && !todayDay}
+                    onClick={() => { onSelect(day); setOpen(false); }}
+                    style={{
+                      width: "100%", aspectRatio: "1", borderRadius: 10,
+                      border: selected ? `2px solid ${A}` : "none",
+                      background: selected ? A : todayDay ? (t.dark ? "#2a2a2a" : "#f0f0f0") : "transparent",
+                      color: selected ? "#fff" : !inMonth || (past && !todayDay) ? t.textMuted : t.text,
+                      fontSize: ".75rem", fontWeight: selected || todayDay ? 700 : 400,
+                      cursor: past && !todayDay ? "default" : "pointer",
+                      opacity: past && !todayDay ? 0.4 : 1,
+                      fontFamily: "inherit",
+                      transition: "all .1s",
+                    }}
+                  >
+                    {format(day, "d")}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Quick pick */}
+            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+              <button onClick={() => { onSelect(today); setOpen(false); }}
+                style={{ flex: 1, padding: "6px 0", borderRadius: 8, border: `1px solid ${t.border}`, background: isToday(selectedDate) ? A : "transparent", color: isToday(selectedDate) ? "#fff" : t.text, fontSize: ".7rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                Today
+              </button>
+              <button onClick={() => { onSelect(new Date(today.getTime() + 86400000)); setOpen(false); }}
+                style={{ flex: 1, padding: "6px 0", borderRadius: 8, border: `1px solid ${t.border}`, background: "transparent", color: t.text, fontSize: ".7rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                Tomorrow
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ── Time Slots ── */
 const TIME_SLOTS = ["6am–12pm", "11am–5pm", "1pm–7pm", "5pm–11pm"];
 
 /* ── Filter Sidebar ── */
 function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () => void; count: number }) {
+  const t = useThemeColors();
   const [priceRange, setPriceRange] = useState<[number, number]>([10, 40]);
   const [selectedStars, setSelectedStars] = useState<Set<number>>(new Set());
   const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(new Set());
@@ -71,8 +176,8 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
         minWidth: open ? 260 : 0,
         overflow: "hidden",
         transition: "all .3s cubic-bezier(.4,0,.2,1)",
-        borderRight: open ? `1px solid ${BRD}` : "none",
-        background: "#fff",
+        borderRight: open ? `1px solid ${t.border}` : "none",
+        background: t.bgCard,
         display: "flex",
         flexDirection: "column",
       }}>
@@ -80,8 +185,8 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <div>
-              <div style={{ fontSize: ".92rem", fontWeight: 800, color: NAVY }}>Filters</div>
-              <div style={{ fontSize: ".65rem", color: SEC, marginTop: 2 }}>
+              <div style={{ fontSize: ".92rem", fontWeight: 800, color: t.navy }}>Filters</div>
+              <div style={{ fontSize: ".65rem", color: t.textSecondary, marginTop: 2 }}>
                 <span style={{ fontWeight: 800, color: A }}>{count}</span> hotels match
               </div>
             </div>
@@ -743,11 +848,13 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
   const [sort, setSort] = useState("rec");
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [city, setCity] = useState(query);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const mob = useIsMobile();
   const [view, setView] = useState<"split" | "list" | "map">(mob ? "list" : "split");
   const [filtersOpen, setFiltersOpen] = useState(!mob);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
+  const t = useThemeColors();
 
   const toggleCompare = (id: number) => {
     setCompareIds(prev => {
@@ -768,7 +875,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
   const comparedHotels = sorted.filter(h => compareIds.has(h.id));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", background: "#f5f6f8" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", background: t.bgPage }}>
       {/* Nav */}
       <nav style={{
         background: NAVY,
@@ -803,9 +910,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
             />
           </div>
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,.15)" }} />
-          <div style={{ padding: "0 14px", fontSize: ".76rem", color: "rgba(255,255,255,.55)", display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }}>
-            📅 Today
-          </div>
+          <NavDatePicker selectedDate={selectedDate} onSelect={setSelectedDate} />
           <button
             onClick={() => onSearch(city)}
             style={{
@@ -878,17 +983,17 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "10px 24px",
-        background: "#fff",
-        borderBottom: `1px solid #f0f0f0`,
+        background: t.bgCard,
+        borderBottom: `1px solid ${t.border}`,
         flexShrink: 0,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ fontSize: ".8rem", color: SEC }}>
-            Hourly hotels in <span style={{ fontWeight: 800, color: NAVY }}>{query}</span>
+          <div style={{ fontSize: ".8rem", color: t.textSecondary }}>
+            Hourly hotels in <span style={{ fontWeight: 800, color: t.navy }}>{query}</span>
           </div>
           {compareMode && (
             <span style={{
-              background: "#fff5f0", color: A,
+              background: t.dark ? "rgba(255,77,0,.15)" : "#fff5f0", color: A,
               fontSize: ".65rem", fontWeight: 700,
               padding: "3px 10px", borderRadius: 6,
             }}>
@@ -897,13 +1002,13 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
           )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: ".7rem", color: SEC }}>Sort:</span>
+          <span style={{ fontSize: ".7rem", color: t.textSecondary }}>Sort:</span>
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
             style={{
-              border: `1px solid ${BRD}`, background: "#fff",
-              fontSize: ".74rem", fontWeight: 700, color: NAVY,
+              border: `1px solid ${t.border}`, background: t.bgCard,
+              fontSize: ".74rem", fontWeight: 700, color: t.navy,
               cursor: "pointer", fontFamily: "inherit", outline: "none",
               padding: "4px 8px", borderRadius: 6,
             }}
