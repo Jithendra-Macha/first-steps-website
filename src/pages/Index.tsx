@@ -90,10 +90,9 @@ const Index = () => {
   }, [user]);
 
   const handleListPropertyClick = useCallback(() => {
-    if (!user) { setShowAuth(true); return; }
     setPage("list-property");
     window.scrollTo(0, 0);
-  }, [user]);
+  }, []);
 
   const navProps = {
     onSearch: goSearch,

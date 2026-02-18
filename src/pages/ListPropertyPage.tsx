@@ -8,8 +8,9 @@ const A = "#ff4d00";
 
 /* ── Step definitions ── */
 const STEPS = [
-  { id: "basic", label: "Basic Info", icon: "🏨" },
+  { id: "basic", label: "Hotel Info", icon: "🏨" },
   { id: "address", label: "Address", icon: "📍" },
+  { id: "account", label: "Create Account", icon: "👤" },
   { id: "rooms", label: "Room Types", icon: "🛏️" },
   { id: "hours", label: "Available Hours", icon: "🕐" },
   { id: "amenities", label: "Amenities", icon: "✨" },
@@ -240,14 +241,30 @@ export default function ListPropertyPage({ onBack }: { onBack: () => void }) {
   };
   const removePhotoUrl = (i: number) => upd({ photo_urls: form.photo_urls.filter((_, idx) => idx !== i) });
 
+  // Get visible steps (hide account step if already logged in)
+  const visibleSteps = user ? STEPS.filter(s => s.id !== "account") : STEPS;
+  const currentStepDef = visibleSteps[step];
+  const realStepIndex = STEPS.findIndex(s => s.id === currentStepDef?.id);
+
   const canNext = () => {
-    switch (step) {
-      case 0: return form.hotel_name && form.hotel_email && form.hotel_phone;
-      case 1: return form.street_address && form.city && form.state && form.zip_code;
-      case 2: return form.room_types.length > 0 && form.room_types.every(r => r.name && r.hourly_rate > 0);
-      case 3: return (form.available_hours.length + form.custom_hours.length) > 0;
+    const sid = currentStepDef?.id;
+    switch (sid) {
+      case "basic": return form.hotel_name && form.hotel_email && form.hotel_phone;
+      case "address": return form.street_address && form.city && form.state && form.zip_code;
+      case "account": return !!user;
+      case "rooms": return form.room_types.length > 0 && form.room_types.every(r => r.name && r.hourly_rate > 0);
+      case "hours": return (form.available_hours.length + form.custom_hours.length) > 0;
       default: return true;
     }
+  };
+
+  const goNext = () => {
+    if (!canNext()) return;
+    setStep(step + 1);
+  };
+
+  const goBack = () => {
+    if (step > 0) setStep(step - 1);
   };
 
   const handleSubmit = async () => {
@@ -329,7 +346,7 @@ export default function ListPropertyPage({ onBack }: { onBack: () => void }) {
       <div style={{ maxWidth: 820, margin: "0 auto", padding: mob ? "1.2rem 4%" : "2rem 1.5rem" }}>
         {/* Progress */}
         <div style={{ display: "flex", gap: 4, marginBottom: mob ? "1.2rem" : "2rem" }}>
-          {STEPS.map((s, i) => (
+          {visibleSteps.map((s, i) => (
             <div key={s.id} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= step ? A : t.border, transition: "background .3s" }} />
           ))}
         </div>
@@ -337,33 +354,34 @@ export default function ListPropertyPage({ onBack }: { onBack: () => void }) {
         {/* Step header */}
         <div style={{ marginBottom: "1.5rem" }}>
           <div style={{ fontSize: ".72rem", fontWeight: 800, color: A, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 4 }}>
-            Step {step + 1} of {STEPS.length}
+            Step {step + 1} of {visibleSteps.length}
           </div>
           <h1 style={{ fontSize: mob ? "1.3rem" : "1.6rem", fontWeight: 900, color: t.text, letterSpacing: "-.03em" }}>
-            {STEPS[step].icon} {STEPS[step].label}
+            {currentStepDef?.icon} {currentStepDef?.label}
           </h1>
         </div>
 
         {/* Step content */}
         <div style={{ background: t.bgCard, borderRadius: 20, border: `1px solid ${t.border}`, padding: mob ? "1.2rem" : "2rem" }}>
-          {step === 0 && <BasicInfoStep form={form} upd={upd} />}
-          {step === 1 && <AddressStep form={form} upd={upd} />}
-          {step === 2 && <RoomsStep form={form} addRoom={addRoom} removeRoom={removeRoom} updateRoom={updateRoom} />}
-          {step === 3 && <HoursStep form={form} toggleHour={toggleHour} addCustomHour={addCustomHour} updateCustomHour={updateCustomHour} removeCustomHour={removeCustomHour} />}
-          {step === 4 && <AmenitiesStep form={form} toggleAmenity={toggleAmenity} upd={upd} />}
-          {step === 5 && <PoliciesStep form={form} upd={upd} />}
-          {step === 6 && <PhotosStep form={form} addPhotoUrl={addPhotoUrl} updatePhotoUrl={updatePhotoUrl} removePhotoUrl={removePhotoUrl} />}
-          {step === 7 && <ReviewStep form={form} />}
+          {realStepIndex === 0 && <BasicInfoStep form={form} upd={upd} />}
+          {realStepIndex === 1 && <AddressStep form={form} upd={upd} />}
+          {realStepIndex === 2 && <AccountStep />}
+          {realStepIndex === 3 && <RoomsStep form={form} addRoom={addRoom} removeRoom={removeRoom} updateRoom={updateRoom} />}
+          {realStepIndex === 4 && <HoursStep form={form} toggleHour={toggleHour} addCustomHour={addCustomHour} updateCustomHour={updateCustomHour} removeCustomHour={removeCustomHour} />}
+          {realStepIndex === 5 && <AmenitiesStep form={form} toggleAmenity={toggleAmenity} upd={upd} />}
+          {realStepIndex === 6 && <PoliciesStep form={form} upd={upd} />}
+          {realStepIndex === 7 && <PhotosStep form={form} addPhotoUrl={addPhotoUrl} updatePhotoUrl={updatePhotoUrl} removePhotoUrl={removePhotoUrl} />}
+          {realStepIndex === 8 && <ReviewStep form={form} />}
         </div>
 
         {/* Navigation */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem", gap: 12 }}>
-          <Btn variant="outline" onClick={() => step > 0 && setStep(step - 1)} disabled={step === 0}
+          <Btn variant="outline" onClick={goBack} disabled={step === 0}
             style={{ padding: "12px 28px", fontSize: ".88rem", borderRadius: 12, opacity: step === 0 ? 0.4 : 1 }}>
             ← Back
           </Btn>
-          {step < STEPS.length - 1 ? (
-            <Btn onClick={() => canNext() && setStep(step + 1)} disabled={!canNext()}
+          {step < visibleSteps.length - 1 ? (
+            <Btn onClick={goNext} disabled={!canNext()}
               style={{ padding: "12px 28px", fontSize: ".88rem", borderRadius: 12, opacity: canNext() ? 1 : 0.5 }}>
               Next →
             </Btn>
@@ -376,6 +394,98 @@ export default function ListPropertyPage({ onBack }: { onBack: () => void }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Account Step (inline signup/login) ── */
+function AccountStep() {
+  const t = useThemeColors();
+  const mob = useIsMobile();
+  const { user, signIn, signUp } = useAuth();
+  const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  if (user) {
+    return (
+      <div style={{ textAlign: "center", padding: mob ? "1.5rem 0" : "2.5rem 0" }}>
+        <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>✅</div>
+        <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: t.text, marginBottom: ".5rem" }}>You're signed in!</h3>
+        <p style={{ fontSize: ".86rem", color: t.textSecondary }}>{user.email}</p>
+        <p style={{ fontSize: ".82rem", color: t.textSecondary, marginTop: ".6rem" }}>Click <strong>Next</strong> to continue setting up your property.</p>
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setLoading(true);
+    try {
+      if (mode === "signup") {
+        if (!firstName.trim() || !lastName.trim()) { setError("Please fill in all fields"); setLoading(false); return; }
+        const { error } = await signUp(email, password, firstName, lastName);
+        if (error) throw error;
+        setSuccess("Account created! Check your email to verify, then sign in below.");
+        setMode("login");
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) throw error;
+      }
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <p style={{ fontSize: ".86rem", color: t.textSecondary, marginBottom: 20, lineHeight: 1.6 }}>
+        {mode === "signup"
+          ? "Create a property manager account to manage your listing, track bookings, and communicate with guests."
+          : "Already have an account? Sign in to continue."}
+      </p>
+
+      {error && <div style={{ background: t.dark ? "#3a1515" : "#fee", border: `1px solid ${t.dark ? "#5a2020" : "#fcc"}`, color: t.dark ? "#ff8888" : "#c00", borderRadius: 10, padding: "10px 14px", fontSize: ".78rem", marginBottom: 16 }}>{error}</div>}
+      {success && <div style={{ background: t.dark ? "#153a15" : "#efe", border: `1px solid ${t.dark ? "#205a20" : "#cfc"}`, color: t.dark ? "#88ff88" : "#060", borderRadius: 10, padding: "10px 14px", fontSize: ".78rem", marginBottom: 16 }}>{success}</div>}
+
+      <form onSubmit={handleSubmit}>
+        {mode === "signup" && (
+          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 4 }}>
+            <Field label="First Name" required>
+              <StyledInput value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="John" required />
+            </Field>
+            <Field label="Last Name" required>
+              <StyledInput value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Smith" required />
+            </Field>
+          </div>
+        )}
+        <Field label="Email" required>
+          <StyledInput type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="manager@hotel.com" required />
+        </Field>
+        <Field label="Password" required>
+          <StyledInput type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+        </Field>
+        <Btn type="submit" disabled={loading} style={{ width: "100%", height: 46, fontSize: ".88rem", marginTop: 8, opacity: loading ? .6 : 1 }}>
+          {loading ? "Please wait..." : mode === "signup" ? "Create Account" : "Sign In"}
+        </Btn>
+      </form>
+
+      <div style={{ textAlign: "center", marginTop: 18, fontSize: ".82rem", color: t.textSecondary }}>
+        {mode === "signup" ? (
+          <>Already have an account? <a onClick={() => { setMode("login"); setError(""); setSuccess(""); }} style={{ color: A, fontWeight: 700, cursor: "pointer" }}>Sign In</a></>
+        ) : (
+          <>Don't have an account? <a onClick={() => { setMode("signup"); setError(""); setSuccess(""); }} style={{ color: A, fontWeight: 700, cursor: "pointer" }}>Create Account</a></>
+        )}
+      </div>
+    </>
   );
 }
 
