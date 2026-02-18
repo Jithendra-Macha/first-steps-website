@@ -36,6 +36,511 @@ const REVIEWS = [
   { name: "Elena V.", date: "1 month ago", rating: 5, text: "Splurged on the suite and it was worth every penny. The spa access alone made it a steal at this price.", avatar: "E" },
 ];
 
+/* ── Booking data export ── */
+export interface BookingData {
+  hotel: Hotel;
+  slot: typeof SLOT_OFFERS[number];
+  room: typeof ROOM_TYPES[number];
+  rooms: number;
+  guest: { name: string; email: string; phone: string; special: string };
+  total: number;
+  bookingId: string;
+  date: string;
+}
+
+/* ── Booking Form Modal ── */
+function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
+  hotel: Hotel; slot: typeof SLOT_OFFERS[number]; room: typeof ROOM_TYPES[number];
+  rooms: number; onClose: () => void; onConfirm: (data: BookingData) => void;
+}) {
+  const [step, setStep] = useState(1); // 1=details, 2=payment, 3=processing
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [special, setSpecial] = useState("");
+  const [cardNum, setCardNum] = useState("");
+  const [cardExp, setCardExp] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const total = room.price * 6 * rooms;
+  const serviceFee = Math.round(total * 0.08);
+  const grandTotal = total + serviceFee;
+
+  const validateStep1 = () => {
+    const e: Record<string, string> = {};
+    if (!name.trim()) e.name = "Name is required";
+    if (!email.trim() || !email.includes("@")) e.email = "Valid email is required";
+    if (!phone.trim() || phone.length < 7) e.phone = "Valid phone number is required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const e: Record<string, string> = {};
+    if (!cardNum.trim() || cardNum.replace(/\s/g, "").length < 16) e.cardNum = "Valid card number required";
+    if (!cardExp.trim() || !cardExp.includes("/")) e.cardExp = "Valid expiry required (MM/YY)";
+    if (!cardCvc.trim() || cardCvc.length < 3) e.cardCvc = "Valid CVC required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validateStep2()) return;
+    setStep(3);
+    // Simulate payment processing
+    setTimeout(() => {
+      const bookingId = "COH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const today = new Date();
+      onConfirm({
+        hotel,
+        slot,
+        room,
+        rooms,
+        guest: { name, email, phone, special },
+        total: grandTotal,
+        bookingId,
+        date: today.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
+      });
+    }, 2500);
+  };
+
+  const inputStyle = (field: string): React.CSSProperties => ({
+    width: "100%", padding: "12px 14px", borderRadius: 10,
+    border: errors[field] ? `2px solid #e53935` : `1.5px solid ${BRD}`,
+    fontSize: ".82rem", fontFamily: "inherit", outline: "none",
+    transition: "border-color .15s",
+    background: "#fff",
+  });
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 500,
+      background: "rgba(0,0,0,.6)", backdropFilter: "blur(8px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: 20,
+    }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: "#fff", borderRadius: 24,
+        maxWidth: 520, width: "100%",
+        maxHeight: "90vh", overflowY: "auto",
+        boxShadow: "0 24px 80px rgba(0,0,0,.2)",
+        animation: "modalIn .3s ease-out",
+      }}>
+        {/* Header */}
+        <div style={{
+          background: `linear-gradient(135deg, ${NAVY}, #1a3a60)`,
+          padding: "24px 28px", borderRadius: "24px 24px 0 0",
+          color: "#fff",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontSize: ".68rem", fontWeight: 600, opacity: .6, marginBottom: 4 }}>COMPLETING RESERVATION</div>
+              <div style={{ fontSize: "1.1rem", fontWeight: 800 }}>{hotel.name}</div>
+            </div>
+            <button onClick={onClose} style={{
+              background: "rgba(255,255,255,.15)", border: "none",
+              color: "#fff", width: 32, height: 32, borderRadius: "50%",
+              cursor: "pointer", fontSize: ".9rem",
+            }}>✕</button>
+          </div>
+          <div style={{ display: "flex", gap: 12, marginTop: 14 }}>
+            <div style={{ background: "rgba(255,255,255,.1)", padding: "6px 12px", borderRadius: 8, fontSize: ".72rem" }}>
+              {slot.emoji} {slot.time}
+            </div>
+            <div style={{ background: "rgba(255,255,255,.1)", padding: "6px 12px", borderRadius: 8, fontSize: ".72rem" }}>
+              {room.icon} {room.name}
+            </div>
+            <div style={{ background: "rgba(255,255,255,.1)", padding: "6px 12px", borderRadius: 8, fontSize: ".72rem" }}>
+              🚪 {rooms} room{rooms > 1 ? "s" : ""}
+            </div>
+          </div>
+        </div>
+
+        {/* Steps indicator */}
+        <div style={{ display: "flex", padding: "16px 28px", gap: 8 }}>
+          {["Guest Details", "Payment", "Confirm"].map((s, i) => (
+            <div key={s} style={{ flex: 1, textAlign: "center" }}>
+              <div style={{
+                height: 4, borderRadius: 2, marginBottom: 6,
+                background: step > i + 1 ? "#0a7c4e" : step === i + 1 ? A : "#e8e8e8",
+                transition: "background .3s",
+              }} />
+              <span style={{
+                fontSize: ".64rem", fontWeight: 700,
+                color: step === i + 1 ? A : step > i + 1 ? "#0a7c4e" : SEC,
+              }}>
+                {step > i + 1 ? "✓ " : ""}{s}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ padding: "0 28px 28px" }}>
+          {/* Step 1: Guest Details */}
+          {step === 1 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Full Name *</label>
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" style={inputStyle("name")} />
+                {errors.name && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.name}</span>}
+              </div>
+              <div>
+                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Email Address *</label>
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="john@example.com" type="email" style={inputStyle("email")} />
+                {errors.email && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.email}</span>}
+              </div>
+              <div>
+                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Phone Number *</label>
+                <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" type="tel" style={inputStyle("phone")} />
+                {errors.phone && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.phone}</span>}
+              </div>
+              <div>
+                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Special Requests <span style={{ fontWeight: 400, color: SEC }}>(optional)</span></label>
+                <textarea value={special} onChange={e => setSpecial(e.target.value)} placeholder="Early check-in, extra pillows, etc." rows={3}
+                  style={{ ...inputStyle("special"), resize: "vertical" }} />
+              </div>
+              <button onClick={() => { if (validateStep1()) setStep(2); }} style={{
+                width: "100%", height: 48, marginTop: 4,
+                background: `linear-gradient(135deg, ${A}, #ff6b35)`,
+                border: "none", borderRadius: 12, color: "#fff",
+                fontSize: ".88rem", fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                boxShadow: `0 6px 20px rgba(255,77,0,.3)`,
+              }}>
+                Continue to Payment →
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: Payment */}
+          {step === 2 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {/* Order summary */}
+              <div style={{
+                background: "#f8f8f8", borderRadius: 14, padding: "16px 18px",
+              }}>
+                <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10 }}>Order Summary</div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem", color: "#555" }}>
+                  <span>{room.name} × {rooms} room{rooms > 1 ? "s" : ""} × 6hrs</span>
+                  <span style={{ fontWeight: 700 }}>${total}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem", color: "#555" }}>
+                  <span>Service fee</span>
+                  <span style={{ fontWeight: 700 }}>${serviceFee}</span>
+                </div>
+                <div style={{ height: 1, background: BRD, margin: "8px 0" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".88rem", fontWeight: 900, color: NAVY }}>
+                  <span>Total</span>
+                  <span>${grandTotal}</span>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Card Number</label>
+                <input value={cardNum} onChange={e => setCardNum(e.target.value)} placeholder="4242 4242 4242 4242" maxLength={19} style={inputStyle("cardNum")} />
+                {errors.cardNum && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.cardNum}</span>}
+              </div>
+              <div style={{ display: "flex", gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Expiry</label>
+                  <input value={cardExp} onChange={e => setCardExp(e.target.value)} placeholder="12/28" maxLength={5} style={inputStyle("cardExp")} />
+                  {errors.cardExp && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.cardExp}</span>}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>CVC</label>
+                  <input value={cardCvc} onChange={e => setCardCvc(e.target.value)} placeholder="123" maxLength={4} type="password" style={inputStyle("cardCvc")} />
+                  {errors.cardCvc && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.cardCvc}</span>}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#f0fdf4", borderRadius: 10, border: "1px solid #bbf7d0" }}>
+                <span style={{ fontSize: ".9rem" }}>🔒</span>
+                <span style={{ fontSize: ".66rem", color: "#166534" }}>Your payment is encrypted and secure. We never store card details.</span>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                <button onClick={() => setStep(1)} style={{
+                  flex: 1, height: 48, borderRadius: 12,
+                  border: `1.5px solid ${BRD}`, background: "#fff",
+                  fontSize: ".82rem", fontWeight: 700, color: NAVY,
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>← Back</button>
+                <button onClick={handleSubmit} style={{
+                  flex: 2, height: 48, borderRadius: 12,
+                  background: `linear-gradient(135deg, ${A}, #ff6b35)`,
+                  border: "none", color: "#fff",
+                  fontSize: ".88rem", fontWeight: 800,
+                  cursor: "pointer", fontFamily: "inherit",
+                  boxShadow: `0 6px 20px rgba(255,77,0,.3)`,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}>
+                  🔒 Pay ${grandTotal} & Reserve
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Processing */}
+          {step === 3 && (
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <div style={{
+                width: 60, height: 60, borderRadius: "50%",
+                border: `4px solid ${BRD}`,
+                borderTopColor: A,
+                animation: "spin 1s linear infinite",
+                margin: "0 auto 20px",
+              }} />
+              <div style={{ fontSize: "1rem", fontWeight: 800, color: NAVY }}>Processing your reservation...</div>
+              <div style={{ fontSize: ".76rem", color: SEC, marginTop: 6 }}>Securing your room and confirming availability</div>
+            </div>
+          )}
+        </div>
+
+        <style>{`
+          @keyframes modalIn {
+            from { transform: translateY(30px) scale(.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    </div>
+  );
+}
+
+/* ── Confirmation Page ── */
+export function ConfirmationPage({ booking, onHome }: { booking: BookingData; onHome: () => void }) {
+  const [showDetails, setShowDetails] = useState(true);
+
+  return (
+    <div style={{ background: "#fafafa", minHeight: "100vh" }}>
+      {/* Nav */}
+      <nav style={{
+        background: "#fff", borderBottom: `1px solid ${BRD}`,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 5%", height: 58,
+      }}>
+        <div onClick={onHome} style={{ fontSize: "1.05rem", fontWeight: 900, cursor: "pointer", letterSpacing: "-.02em", color: NAVY }}>
+          couple<span style={{ color: A }}>.</span>ofhours
+        </div>
+        <button onClick={onHome} style={{
+          background: "#f5f5f5", border: "none", borderRadius: 10,
+          padding: "0 16px", height: 36, cursor: "pointer",
+          fontSize: ".76rem", fontWeight: 600, color: NAVY, fontFamily: "inherit",
+        }}>← Back to Home</button>
+      </nav>
+
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 5%" }}>
+        {/* Success header */}
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: "50%",
+            background: "linear-gradient(135deg, #0a7c4e, #0d9060)",
+            margin: "0 auto 20px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 8px 30px rgba(10,124,78,.3)",
+            animation: "popIn .5s ease-out",
+          }}>
+            <span style={{ fontSize: "2rem", color: "#fff" }}>✓</span>
+          </div>
+          <h1 style={{ fontSize: "1.8rem", fontWeight: 900, color: NAVY, letterSpacing: "-.03em", margin: "0 0 8px" }}>
+            Booking Confirmed! 🎉
+          </h1>
+          <p style={{ fontSize: ".88rem", color: SEC, margin: 0 }}>
+            Your reservation has been confirmed. Check your email for details.
+          </p>
+          <div style={{
+            display: "inline-block", marginTop: 14,
+            background: "#fff5f0", border: `1px solid #fde8dc`,
+            padding: "8px 20px", borderRadius: 10,
+          }}>
+            <span style={{ fontSize: ".72rem", color: SEC }}>Booking ID: </span>
+            <span style={{ fontSize: ".88rem", fontWeight: 900, color: A, letterSpacing: ".05em" }}>{booking.bookingId}</span>
+          </div>
+        </div>
+
+        {/* Booking card */}
+        <div style={{
+          background: "#fff", borderRadius: 20, overflow: "hidden",
+          border: `1px solid ${BRD}`,
+          boxShadow: "0 4px 24px rgba(0,0,0,.06)",
+        }}>
+          {/* Hotel banner */}
+          <div style={{
+            background: booking.hotel.photoBg,
+            height: 140, position: "relative",
+          }}>
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,.6), transparent 60%)" }} />
+            <div style={{ position: "absolute", bottom: 16, left: 20, color: "#fff", zIndex: 2 }}>
+              <div style={{ display: "flex", gap: 2, marginBottom: 4 }}>
+                {Array.from({ length: booking.hotel.stars }).map((_, i) => (
+                  <span key={i} style={{ fontSize: ".6rem", color: "#ffd700" }}>★</span>
+                ))}
+              </div>
+              <div style={{ fontSize: "1.2rem", fontWeight: 900 }}>{booking.hotel.name}</div>
+              <div style={{ fontSize: ".72rem", opacity: .8, marginTop: 2 }}>📍 {booking.hotel.addr}</div>
+            </div>
+          </div>
+
+          {/* Details grid */}
+          <div style={{ padding: "20px 24px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div style={{ background: "#f8f8f8", padding: "14px 16px", borderRadius: 12 }}>
+                <div style={{ fontSize: ".62rem", fontWeight: 600, color: SEC, marginBottom: 4 }}>📅 DATE</div>
+                <div style={{ fontSize: ".82rem", fontWeight: 700, color: NAVY }}>{booking.date}</div>
+              </div>
+              <div style={{ background: "#f8f8f8", padding: "14px 16px", borderRadius: 12 }}>
+                <div style={{ fontSize: ".62rem", fontWeight: 600, color: SEC, marginBottom: 4 }}>{booking.slot.emoji} TIME SLOT</div>
+                <div style={{ fontSize: ".82rem", fontWeight: 700, color: NAVY }}>{booking.slot.time}</div>
+              </div>
+              <div style={{ background: "#f8f8f8", padding: "14px 16px", borderRadius: 12 }}>
+                <div style={{ fontSize: ".62rem", fontWeight: 600, color: SEC, marginBottom: 4 }}>{booking.room.icon} ROOM TYPE</div>
+                <div style={{ fontSize: ".82rem", fontWeight: 700, color: NAVY }}>{booking.room.name}</div>
+              </div>
+              <div style={{ background: "#f8f8f8", padding: "14px 16px", borderRadius: 12 }}>
+                <div style={{ fontSize: ".62rem", fontWeight: 600, color: SEC, marginBottom: 4 }}>🚪 ROOMS</div>
+                <div style={{ fontSize: ".82rem", fontWeight: 700, color: NAVY }}>{booking.rooms} room{booking.rooms > 1 ? "s" : ""}</div>
+              </div>
+            </div>
+
+            {/* Guest info */}
+            <div style={{
+              padding: "16px 18px", borderRadius: 14,
+              border: `1px solid #f0f0f0`,
+              marginBottom: 20,
+            }}>
+              <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10, cursor: "pointer", display: "flex", justifyContent: "space-between" }}
+                onClick={() => setShowDetails(!showDetails)}>
+                Guest Information
+                <span style={{ color: SEC, transform: showDetails ? "rotate(180deg)" : "none", transition: "transform .2s" }}>▾</span>
+              </div>
+              {showDetails && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".76rem" }}>
+                    <span style={{ color: SEC }}>Name</span>
+                    <span style={{ fontWeight: 700, color: NAVY }}>{booking.guest.name}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".76rem" }}>
+                    <span style={{ color: SEC }}>Email</span>
+                    <span style={{ fontWeight: 700, color: NAVY }}>{booking.guest.email}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".76rem" }}>
+                    <span style={{ color: SEC }}>Phone</span>
+                    <span style={{ fontWeight: 700, color: NAVY }}>{booking.guest.phone}</span>
+                  </div>
+                  {booking.guest.special && (
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".76rem" }}>
+                      <span style={{ color: SEC }}>Special requests</span>
+                      <span style={{ fontWeight: 600, color: NAVY, maxWidth: 200, textAlign: "right" }}>{booking.guest.special}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Total */}
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "18px 20px", borderRadius: 14,
+              background: `linear-gradient(135deg, ${NAVY}, #1a3a60)`,
+              color: "#fff",
+            }}>
+              <div>
+                <div style={{ fontSize: ".68rem", opacity: .6 }}>TOTAL PAID</div>
+                <div style={{ fontSize: "1.6rem", fontWeight: 900, letterSpacing: "-.03em" }}>${booking.total}</div>
+              </div>
+              <div style={{
+                background: "rgba(10,124,78,.8)", padding: "6px 14px",
+                borderRadius: 8, fontSize: ".72rem", fontWeight: 800,
+              }}>✓ Paid</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+          <button style={{
+            flex: 1, height: 48, borderRadius: 14,
+            border: `1.5px solid ${BRD}`, background: "#fff",
+            fontSize: ".82rem", fontWeight: 700, color: NAVY,
+            cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}>
+            🖨️ Print Confirmation
+          </button>
+          <button style={{
+            flex: 1, height: 48, borderRadius: 14,
+            border: `1.5px solid ${BRD}`, background: "#fff",
+            fontSize: ".82rem", fontWeight: 700, color: NAVY,
+            cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}>
+            📧 Email Receipt
+          </button>
+        </div>
+
+        {/* What's next */}
+        <div style={{
+          background: "#fff", borderRadius: 20, padding: "24px 28px",
+          border: `1px solid ${BRD}`, marginTop: 24,
+        }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 800, color: NAVY, marginBottom: 16 }}>
+            What happens <span style={{ color: A }}>next?</span>
+          </h3>
+          {[
+            { icon: "📧", title: "Check your email", desc: "Confirmation and check-in instructions have been sent to " + booking.guest.email },
+            { icon: "🏨", title: "Arrive at the hotel", desc: `Show your booking ID (${booking.bookingId}) at the front desk for express check-in` },
+            { icon: "🔑", title: "Enjoy your stay", desc: `Your ${booking.room.name} will be ready at ${booking.slot.time.split("–")[0].trim()}` },
+            { icon: "✅", title: "Check out", desc: `Simply leave the key at the front desk when your time slot ends at ${booking.slot.time.split("–")[1].trim()}` },
+          ].map((s, i) => (
+            <div key={i} style={{
+              display: "flex", gap: 14, padding: "12px 0",
+              borderBottom: i < 3 ? `1px solid #f5f5f5` : "none",
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: "#f8f8f8",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "1.1rem", flexShrink: 0,
+              }}>{s.icon}</div>
+              <div>
+                <div style={{ fontSize: ".8rem", fontWeight: 700, color: NAVY }}>{s.title}</div>
+                <div style={{ fontSize: ".7rem", color: SEC, lineHeight: 1.5, marginTop: 2 }}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Book another */}
+        <div style={{ textAlign: "center", marginTop: 32 }}>
+          <button onClick={onHome} style={{
+            background: `linear-gradient(135deg, ${A}, #ff6b35)`,
+            border: "none", borderRadius: 14, color: "#fff",
+            padding: "14px 36px", fontSize: ".88rem", fontWeight: 800,
+            cursor: "pointer", fontFamily: "inherit",
+            boxShadow: `0 8px 24px rgba(255,77,0,.3)`,
+          }}>
+            Book Another Stay →
+          </button>
+          <p style={{ fontSize: ".7rem", color: SEC, marginTop: 10 }}>
+            Thank you for choosing couple.ofhours ❤️
+          </p>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes popIn {
+          from { transform: scale(0); }
+          50% { transform: scale(1.2); }
+          to { transform: scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 /* ── Photo Gallery Grid ── */
 function PhotoGallery({ hotel }: { hotel: Hotel }) {
   const [lightbox, setLightbox] = useState(false);
@@ -62,7 +567,6 @@ function PhotoGallery({ hotel }: { hotel: Hotel }) {
         overflow: "hidden",
         cursor: "pointer",
       }}>
-        {/* Main large photo */}
         <div
           onClick={() => { setActivePhoto(0); setLightbox(true); }}
           style={{
@@ -78,8 +582,6 @@ function PhotoGallery({ hotel }: { hotel: Hotel }) {
             <div style={{ fontSize: "1rem", fontWeight: 800 }}>{photos[0].label}</div>
           </div>
         </div>
-
-        {/* Small photos */}
         {photos.slice(1, 5).map((p, i) => (
           <div
             key={i}
@@ -153,7 +655,15 @@ function PhotoGallery({ hotel }: { hotel: Hotel }) {
 }
 
 /* ── Sticky Booking Card ── */
-function BookingCard({ hotel, selectedSlot, onSlotChange }: { hotel: Hotel; selectedSlot: number; onSlotChange: (i: number) => void }) {
+function BookingCard({ hotel, selectedSlot, onSlotChange, selectedRoom, onRoomChange, rooms, onRoomsChange, onReserve }: {
+  hotel: Hotel; selectedSlot: number; onSlotChange: (i: number) => void;
+  selectedRoom: number; onRoomChange: (i: number) => void;
+  rooms: number; onRoomsChange: (n: number) => void;
+  onReserve: () => void;
+}) {
+  const room = ROOM_TYPES[selectedRoom];
+  const total = room.price * 6 * rooms;
+
   return (
     <div style={{
       background: "#fff",
@@ -172,7 +682,7 @@ function BookingCard({ hotel, selectedSlot, onSlotChange }: { hotel: Hotel; sele
         color: "#fff",
       }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-          <span style={{ fontSize: "2rem", fontWeight: 900, letterSpacing: "-.03em" }}>${hotel.rate}</span>
+          <span style={{ fontSize: "2rem", fontWeight: 900, letterSpacing: "-.03em" }}>${room.price}</span>
           <span style={{ fontSize: ".82rem", opacity: .7 }}>/ hour</span>
         </div>
         {hotel.origRate && (
@@ -185,7 +695,7 @@ function BookingCard({ hotel, selectedSlot, onSlotChange }: { hotel: Hotel; sele
           </div>
         )}
         <div style={{ fontSize: ".68rem", opacity: .5, marginTop: 4 }}>
-          vs ${hotel.origRate || hotel.rate * 3}/night at full price
+          vs ${room.nightPrice}/night at full price
         </div>
       </div>
 
@@ -228,6 +738,26 @@ function BookingCard({ hotel, selectedSlot, onSlotChange }: { hotel: Hotel; sele
           ))}
         </div>
 
+        {/* Room type */}
+        <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginTop: 18, marginBottom: 10 }}>Select room type</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {ROOM_TYPES.map((r, i) => (
+            <button key={i} onClick={() => onRoomChange(i)} style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "10px 12px", borderRadius: 10,
+              border: selectedRoom === i ? `2px solid ${A}` : `1.5px solid ${BRD}`,
+              background: selectedRoom === i ? "#fff5f0" : "#fff",
+              cursor: "pointer", fontFamily: "inherit", transition: "all .15s",
+            }}>
+              <span>{r.icon}</span>
+              <div style={{ flex: 1, textAlign: "left" }}>
+                <div style={{ fontSize: ".72rem", fontWeight: 700, color: selectedRoom === i ? A : NAVY }}>{r.name}</div>
+              </div>
+              <span style={{ fontSize: ".76rem", fontWeight: 800, color: selectedRoom === i ? A : NAVY }}>${r.price}/hr</span>
+            </button>
+          ))}
+        </div>
+
         {/* Room count */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -239,14 +769,14 @@ function BookingCard({ hotel, selectedSlot, onSlotChange }: { hotel: Hotel; sele
             <div style={{ fontSize: ".62rem", color: SEC }}>Max 3 per booking</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button style={{
+            <button onClick={() => onRoomsChange(Math.max(1, rooms - 1))} style={{
               width: 30, height: 30, borderRadius: 8,
               border: `1px solid ${BRD}`, background: "#fff",
               fontSize: ".9rem", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>−</button>
-            <span style={{ fontSize: ".9rem", fontWeight: 800, color: NAVY }}>1</span>
-            <button style={{
+            <span style={{ fontSize: ".9rem", fontWeight: 800, color: NAVY }}>{rooms}</span>
+            <button onClick={() => onRoomsChange(Math.min(3, rooms + 1))} style={{
               width: 30, height: 30, borderRadius: 8,
               border: `1px solid ${BRD}`, background: "#fff",
               fontSize: ".9rem", cursor: "pointer",
@@ -256,7 +786,7 @@ function BookingCard({ hotel, selectedSlot, onSlotChange }: { hotel: Hotel; sele
         </div>
 
         {/* CTA */}
-        <button style={{
+        <button onClick={onReserve} style={{
           width: "100%", height: 50, marginTop: 16,
           background: `linear-gradient(135deg, ${A}, #ff6b35)`,
           border: "none", borderRadius: 14,
@@ -266,7 +796,7 @@ function BookingCard({ hotel, selectedSlot, onSlotChange }: { hotel: Hotel; sele
           transition: "all .2s",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
         }}>
-          Reserve Now — ${hotel.rate * 6}
+          Reserve Now — ${total}
           <span style={{ fontSize: ".7rem", fontWeight: 500, opacity: .8 }}>for 6hrs</span>
         </button>
         <div style={{ textAlign: "center", marginTop: 8, fontSize: ".62rem", color: SEC }}>
@@ -338,7 +868,7 @@ function AmenitySection({ hotel }: { hotel: Hotel }) {
 }
 
 /* ── Room Types Section ── */
-function RoomTypesSection({ hotel }: { hotel: Hotel }) {
+function RoomTypesSection({ hotel, selectedRoom, onSelect }: { hotel: Hotel; selectedRoom: number; onSelect: (i: number) => void }) {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   return (
@@ -350,7 +880,7 @@ function RoomTypesSection({ hotel }: { hotel: Hotel }) {
         {ROOM_TYPES.map((room, i) => (
           <div key={i} style={{
             borderRadius: 16, overflow: "hidden",
-            border: expanded === i ? `2px solid ${A}` : `1px solid ${BRD}`,
+            border: selectedRoom === i ? `2px solid ${A}` : expanded === i ? `2px solid ${A}` : `1px solid ${BRD}`,
             background: "#fff",
             transition: "all .2s",
           }}>
@@ -399,14 +929,14 @@ function RoomTypesSection({ hotel }: { hotel: Hotel }) {
                     }}>{a}</span>
                   ))}
                 </div>
-                <button style={{
-                  background: A, border: "none", color: "#fff",
+                <button onClick={() => onSelect(i)} style={{
+                  background: selectedRoom === i ? "#0a7c4e" : A, border: "none", color: "#fff",
                   padding: "10px 24px", borderRadius: 10,
                   fontSize: ".78rem", fontWeight: 700,
                   cursor: "pointer", fontFamily: "inherit",
                   marginTop: 4,
                 }}>
-                  Select this room →
+                  {selectedRoom === i ? "✓ Selected" : "Select this room →"}
                 </button>
               </div>
             )}
@@ -438,7 +968,6 @@ function ReviewsSection() {
         </div>
       </div>
 
-      {/* Rating breakdown */}
       <div style={{
         display: "flex", gap: 16, marginBottom: 20,
         padding: "14px 18px", background: "#fafafa", borderRadius: 14,
@@ -467,7 +996,6 @@ function ReviewsSection() {
         ))}
       </div>
 
-      {/* Review cards */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {REVIEWS.slice(0, 3).map((r, i) => (
           <div key={i} style={{
@@ -620,10 +1148,13 @@ function FAQSection() {
 }
 
 /* ── Main Hotel Page ── */
-export default function HotelPage({ hotel, onBack }: { hotel: Hotel; onBack: () => void }) {
+export default function HotelPage({ hotel, onBack, onBookingComplete }: { hotel: Hotel; onBack: () => void; onBookingComplete?: (booking: BookingData) => void }) {
   const [selectedSlot, setSelectedSlot] = useState(1);
+  const [selectedRoom, setSelectedRoom] = useState(0);
+  const [rooms, setRooms] = useState(1);
   const [fav, setFav] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const sections = [
     { id: "overview", label: "Overview" },
@@ -751,9 +1282,9 @@ export default function HotelPage({ hotel, onBack }: { hotel: Hotel; onBack: () 
         {/* Photo Gallery */}
         <PhotoGallery hotel={hotel} />
 
-        {/* Two column layout: Content + Booking card */}
+        {/* Two column layout */}
         <div style={{ display: "flex", gap: 30, marginTop: 30 }}>
-          {/* Left column: Content */}
+          {/* Left column */}
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 40 }}>
             {/* Highlights */}
             <div style={{
@@ -793,58 +1324,55 @@ export default function HotelPage({ hotel, onBack }: { hotel: Hotel; onBack: () 
               </p>
             </div>
 
-            {/* Room Types */}
             <div id="section-rooms">
-              <RoomTypesSection hotel={hotel} />
+              <RoomTypesSection hotel={hotel} selectedRoom={selectedRoom} onSelect={setSelectedRoom} />
             </div>
 
-            {/* Amenities */}
             <div id="section-amenities">
               <AmenitySection hotel={hotel} />
             </div>
 
-            {/* Reviews */}
             <div id="section-reviews">
               <ReviewsSection />
             </div>
 
-            {/* Location */}
             <div id="section-location">
               <MiniMap hotel={hotel} />
             </div>
 
-            {/* FAQ */}
             <FAQSection />
           </div>
 
           {/* Right column: Sticky booking card */}
           <div style={{ width: 360, flexShrink: 0 }}>
-            <BookingCard hotel={hotel} selectedSlot={selectedSlot} onSlotChange={setSelectedSlot} />
+            <BookingCard
+              hotel={hotel}
+              selectedSlot={selectedSlot}
+              onSlotChange={setSelectedSlot}
+              selectedRoom={selectedRoom}
+              onRoomChange={setSelectedRoom}
+              rooms={rooms}
+              onRoomsChange={setRooms}
+              onReserve={() => setShowBookingModal(true)}
+            />
           </div>
         </div>
       </div>
 
-      {/* Mobile sticky bottom bar */}
-      <div style={{
-        display: "none", // Hidden on desktop, would show on mobile
-        position: "fixed", bottom: 0, left: 0, right: 0,
-        background: "#fff", borderTop: `1px solid ${BRD}`,
-        padding: "12px 5%",
-        boxShadow: "0 -4px 20px rgba(0,0,0,.08)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: "1.2rem", fontWeight: 900, color: NAVY }}>${hotel.rate}<span style={{ fontSize: ".7rem", color: SEC }}>/hr</span></div>
-            <div style={{ fontSize: ".65rem", color: SEC }}>{SLOT_OFFERS[selectedSlot].time}</div>
-          </div>
-          <button style={{
-            background: A, border: "none", color: "#fff",
-            padding: "12px 28px", borderRadius: 12,
-            fontSize: ".85rem", fontWeight: 800,
-            cursor: "pointer", fontFamily: "inherit",
-          }}>Reserve Now</button>
-        </div>
-      </div>
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <BookingModal
+          hotel={hotel}
+          slot={SLOT_OFFERS[selectedSlot]}
+          room={ROOM_TYPES[selectedRoom]}
+          rooms={rooms}
+          onClose={() => setShowBookingModal(false)}
+          onConfirm={(data) => {
+            setShowBookingModal(false);
+            onBookingComplete?.(data);
+          }}
+        />
+      )}
     </div>
   );
 }
