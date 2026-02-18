@@ -63,42 +63,130 @@ export function SectionHeader({ title, accent, sub, link, onLink }: SectionHeade
 }
 
 /* ── Nav ── */
-export function Nav({ onSearch }: { onSearch: (q: string) => void }) {
+export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick, user, onSignOut }: {
+  onSearch: (q: string) => void;
+  onAuthClick?: () => void;
+  onProfileClick?: () => void;
+  onReservationsClick?: () => void;
+  user?: any;
+  onSignOut?: () => void;
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const mob = useIsMobile();
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const h = () => setUserMenuOpen(false);
+    document.addEventListener("click", h);
+    return () => document.removeEventListener("click", h);
+  }, [userMenuOpen]);
+
+  const userDropdown = (
+    <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 8, background: "#fff", borderRadius: 16, boxShadow: "0 12px 40px rgba(0,0,0,.12)", border: `1px solid ${BRD}`, minWidth: 200, zIndex: 400, overflow: "hidden" }}>
+      {user ? (
+        <>
+          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BRD}` }}>
+            <div style={{ fontSize: ".8rem", fontWeight: 700, color: NAVY }}>{user.email}</div>
+          </div>
+          <button onClick={onProfileClick} style={{ width: "100%", background: "none", border: "none", padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: BLK, textAlign: "left" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+            <span style={{ fontSize: "1rem" }}>👤</span> My Profile
+          </button>
+          <button onClick={onReservationsClick} style={{ width: "100%", background: "none", border: "none", padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: BLK, textAlign: "left" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+            <span style={{ fontSize: "1rem" }}>📋</span> My Reservations
+          </button>
+          <div style={{ borderTop: `1px solid ${BRD}` }}>
+            <button onClick={onSignOut} style={{ width: "100%", background: "none", border: "none", padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: "#e53935", textAlign: "left" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#fff5f5")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+              <span style={{ fontSize: "1rem" }}>🚪</span> Sign Out
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <button onClick={onAuthClick} style={{ width: "100%", background: "none", border: "none", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: BLK, textAlign: "left" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+            <span style={{ fontSize: "1rem" }}>👤</span> Log in
+          </button>
+          <button onClick={onReservationsClick} style={{ width: "100%", background: "none", border: "none", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: ".82rem", color: BLK, textAlign: "left" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f8")} onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+            <span style={{ fontSize: "1rem" }}>📋</span> My reservations
+          </button>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? "rgba(255,255,255,.97)" : "#fff", backdropFilter: "blur(14px)", borderBottom: `1px solid ${BRD}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "0 4%" : "0 5%", height: mob ? 52 : 62, boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,.07)" : "none", transition: "box-shadow .25s" }}>
-      <div style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em" }}>couple<span style={{ color: A }}>.</span>ofhours</div>
+      <div style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer" }}>couple<span style={{ color: A }}>.</span>ofhours</div>
       {mob ? (
         <>
-          <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", padding: 6 }}>
-            {menuOpen ? "✕" : "☰"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <ThemeToggleBtn />
+            <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
+              <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: "#f0f0f0", border: "none", width: 36, height: 36, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>
+                {user ? (user.email?.[0] || "U").toUpperCase() : "👤"}
+              </button>
+              {userMenuOpen && userDropdown}
+            </div>
+            <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", padding: 6 }}>
+              {menuOpen ? "✕" : "☰"}
+            </button>
+          </div>
           {menuOpen && (
             <div style={{ position: "absolute", top: 52, left: 0, right: 0, background: "#fff", borderBottom: `1px solid ${BRD}`, padding: "12px 4%", display: "flex", flexDirection: "column", gap: 12, boxShadow: "0 8px 24px rgba(0,0,0,.08)", zIndex: 300 }}>
               {["Explore Hotels", "List Your Property", "Help"].map(l => (
                 <a key={l} style={{ fontSize: ".82rem", fontWeight: 500, color: SEC, cursor: "pointer", padding: "6px 0" }}>{l}</a>
               ))}
-              <Btn style={{ padding: "0 18px", height: 36, fontSize: ".8rem", width: "100%" }}>Sign In</Btn>
             </div>
           )}
         </>
       ) : (
-        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
           {["Explore Hotels", "List Your Property", "Help"].map(l => (
             <a key={l} style={{ fontSize: ".8rem", fontWeight: 500, color: SEC, cursor: "pointer", transition: "color .15s" }}
               onMouseEnter={e => (e.target as HTMLElement).style.color = BLK} onMouseLeave={e => (e.target as HTMLElement).style.color = SEC}>{l}</a>
           ))}
-          <Btn style={{ padding: "0 18px", height: 36, fontSize: ".8rem" }}>Sign In</Btn>
+          <ThemeToggleBtn />
+          <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: "#f0f0f0", border: `1.5px solid ${BRD}`, height: 40, borderRadius: 24, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "0 12px 0 6px" }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: user ? A : "#ccc", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".72rem", fontWeight: 700, color: "#fff" }}>
+                {user ? (user.email?.[0] || "U").toUpperCase() : "👤"}
+              </div>
+              <span style={{ fontSize: "1rem" }}>☰</span>
+            </button>
+            {userMenuOpen && userDropdown}
+          </div>
         </div>
       )}
     </nav>
+  );
+}
+
+/* ── Theme Toggle Button ── */
+function ThemeToggleBtn() {
+  const [dark, setDark] = useState(document.documentElement.classList.contains("dark"));
+  const toggle = () => {
+    const next = !dark;
+    setDark(next);
+    if (next) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+    localStorage.setItem("coh-theme", next ? "dark" : "light");
+  };
+  return (
+    <button onClick={toggle} style={{ background: "none", border: "none", fontSize: "1.1rem", cursor: "pointer", padding: 4 }} title={dark ? "Light mode" : "Dark mode"}>
+      {dark ? "☀️" : "🌙"}
+    </button>
   );
 }
 

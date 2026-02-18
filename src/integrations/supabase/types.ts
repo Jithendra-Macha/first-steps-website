@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          booking_id: string
+          check_in_date: string
+          check_out_date: string | null
+          created_at: string
+          guests: number
+          hotel_address: string | null
+          hotel_image: string | null
+          hotel_name: string
+          id: string
+          room_type: string
+          status: Database["public"]["Enums"]["reservation_status"]
+          time_slot: string | null
+          total_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          check_in_date: string
+          check_out_date?: string | null
+          created_at?: string
+          guests?: number
+          hotel_address?: string | null
+          hotel_image?: string | null
+          hotel_name: string
+          id?: string
+          room_type: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          time_slot?: string | null
+          total_price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          check_in_date?: string
+          check_out_date?: string | null
+          created_at?: string
+          guests?: number
+          hotel_address?: string | null
+          hotel_image?: string | null
+          hotel_name?: string
+          id?: string
+          room_type?: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          time_slot?: string | null
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +103,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      reservation_status: "upcoming" | "past" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +230,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      reservation_status: ["upcoming", "past", "cancelled"],
+    },
   },
 } as const
