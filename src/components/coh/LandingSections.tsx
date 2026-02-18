@@ -44,7 +44,7 @@ export function DealsSection({ onSearch }: { onSearch: (q: string) => void }) {
   const t = useThemeColors();
   const tabs = ["All", "Manhattan", "Brooklyn", "Queens", "The Bronx", "New Jersey"];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bg }}>
+    <section style={{ padding: mob ? "2rem 5%" : "3rem 8%", background: t.bg }}>
       <SectionHeader title="🔥 Deals of the" accent="Day" sub="Limited-time prices — refreshed every 24 hours" link="View all deals →" onLink={() => onSearch("Manhattan")} />
       <div style={{ display: "flex", gap: 8, marginBottom: "1.2rem", flexWrap: "wrap", overflowX: mob ? "auto" : "visible" }}>
         {tabs.map(tb => (
@@ -80,7 +80,7 @@ export function ZonesSection({ onSearch }: { onSearch: (q: string) => void }) {
   const mob = useIsMobile();
   const t = useThemeColors();
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bgCard }}>
+    <section style={{ padding: mob ? "2rem 5%" : "3rem 8%", background: t.bgCard }}>
       <SectionHeader title="Browse by" accent="Neighborhood" link="All areas →" onLink={() => onSearch("New York")} />
       <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(5,1fr)", gap: mob ? 10 : 14 }}>
         {ZONE_DATA.slice(0, mob ? 4 : 5).map(z => <ZoneCard key={z.key} zone={z} onSearch={onSearch} />)}
@@ -96,7 +96,7 @@ export function WhySection() {
   const t = useThemeColors();
   const RATE = 28, total = hrs * RATE, saving = 280 - total, pct = ((hrs - 2) / 10) * 78 + 12;
   return (
-    <section style={{ padding: mob ? "3rem 4%" : "4.5rem 5% 4rem", background: t.bgCard }}>
+    <section style={{ padding: mob ? "3rem 5%" : "4.5rem 8% 4rem", background: t.bgCard }}>
       <div style={{ textAlign: "center", marginBottom: mob ? "2rem" : "3rem" }}>
         <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: A, marginBottom: ".8rem" }}>The smarter way to stay</div>
         <h2 style={{ fontSize: "clamp(1.9rem,3.8vw,2.8rem)", fontWeight: 900, color: t.navy, letterSpacing: "-.04em", lineHeight: 1.1, marginBottom: ".9rem" }}>Pay for hours,<br />not the whole night</h2>
@@ -160,7 +160,7 @@ export function AirportsSection({ onSearch }: { onSearch: (q: string) => void })
     { code: "EWR", name: "Newark Liberty International", sub: "Newark, New Jersey", hotels: 15, from: "$10/hr", drive: "4 min drive" },
   ];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bg }}>
+    <section style={{ padding: mob ? "2rem 5%" : "3rem 8%", background: t.bg }}>
       <SectionHeader title="Hotels Near" accent="Airports" link="All airport hotels →" onLink={() => onSearch("Near Airport")} />
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap: 14 }}>
         {airports.map(a => (
@@ -200,7 +200,7 @@ export function NJSection({ onSearch }: { onSearch: (q: string) => void }) {
     { area: "Newark", sub: "NJ · Near EWR Airport", hotels: 9, from: "$10/hr", bg: "linear-gradient(135deg,#160820,#2e1060)" },
   ];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bgCard }}>
+    <section style={{ padding: mob ? "2rem 5%" : "3rem 8%", background: t.bgCard }}>
       <SectionHeader title="Hotels in" accent="New Jersey" link="All NJ hotels →" onLink={() => onSearch("New Jersey")} />
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap: 14 }}>
         {areas.map(a => (
@@ -237,7 +237,7 @@ export function OccasionsSection({ onSearch }: { onSearch: (q: string) => void }
   const t = useThemeColors();
   const tabs = ["💑 All", "💑 Couples", "✈️ Layover", "💼 Business", "🎂 Celebration"];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bg }}>
+    <section style={{ padding: mob ? "2rem 5%" : "3rem 8%", background: t.bg }}>
       <SectionHeader title="Perfect for Every" accent="Occasion" />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "1.4rem" }}>
         {tabs.map(tb => (
@@ -277,7 +277,7 @@ export function HowItWorks() {
     { n: "04", icon: "🏨", title: "Check In & Enjoy", desc: "Walk in, check in, use all hotel amenities. Leave when done." },
   ];
   return (
-    <section style={{ padding: mob ? "2rem 4%" : "3rem 5%", background: t.bgCard }}>
+    <section style={{ padding: mob ? "2rem 5%" : "3rem 8%", background: t.bgCard }}>
       <SectionHeader title="How it" accent="works" />
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4,1fr)", border: `1px solid ${t.border}`, borderRadius: 16, overflow: "hidden" }}>
         {steps.map((s, i) => (
@@ -298,7 +298,7 @@ export function Stats() {
   const mob = useIsMobile();
   const t = useThemeColors();
   return (
-    <div style={{ background: t.bgCard, borderTop: `1px solid ${t.border}`, borderBottom: `1px solid ${t.border}`, display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4, 1fr)", gap: mob ? "1rem" : 0, alignItems: "center", justifyContent: "center", padding: mob ? "1.6rem 4%" : "2.4rem 5%", textAlign: "center" }}>
+    <div style={{ background: t.bgCard, borderTop: `1px solid ${t.border}`, borderBottom: `1px solid ${t.border}`, display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4, 1fr)", gap: mob ? "1rem" : 0, alignItems: "center", justifyContent: "center", padding: mob ? "1.6rem 5%" : "2.4rem 8%", textAlign: "center" }}>
       {[["150+", "Partner Hotels"], ["NY + NJ", "Currently Available"], ["40K+", "Bookings Completed"], ["4.8★", "Average Guest Rating"]].map(([n, l]) => (
         <div key={n} style={{ textAlign: "center" }}>
           <div style={{ fontSize: mob ? "1.5rem" : "2rem", fontWeight: 900, color: t.text, letterSpacing: "-.04em", lineHeight: 1 }}>{n}</div>
@@ -318,7 +318,7 @@ export function Footer() {
     { title: "Company", links: ["About Us", "List Your Hotel", "Privacy Policy", "Terms of Service", "Contact Us"] },
   ];
   return (
-    <footer style={{ background: BLK, color: "rgba(255,255,255,.6)", padding: mob ? "2rem 4% 1.5rem" : "3.5rem 5% 2rem" }}>
+    <footer style={{ background: BLK, color: "rgba(255,255,255,.6)", padding: mob ? "2rem 5% 1.5rem" : "3.5rem 8% 2rem" }}>
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1.6fr 1fr 1fr 1fr", gap: mob ? "1.5rem" : "2.5rem", marginBottom: mob ? "1.5rem" : "2.5rem" }}>
         <div>
           <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#fff", marginBottom: ".6rem" }}>couple<span style={{ color: A }}>.</span>ofhours</div>

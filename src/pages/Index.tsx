@@ -128,7 +128,7 @@ const Index = () => {
         {page === "landing" && (
           <motion.div key="landing" variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <div>
-              <div style={{ background: NAVY, padding: ".55rem 5%", display: "flex", alignItems: "center", justifyContent: "center", gap: ".8rem" }}>
+              <div style={{ background: NAVY, padding: ".55rem 8%", display: "flex", alignItems: "center", justifyContent: "center", gap: ".8rem" }}>
                 <span style={{ fontSize: ".72rem", color: "rgba(255,255,255,.75)" }}>🎉 New: Book by the hour in New Jersey — <a onClick={() => goSearch("Hoboken, NJ")} style={{ color: A, fontWeight: 700, cursor: "pointer" }}>Explore NJ Hotels →</a></span>
               </div>
               <Nav {...navProps} />
