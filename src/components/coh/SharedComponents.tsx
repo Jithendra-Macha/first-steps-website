@@ -776,18 +776,15 @@ export function TrustRow() {
   const items = [
     { icon: "✅", text: "Instant Confirmation" },
     { icon: "💳", text: "No Credit Card Hold" },
-    { icon: "🔒", text: "100% Private & Secure" },
-    { icon: "🕐", text: "Check-in Any Time" },
     { icon: "🛡️", text: "Free Cancellation" },
     { icon: "🏨", text: "Payment at the Hotel" },
-    { icon: "💰", text: "Best Price Guarantee" },
   ];
   return (
-    <div style={{ background: t.bgCard, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: mob ? "flex-start" : "center", gap: mob ? "1rem" : "2rem", padding: mob ? ".85rem 5%" : "1.1rem 8%", flexWrap: "nowrap", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-      {items.slice(0, mob ? 4 : 7).map(ti => (
-        <div key={ti.text} style={{ display: "flex", alignItems: "center", gap: ".4rem", whiteSpace: "nowrap", flexShrink: 0 }}>
-          <span style={{ fontSize: mob ? ".95rem" : "1.1rem" }}>{ti.icon}</span>
-          <span style={{ fontSize: mob ? ".82rem" : ".92rem", fontWeight: 700, color: t.text, letterSpacing: "-.01em" }}>{ti.text}</span>
+    <div style={{ background: t.bgCard, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: mob ? "flex-start" : "center", gap: mob ? "1.2rem" : "2.5rem", padding: mob ? ".85rem 5%" : "1.1rem 8%", flexWrap: "nowrap", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      {items.map(ti => (
+        <div key={ti.text} style={{ display: "flex", alignItems: "center", gap: ".5rem", whiteSpace: "nowrap", flexShrink: 0, background: "hsl(var(--secondary))", padding: ".45rem .9rem", borderRadius: "2rem" }}>
+          <span style={{ fontSize: mob ? "1.05rem" : "1.25rem" }}>{ti.icon}</span>
+          <span style={{ fontSize: mob ? ".85rem" : "1rem", fontWeight: 800, color: "hsl(var(--foreground))", letterSpacing: "-.01em" }}>{ti.text}</span>
         </div>
       ))}
     </div>
