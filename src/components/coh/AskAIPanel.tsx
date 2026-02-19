@@ -1,17 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useThemeColors } from "./SharedComponents";
+import { HOTELS, type Hotel } from "@/data/hotels";
 
 const A = "#ff4d00";
 const NAVY = "#0d1f38";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const QUICK_SUGGESTIONS = [
-  { icon: "🏨", label: "Best hotels near JFK" },
-  { icon: "💰", label: "Hotels under $25/hr" },
-  { icon: "💑", label: "Best for couples in Manhattan" },
-  { icon: "🧳", label: "Layover hotels near airports" },
-];
+const JFK_HOTELS: Hotel[] = HOTELS.filter(h =>
+  h.addr.toLowerCase().includes("queens") ||
+  h.addr.toLowerCase().includes("jfk") ||
+  h.name.toLowerCase().includes("airport")
+).length > 0
+  ? HOTELS.filter(h => h.addr.toLowerCase().includes("queens") || h.addr.toLowerCase().includes("jfk") || h.name.toLowerCase().includes("airport"))
+  : HOTELS.slice(0, 4);
 
 const ASK_AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-ai`;
 
@@ -219,23 +221,39 @@ export default function AskAIPanel({ open, onClose }: { open: boolean; onClose: 
 
         {/* Quick suggestions */}
         {isEmpty && (
-          <div style={{ padding: "0 20px 12px", display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-            {QUICK_SUGGESTIONS.map(s => (
+          <div style={{ padding: "0 20px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
+            <p style={{ fontSize: ".82rem", fontWeight: 700, color: t.dark ? "#888" : "#666", margin: "0 0 4px" }}>
+              🏨 Hotels Near JFK Airport
+            </p>
+            {JFK_HOTELS.map(hotel => (
               <button
-                key={s.label}
-                onClick={() => send(s.label)}
+                key={hotel.id}
+                onClick={() => send(`Tell me about ${hotel.name}`)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "8px 16px", borderRadius: 20,
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: 10, borderRadius: 12,
                   border: `1.5px solid ${t.dark ? "#333" : "#e8e8e8"}`,
                   background: t.dark ? "#1a1a1a" : "#fff",
-                  color: t.text,
-                  fontSize: ".78rem", fontWeight: 600,
                   cursor: "pointer", fontFamily: "inherit",
-                  transition: "all .15s",
+                  transition: "all .15s", textAlign: "left", width: "100%",
                 }}
               >
-                <span>{s.icon}</span>{s.label}
+                <div style={{
+                  width: 52, height: 52, borderRadius: 10, flexShrink: 0,
+                  background: hotel.photoBg,
+                }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: ".82rem", fontWeight: 700, color: t.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {hotel.name}
+                  </div>
+                  <div style={{ fontSize: ".72rem", color: t.dark ? "#888" : "#999", marginTop: 2 }}>
+                    {hotel.addr}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                    <span style={{ fontSize: ".7rem", fontWeight: 700, color: A }}>${hotel.rate}/hr</span>
+                    <span style={{ fontSize: ".66rem", color: t.dark ? "#666" : "#bbb" }}>⭐ {hotel.rating}</span>
+                  </div>
+                </div>
               </button>
             ))}
           </div>
