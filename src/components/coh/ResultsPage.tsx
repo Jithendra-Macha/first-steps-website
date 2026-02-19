@@ -736,6 +736,7 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const hoverPopupRef = useRef<mapboxgl.Popup | null>(null);
   const onPinRef = useRef(onPin);
   const onHotelClickRef = useRef(onHotelClick);
   onPinRef.current = onPin;
@@ -804,7 +805,9 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
 
         onPinRef.current(i);
 
-        // Remove existing popup
+        // Remove existing popups (both hover and click)
+        hoverPopupRef.current?.remove();
+        hoverPopupRef.current = null;
         popupRef.current?.remove();
         popupRef.current = null;
 
@@ -872,6 +875,37 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
             .setDOMContent(popupContent)
             .addTo(map.current!);
         }, 50);
+      });
+
+      // Hover → lightweight tooltip with name + price
+      el.addEventListener("mouseenter", () => {
+        // Don't show hover if a click popup is already open for this hotel
+        if (popupRef.current) return;
+        hoverPopupRef.current?.remove();
+        hoverPopupRef.current = new mapboxgl.Popup({
+          offset: 35,
+          closeButton: false,
+          closeOnClick: false,
+          maxWidth: "220px",
+          className: "hotel-hover-tooltip",
+        })
+          .setLngLat([h.lng, h.lat])
+          .setHTML(`
+            <div style="font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="font-weight:800;font-size:.78rem;color:${NAVY};line-height:1.2;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.name}</div>
+              <div style="flex-shrink:0;display:flex;align-items:baseline;gap:2px;">
+                ${h.origRate ? `<span style="font-size:.6rem;color:#bbb;text-decoration:line-through;">$${h.origRate}</span>` : ""}
+                <span style="font-size:.95rem;font-weight:900;color:${NAVY};">$${h.rate}</span>
+                <span style="font-size:.55rem;color:#999;">/hr</span>
+              </div>
+            </div>
+          `)
+          .addTo(map.current!);
+      });
+
+      el.addEventListener("mouseleave", () => {
+        hoverPopupRef.current?.remove();
+        hoverPopupRef.current = null;
       });
 
       markersRef.current.push(marker);
@@ -975,6 +1009,16 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
         }
         .mapbox-hotel-pin:hover .pin-unit {
           opacity: 1 !important;
+        }
+        .hotel-hover-tooltip .mapboxgl-popup-content {
+          border-radius: 10px !important;
+          padding: 8px 12px !important;
+          box-shadow: 0 4px 16px rgba(0,0,0,.15) !important;
+          border: 1px solid #eee !important;
+          pointer-events: none !important;
+        }
+        .hotel-hover-tooltip .mapboxgl-popup-tip {
+          border-top-color: #fff !important;
         }
         .hotel-map-popup .mapboxgl-popup-content {
           border-radius: 16px !important;
