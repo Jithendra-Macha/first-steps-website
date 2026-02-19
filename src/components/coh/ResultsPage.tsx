@@ -799,9 +799,10 @@ function CompareTray({ hotels, onRemove, onClear }: { hotels: Hotel[]; onRemove:
 }
 
 /* ── Hotel Card (Redesigned) ── */
-function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared, onCompare, onBookClick }: {
+function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared, onCompare, onBookClick, horizontal = false }: {
   hotel: Hotel; isActive: boolean; onClick: () => void; index: number;
   compareMode: boolean; isCompared: boolean; onCompare: () => void; onBookClick?: () => void;
+  horizontal?: boolean;
 }) {
   const [hov, setHov] = useState(false);
   const [fav, setFav] = useState(false);
@@ -816,6 +817,243 @@ function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared
     y: { color: "#7b1fa2", bg: "#f3e5f5" },
   };
 
+  /* ── Horizontal layout (list-only view) ── */
+  if (horizontal) {
+    return (
+      <div
+        onClick={onClick}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          overflow: "hidden",
+          cursor: "pointer",
+          marginBottom: 12,
+          transition: "all .3s cubic-bezier(.4,0,.2,1)",
+          boxShadow: lit
+            ? "0 8px 32px rgba(13,31,56,.1), 0 2px 8px rgba(0,0,0,.05)"
+            : "0 1px 4px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03)",
+          border: isCompared ? `2px solid ${A}` : isActive ? `2px solid ${A}` : "1px solid transparent",
+          transform: lit ? "translateY(-2px)" : "none",
+          display: "flex",
+          position: "relative",
+          minHeight: 170,
+        }}
+      >
+        {/* Compare checkbox */}
+        {compareMode && (
+          <button
+            onClick={e => { e.stopPropagation(); onCompare(); }}
+            style={{
+              position: "absolute", top: 10, left: 10, zIndex: 10,
+              width: 24, height: 24, borderRadius: 7,
+              background: isCompared ? A : "rgba(255,255,255,.95)",
+              border: isCompared ? "none" : "2px solid rgba(255,255,255,.5)",
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontSize: ".68rem", fontWeight: 800,
+              backdropFilter: "blur(8px)",
+              boxShadow: "0 2px 8px rgba(0,0,0,.15)",
+            }}
+          >
+            {isCompared && "✓"}
+          </button>
+        )}
+
+        {/* ── Left: Image ── */}
+        <div style={{ position: "relative", width: 240, minWidth: 240, overflow: "hidden", flexShrink: 0 }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            background: h.photoBg,
+            transform: hov ? "scale(1.06)" : "scale(1)",
+            transition: "transform .8s cubic-bezier(.25,.46,.45,.94)",
+          }} />
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(90deg, transparent 60%, rgba(0,0,0,.08) 100%), linear-gradient(180deg, rgba(0,0,0,.12) 0%, transparent 35%, rgba(0,0,0,.4) 100%)",
+          }} />
+
+          {/* Stars badge */}
+          <div style={{
+            position: "absolute", top: 10, left: 10, zIndex: 3,
+            display: "flex", gap: 2, padding: "3px 7px",
+            background: "rgba(0,0,0,.35)", borderRadius: 6,
+            backdropFilter: "blur(8px)",
+          }}>
+            {Array.from({ length: h.stars }).map((_, i) => (
+              <span key={i} style={{ fontSize: ".55rem", color: "#ffd700" }}>★</span>
+            ))}
+          </div>
+
+          {/* Fav button */}
+          <button
+            onClick={e => { e.stopPropagation(); setFav(!fav); }}
+            style={{
+              position: "absolute", top: 10, right: 10, zIndex: 3,
+              width: 30, height: 30,
+              background: fav ? A : "rgba(255,255,255,.2)",
+              border: fav ? "none" : "1.5px solid rgba(255,255,255,.35)",
+              borderRadius: "50%",
+              fontSize: ".8rem", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: fav ? "#fff" : "rgba(255,255,255,.9)",
+              backdropFilter: "blur(8px)",
+              transition: "all .2s",
+            }}
+          >
+            {fav ? "♥" : "♡"}
+          </button>
+
+          {/* Availability badge */}
+          {h.avail !== "yes" && (
+            <div style={{
+              position: "absolute", bottom: 10, left: 10, zIndex: 3,
+              background: h.avail === "hot"
+                ? "linear-gradient(135deg, #ff4d00, #ff6b35)"
+                : "linear-gradient(135deg, #f59e0b, #fbbf24)",
+              color: h.avail === "hot" ? "#fff" : "#1a1a1a",
+              fontSize: ".58rem", fontWeight: 800,
+              padding: "4px 9px", borderRadius: 7,
+              boxShadow: "0 2px 8px rgba(0,0,0,.2)",
+            }}>
+              {h.availTxt}
+            </div>
+          )}
+        </div>
+
+        {/* ── Right: Content ── */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "14px 18px 12px", minWidth: 0 }}>
+          {/* Top: Name/addr + Price */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{
+                fontSize: "1.05rem", fontWeight: 800, color: NAVY,
+                margin: 0, lineHeight: 1.2, letterSpacing: "-.02em",
+              }}>{h.name}</h3>
+              <p style={{
+                fontSize: ".72rem", color: "#8a8a8a", margin: "3px 0 0",
+                display: "flex", alignItems: "center", gap: 4,
+              }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#b0b0b0" strokeWidth="2.5" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                {h.addr}
+              </p>
+            </div>
+            <div style={{ textAlign: "right", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+              {h.discount && (
+                <span style={{
+                  background: "linear-gradient(135deg, #ff6b35, #ff4d00)",
+                  color: "#fff", fontSize: ".56rem", fontWeight: 800,
+                  padding: "2px 8px", borderRadius: 5,
+                }}>
+                  {h.discount}
+                </span>
+              )}
+              <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
+                {h.origRate && (
+                  <span style={{ fontSize: ".7rem", color: "#c0c0c0", textDecoration: "line-through" }}>${h.origRate}</span>
+                )}
+                <span style={{ fontSize: "1.6rem", fontWeight: 900, color: NAVY, letterSpacing: "-.04em", lineHeight: 1 }}>${h.rate}</span>
+              </div>
+              <span style={{ fontSize: ".58rem", color: "#a0a0a0", fontWeight: 500 }}>per hour</span>
+            </div>
+          </div>
+
+          {/* Middle: Rating + Tags + Amenities */}
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10, flexWrap: "wrap" }}>
+            <div style={{
+              background: h.rating >= 4.8
+                ? "linear-gradient(135deg, #059669, #10b981)"
+                : "linear-gradient(135deg, #2563eb, #3b82f6)",
+              color: "#fff", fontSize: ".68rem", fontWeight: 800,
+              padding: "3px 8px", borderRadius: 7,
+              display: "flex", alignItems: "center", gap: 3,
+            }}>
+              {h.rating}<span style={{ fontSize: ".52rem", fontWeight: 500, opacity: .75 }}>/5</span>
+            </div>
+            <span style={{ fontSize: ".68rem", color: "#999", fontWeight: 500 }}>
+              {h.reviews.toLocaleString()} reviews
+            </span>
+            {h.tags.length > 0 && <div style={{ width: 1, height: 12, background: "#eee" }} />}
+            {h.tags.slice(0, 2).map(([type, label]) => {
+              const st = tagStyles[type] || { color: "#666", bg: "#f5f5f5" };
+              return (
+                <span key={label} style={{
+                  fontSize: ".6rem", fontWeight: 700, color: st.color,
+                  background: st.bg, padding: "2px 8px", borderRadius: 5,
+                }}>
+                  {label}
+                </span>
+              );
+            })}
+            <div style={{ width: 1, height: 12, background: "#eee" }} />
+            {h.amenities.slice(0, 5).map(a => (
+              <span key={a} style={{
+                fontSize: ".58rem", color: "#777", fontWeight: 500,
+                padding: "2px 7px", borderRadius: 5,
+                background: "#f7f7f7", border: "1px solid #f0f0f0",
+              }}>
+                {a}
+              </span>
+            ))}
+            {h.amenities.length > 5 && (
+              <span style={{ fontSize: ".58rem", color: A, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#fff5f0" }}>
+                +{h.amenities.length - 5}
+              </span>
+            )}
+          </div>
+
+          {/* Bottom: Slots + Book */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginTop: "auto", paddingTop: 10,
+            borderTop: `1px solid ${lit ? "#fde8dc" : "#f5f5f5"}`,
+          }}>
+            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+              <span style={{ fontSize: ".62rem", color: "#aaa", fontWeight: 600, marginRight: 2 }}>Slots</span>
+              {TIME_SLOTS.map((slot, i) => (
+                <button
+                  key={slot}
+                  onClick={e => { e.stopPropagation(); setSelectedSlot(i); }}
+                  style={{
+                    padding: "4px 10px", borderRadius: 7, border: "none",
+                    background: selectedSlot === i ? `linear-gradient(135deg, ${A}, #ff6b35)` : "#f8f8f8",
+                    color: selectedSlot === i ? "#fff" : "#888",
+                    fontSize: ".62rem", fontWeight: selectedSlot === i ? 700 : 500,
+                    cursor: "pointer", fontFamily: "inherit", transition: "all .15s",
+                    boxShadow: selectedSlot === i ? `0 2px 6px rgba(255,77,0,.2)` : "none",
+                  }}
+                >
+                  {slot}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={e => { e.stopPropagation(); onBookClick?.(); }}
+              style={{
+                height: 34, padding: "0 24px",
+                fontSize: ".74rem", fontWeight: 800,
+                borderRadius: 10,
+                background: `linear-gradient(135deg, ${NAVY}, #1a3558)`,
+                color: "#fff", border: "none",
+                cursor: "pointer", fontFamily: "inherit",
+                letterSpacing: ".02em",
+                transition: "all .2s",
+                boxShadow: lit ? "0 4px 14px rgba(13,31,56,.3)" : "0 2px 8px rgba(13,31,56,.15)",
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.04)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              Book now →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Vertical layout (split view / default) ── */
   return (
     <div
       onClick={onClick}
@@ -1652,6 +1890,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
                 isCompared={compareIds.has(h.id)}
                 onCompare={() => toggleCompare(h.id)}
                 onBookClick={() => onHotelClick?.(h)}
+                horizontal={view === "list"}
               />
             ))}
           </div>
