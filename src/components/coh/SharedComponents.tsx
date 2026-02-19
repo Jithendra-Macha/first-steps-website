@@ -378,14 +378,14 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           bottom: mob ? 0 : "auto",
           left: mob ? 0 : -24,
           right: mob ? 0 : "auto",
-          width: mob ? "100%" : 520,
+          width: mob ? "100%" : 460,
           background: t.dark ? "#111" : "#fff",
-          borderRadius: mob ? "20px 20px 0 0" : 18,
+          borderRadius: mob ? "20px 20px 0 0" : 14,
           boxShadow: t.dark
-            ? "0 24px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)"
-            : "0 24px 80px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.8)",
+            ? "0 16px 48px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05)"
+            : "0 16px 48px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.8)",
           zIndex: 9999,
-          maxHeight: mob ? "80vh" : 520,
+          maxHeight: mob ? "70vh" : 400,
           overflow: "hidden",
           display: "flex", flexDirection: "column",
           fontFamily: "'Inter', system-ui, sans-serif",
@@ -407,90 +407,50 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           {/* Scrollable content area */}
           <div style={{ overflowY: "auto", flex: 1, animation: "locDdIn .25s cubic-bezier(.16,1,.3,1)" }}>
 
-            {/* ── Default state: Featured grid ── */}
+            {/* ── Default state: Compact grid ── */}
             {!isSearching && (
               <>
-                {/* Top featured cards — grid of visual location cards */}
-                <div style={{ padding: "16px 16px 8px" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span style={{ fontSize: ".62rem", fontWeight: 800, color: t.dark ? "#555" : "#bbb", textTransform: "uppercase", letterSpacing: ".12em" }}>
-                      Explore Destinations
+                <div style={{ padding: "10px 12px 6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: ".58rem", fontWeight: 800, color: t.dark ? "#555" : "#bbb", textTransform: "uppercase", letterSpacing: ".12em" }}>
+                      Pick a destination
                     </span>
-                    <span style={{ fontSize: ".58rem", color: t.dark ? "#444" : "#ccc" }}>
-                      {results.length} available
-                    </span>
+                    <span style={{ fontSize: ".52rem", color: t.dark ? "#444" : "#ccc" }}>{results.length} spots</span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    {/* Hero card — Manhattan takes top full width */}
-                    <div
-                      className="loc-card"
-                      onClick={() => {
-                        const loc = results.find(r => r.name === "Manhattan");
-                        if (loc) { onChange(`Manhattan, ${loc.state}`); onSelect(loc); setOpen(false); }
-                      }}
-                      style={{
-                        gridColumn: "1 / -1",
-                        background: featuredData["Manhattan"]?.gradient || "linear-gradient(135deg, #1a1a2e, #0f3460)",
-                        borderRadius: 14, padding: "16px 18px",
-                        position: "relative", overflow: "hidden",
-                      }}
-                    >
-                      <div style={{ position: "absolute", top: -20, right: -10, fontSize: "4rem", opacity: .12, pointerEvents: "none" }}>🏙️</div>
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                            <span style={{ fontSize: "1.1rem" }}>🏙️</span>
-                            <span style={{ fontSize: "1rem", fontWeight: 800, color: "#fff", letterSpacing: "-.02em" }}>Manhattan</span>
-                          </div>
-                          <div style={{ fontSize: ".65rem", color: "rgba(255,255,255,.6)", marginBottom: 8 }}>New York's iconic heart</div>
-                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                            <span style={{ fontSize: ".6rem", fontWeight: 700, color: "#fff", background: "rgba(255,255,255,.15)", padding: "2px 8px", borderRadius: 8 }}>48 hotels</span>
-                            <span style={{ fontSize: ".6rem", fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,.12)", padding: "2px 8px", borderRadius: 8 }}>From $39/hr</span>
-                          </div>
-                        </div>
-                        <span style={{
-                          fontSize: ".5rem", fontWeight: 800, color: "#fff",
-                          background: A, padding: "3px 8px", borderRadius: 6,
-                          textTransform: "uppercase", letterSpacing: ".06em",
-                        }}>MOST BOOKED</span>
-                      </div>
-                    </div>
-
-                    {/* Smaller cards for other featured locations */}
-                    {["Brooklyn", "Queens", "Jersey City", "Hoboken"].map(name => {
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+                    {["Manhattan", "Brooklyn", "Queens", "Jersey City", "Hoboken", "The Bronx", "Staten Island", "Newark"].map(name => {
                       const fd = featuredData[name];
                       if (!fd) return null;
+                      const id = `card-${name}`;
+                      const hovered = hoveredId === id;
                       return (
                         <div
                           key={name}
                           className="loc-card"
+                          onMouseEnter={() => setHoveredId(id)}
+                          onMouseLeave={() => setHoveredId(null)}
                           onClick={() => {
                             const loc = results.find(r => r.name === name);
                             if (loc) { onChange(`${name}, ${loc.state}`); onSelect(loc); setOpen(false); }
                           }}
                           style={{
                             background: fd.gradient,
-                            borderRadius: 12, padding: "12px 14px",
+                            borderRadius: 10, padding: "10px 10px 8px",
                             position: "relative", overflow: "hidden",
+                            minHeight: 56,
                           }}
                         >
-                          <div style={{ position: "absolute", bottom: -8, right: -4, fontSize: "2.2rem", opacity: .1, pointerEvents: "none" }}>{fd.emoji}</div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
-                            <span style={{ fontSize: ".8rem" }}>{fd.emoji}</span>
-                            <span style={{ fontSize: ".78rem", fontWeight: 700, color: "#fff" }}>{name}</span>
-                          </div>
-                          <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
-                            <span style={{ fontSize: ".55rem", fontWeight: 600, color: "rgba(255,255,255,.7)" }}>{fd.hotels} hotels</span>
-                            <span style={{ fontSize: ".55rem", color: "rgba(255,255,255,.4)" }}>·</span>
-                            <span style={{ fontSize: ".55rem", fontWeight: 600, color: "#4ade80" }}>${fd.from}/hr</span>
-                          </div>
+                          <div style={{ position: "absolute", bottom: -6, right: -2, fontSize: "1.6rem", opacity: .12, pointerEvents: "none" }}>{fd.emoji}</div>
+                          <div style={{ fontSize: ".72rem", fontWeight: 700, color: "#fff", marginBottom: 2, lineHeight: 1.2 }}>{name}</div>
+                          <div style={{ fontSize: ".5rem", fontWeight: 600, color: "rgba(255,255,255,.6)" }}>{fd.hotels} hotels</div>
+                          <div style={{ fontSize: ".5rem", fontWeight: 700, color: "#4ade80", marginTop: 1 }}>${fd.from}/hr</div>
                           {fd.tag && (
                             <span style={{
-                              position: "absolute", top: 8, right: 8,
-                              fontSize: ".42rem", fontWeight: 800, color: "#fff",
+                              position: "absolute", top: 4, right: 4,
+                              fontSize: ".38rem", fontWeight: 800, color: "#fff",
                               background: fd.tag === "TRENDING" ? "#8b5cf6" : (fd.tag === "NEW" ? "#10b981" : A),
-                              padding: "2px 6px", borderRadius: 4,
-                              textTransform: "uppercase", letterSpacing: ".06em",
+                              padding: "1px 4px", borderRadius: 3,
+                              textTransform: "uppercase", letterSpacing: ".04em",
                             }}>{fd.tag}</span>
                           )}
                         </div>
@@ -498,44 +458,6 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
                     })}
                   </div>
                 </div>
-
-                {/* Remaining locations as compact list */}
-                {Array.from(grouped.entries()).map(([state, locs]) => {
-                  const stateInfo = getStateDisplay(state);
-                  const remaining = locs.filter(l => !["Manhattan", "Brooklyn", "Queens", "Jersey City", "Hoboken"].includes(l.name));
-                  if (remaining.length === 0) return null;
-                  return (
-                    <div key={state}>
-                      <div style={{ padding: "8px 18px 4px", display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: ".75rem" }}>{stateInfo.icon}</span>
-                        <span style={{ fontSize: ".6rem", fontWeight: 800, color: t.dark ? "#555" : "#bbb", textTransform: "uppercase", letterSpacing: ".1em" }}>More in {stateInfo.name}</span>
-                      </div>
-                      {remaining.map(loc => {
-                        const id = `loc-${loc.name}`;
-                        const hovered = hoveredId === id;
-                        const fd = featuredData[loc.name];
-                        return (
-                          <div
-                            key={id} className="loc-item"
-                            onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
-                            onMouseEnter={() => setHoveredId(id)}
-                            onMouseLeave={() => setHoveredId(null)}
-                            style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 18px", cursor: "pointer" }}
-                          >
-                            <span style={{ fontSize: ".9rem", width: 24, textAlign: "center" }}>{fd?.emoji || "📍"}</span>
-                            <div style={{ flex: 1 }}>
-                              <span style={{ fontSize: ".8rem", fontWeight: 600, color: t.text }}>{loc.name}</span>
-                              {fd && <span style={{ fontSize: ".6rem", color: t.dark ? "#555" : "#aaa", marginLeft: 6 }}>{fd.hotels} hotels · From ${fd.from}/hr</span>}
-                            </div>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#333" : "#ddd"} strokeWidth="3" style={{ opacity: hovered ? 1 : 0, transition: "opacity .15s" }}>
-                              <path d="m9 18 6-6-6-6" />
-                            </svg>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
               </>
             )}
 
