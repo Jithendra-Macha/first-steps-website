@@ -19,6 +19,16 @@ import ReviewsPage from "./pages/admin/ReviewsPage";
 import FinancialsPage from "./pages/admin/FinancialsPage";
 import NotificationsPage from "./pages/admin/NotificationsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
+import ManagerLayout from "./components/hotel-manager/ManagerLayout";
+import ManagerDashboard from "./pages/hotel-manager/ManagerDashboard";
+import AvailabilityManager from "./pages/hotel-manager/AvailabilityManager";
+import ManagerReservations from "./pages/hotel-manager/ManagerReservations";
+import MyListing from "./pages/hotel-manager/MyListing";
+import ManagerReviews from "./pages/hotel-manager/ManagerReviews";
+import ManagerAnalytics from "./pages/hotel-manager/ManagerAnalytics";
+import ManagerEarnings from "./pages/hotel-manager/ManagerEarnings";
+import ManagerNotifications from "./pages/hotel-manager/ManagerNotifications";
+import ManagerSettings from "./pages/hotel-manager/ManagerSettings";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +54,17 @@ const App = () => (
               <Route path="financials" element={<FinancialsPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="settings" element={<SettingsPage />} />
+            </Route>
+            <Route path="/manager" element={<ManagerLayout />}>
+              <Route index element={<ManagerDashboard />} />
+              <Route path="availability" element={<AvailabilityManager />} />
+              <Route path="reservations" element={<ManagerReservations />} />
+              <Route path="listing" element={<MyListing />} />
+              <Route path="reviews" element={<ManagerReviews />} />
+              <Route path="analytics" element={<ManagerAnalytics />} />
+              <Route path="earnings" element={<ManagerEarnings />} />
+              <Route path="notifications" element={<ManagerNotifications />} />
+              <Route path="settings" element={<ManagerSettings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
