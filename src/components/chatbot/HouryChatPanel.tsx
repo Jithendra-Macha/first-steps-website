@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Send, Clock, RotateCcw } from "lucide-react";
-import { searchHotels, formatResultsForAI } from "@/lib/hotelSearch";
+import { X, Minus, Send, Clock, RotateCcw, Star, MapPin, Wifi, Waves, Dumbbell, UtensilsCrossed, Car, Coffee } from "lucide-react";
+import { searchHotels, formatResultsForAI, type SearchResult } from "@/lib/hotelSearch";
 import {
   type ChatMessage, type BookingSlots, type ConversationStep,
   getConversationState, saveConversationState, clearConversation,
@@ -57,9 +57,113 @@ function QuickReplies({ replies, onSelect }: { replies: string[]; onSelect: (r: 
   );
 }
 
+// ─── Amenity Icon Map ───
+const AMENITY_ICONS: Record<string, typeof Wifi> = {
+  wifi: Wifi, pool: Waves, gym: Dumbbell, spa: Waves, restaurant: UtensilsCrossed,
+  parking: Car, breakfast: Coffee, bar: Coffee,
+};
+
+function getAmenityIcon(amenity: string) {
+  const key = amenity.toLowerCase();
+  for (const [k, Icon] of Object.entries(AMENITY_ICONS)) {
+    if (key.includes(k)) return Icon;
+  }
+  return null;
+}
+
+// ─── Inline Hotel Card ───
+function InlineHotelCard({ result }: { result: SearchResult }) {
+  const { hotel, matchingRooms } = result;
+  const cheapest = Math.min(...matchingRooms.map(r => r.hourly_rate));
+  const topAmenities = [...new Set(matchingRooms.flatMap(r => r.amenities))].slice(0, 5);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl overflow-hidden border border-border/60 bg-background shadow-sm hover:shadow-md transition-shadow cursor-pointer mb-2"
+      onClick={() => window.open(`/`, '_self')}
+    >
+      {/* Gradient header mimicking hotel photo */}
+      <div
+        className="h-24 relative flex items-end p-3"
+        style={{ background: hotel.tags.includes('luxury') 
+          ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
+          : 'linear-gradient(135deg, #0d1f38 0%, #1a3a5c 50%, #2a5a8a 100%)' 
+        }}
+      >
+        {/* Rating badge */}
+        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold"
+          style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: '#fff' }}>
+          <Star size={10} fill="#FFD700" color="#FFD700" />
+          {hotel.rating}
+        </div>
+        <div className="text-white">
+          <h4 className="text-sm font-bold leading-tight drop-shadow-md">{hotel.name}</h4>
+          <div className="flex items-center gap-1 text-[11px] opacity-80 mt-0.5">
+            <MapPin size={10} />
+            {hotel.area}, {hotel.borough}
+          </div>
+        </div>
+      </div>
+
+      {/* Details */}
+      <div className="p-3 space-y-2">
+        {/* Amenities */}
+        <div className="flex flex-wrap gap-1.5">
+          {topAmenities.map(a => {
+            const Icon = getAmenityIcon(a);
+            return (
+              <span key={a} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                {Icon && <Icon size={10} />}
+                {a}
+              </span>
+            );
+          })}
+        </div>
+
+        {/* Price + Reviews */}
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-base font-bold" style={{ color: CORAL }}>${cheapest}</span>
+            <span className="text-xs text-muted-foreground">/hr</span>
+          </div>
+          <span className="text-[10px] text-muted-foreground">
+            {hotel.total_reviews.toLocaleString()} reviews
+          </span>
+        </div>
+
+        {/* Room types preview */}
+        <div className="flex gap-1.5">
+          {matchingRooms.slice(0, 3).map(r => (
+            <span key={r.type} className="text-[10px] px-2 py-0.5 rounded-md font-medium"
+              style={{ background: '#FFF0EC', color: CORAL }}>
+              {r.type} ${r.hourly_rate}/hr
+            </span>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Extract hotel names mentioned in AI response ───
+function extractMentionedHotels(content: string, searchResults: SearchResult[]): SearchResult[] {
+  if (!searchResults.length) return [];
+  return searchResults.filter(r => {
+    const name = r.hotel.name.toLowerCase();
+    const contentLower = content.toLowerCase();
+    // Match full name or significant part (first 2+ words)
+    return contentLower.includes(name) || 
+      contentLower.includes(name.split(' ').slice(0, 3).join(' '));
+  });
+}
+
 // ─── Chat Message Bubble ───
-function MessageBubble({ msg }: { msg: ChatMessage }) {
+function MessageBubble({ msg, searchResults }: { msg: ChatMessage; searchResults: SearchResult[] }) {
   const isUser = msg.role === "user";
+  const mentionedHotels = !isUser ? extractMentionedHotels(msg.content, searchResults) : [];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -72,23 +176,34 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
           <Clock size={14} color="#fff" />
         </div>
       )}
-      <div
-        className={`max-w-[80%] px-3.5 py-2.5 text-sm leading-relaxed ${
-          isUser
-            ? "rounded-2xl rounded-br-sm text-white"
-            : "rounded-2xl rounded-bl-sm"
-        }`}
-        style={{
-          background: isUser ? NAVY : "#FFF0EC",
-          color: isUser ? "#fff" : "#1a1a1a",
-          fontFamily: "'Nunito Sans', sans-serif",
-        }}
-      >
-        {isUser ? (
-          msg.content
-        ) : (
-          <div className="prose prose-sm max-w-none [&_p]:m-0 [&_strong]:font-bold [&_ul]:mt-1 [&_li]:text-sm">
-            <ReactMarkdown>{msg.content}</ReactMarkdown>
+      <div className={`max-w-[85%] ${isUser ? "" : "space-y-2"}`}>
+        <div
+          className={`px-3.5 py-2.5 text-sm leading-relaxed ${
+            isUser
+              ? "rounded-2xl rounded-br-sm text-white"
+              : "rounded-2xl rounded-bl-sm"
+          }`}
+          style={{
+            background: isUser ? NAVY : "#FFF0EC",
+            color: isUser ? "#fff" : "#1a1a1a",
+            fontFamily: "'Nunito Sans', sans-serif",
+          }}
+        >
+          {isUser ? (
+            msg.content
+          ) : (
+            <div className="prose prose-sm max-w-none [&_p]:m-0 [&_strong]:font-bold [&_ul]:mt-1 [&_li]:text-sm">
+              <ReactMarkdown>{msg.content}</ReactMarkdown>
+            </div>
+          )}
+        </div>
+
+        {/* Inline Hotel Cards */}
+        {mentionedHotels.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {mentionedHotels.map(r => (
+              <InlineHotelCard key={r.hotel.name} result={r} />
+            ))}
           </div>
         )}
       </div>
@@ -138,6 +253,7 @@ export default function HouryChatPanel({
   const [state, setState] = useState(getConversationState);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [lastSearchResults, setLastSearchResults] = useState<SearchResult[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -196,6 +312,7 @@ export default function HouryChatPanel({
       durationHours: newSlots.durationHours,
     });
     const hotelContext = formatResultsForAI(searchResults);
+    setLastSearchResults(searchResults);
 
     const allMessages = [...messages, userMsg];
     setState(prev => ({
@@ -365,7 +482,7 @@ export default function HouryChatPanel({
           ) : (
             <>
               {messages.map((msg, i) => (
-                <MessageBubble key={i} msg={msg} />
+                <MessageBubble key={i} msg={msg} searchResults={lastSearchResults} />
               ))}
               {loading && messages[messages.length - 1]?.role === "user" && <TypingIndicator />}
             </>
