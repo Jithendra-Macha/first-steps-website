@@ -648,7 +648,7 @@ function HotelCard({ hotel: h, isActive, onClick, index, compareMode, isCompared
 /* ── Interactive Mapbox Panel ── */
 const MAPBOX_TOKEN = "pk.eyJ1Ijoiaml0aGVuZHJhbWFjaGEiLCJhIjoiY21sc2E5YTNvMDN6ZDNjcHpoZnR3M20ydSJ9.EXkOsQuxBxKS_BUo0xLPLQ";
 
-function MapPanel({ hotels, activeIdx, onPin }: { hotels: Hotel[]; activeIdx: number | null; onPin: (i: number) => void }) {
+function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[]; activeIdx: number | null; onPin: (i: number) => void; onHotelClick?: (hotel: Hotel) => void }) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -695,7 +695,8 @@ function MapPanel({ hotels, activeIdx, onPin }: { hotels: Hotel[]; activeIdx: nu
         .setLngLat([h.lng, h.lat])
         .addTo(map.current!);
 
-      el.addEventListener("click", () => onPin(i));
+      el.addEventListener("click", () => { onPin(i); });
+      el.addEventListener("dblclick", () => { onHotelClick?.(h); });
 
       el.addEventListener("mouseenter", () => {
         popupRef.current?.remove();
@@ -721,9 +722,21 @@ function MapPanel({ hotels, activeIdx, onPin }: { hotels: Hotel[]; activeIdx: nu
                   <span style="font-size:.6rem;color:#999;">/hr</span>
                 </div>
               </div>
+              <button data-hotel-idx="${i}" style="width:100%;margin-top:8px;padding:7px 0;border:none;border-radius:8px;background:${NAVY};color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;">View Hotel →</button>
             </div>
           `)
           .addTo(map.current!);
+
+        // Add click handler for "View Hotel" button in popup
+        const popupEl = popupRef.current!.getElement();
+        if (popupEl) {
+          popupEl.addEventListener("click", (e) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === "BUTTON" && target.dataset.hotelIdx !== undefined) {
+              onHotelClick?.(hotels[parseInt(target.dataset.hotelIdx)]);
+            }
+          });
+        }
       });
 
       el.addEventListener("mouseleave", () => {
@@ -765,7 +778,7 @@ function MapPanel({ hotels, activeIdx, onPin }: { hotels: Hotel[]; activeIdx: nu
   }, [activeIdx, hotels]);
 
   return (
-    <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+    <div style={{ flex: 1, position: "relative", overflow: "hidden", minWidth: 0 }}>
       <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
 
       {/* Map overlay badge */}
@@ -1057,6 +1070,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
             hotels={sorted}
             activeIdx={activeIdx}
             onPin={i => setActiveIdx(activeIdx === i ? null : i)}
+            onHotelClick={onHotelClick ? (hotel) => onHotelClick(hotel) : undefined}
           />
         )}
       </div>
