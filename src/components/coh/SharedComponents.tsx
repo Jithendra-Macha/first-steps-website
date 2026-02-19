@@ -366,7 +366,7 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           if (e.key === "Escape") setOpen(false);
         }}
         placeholder="Where are you going?"
-        style={{ border: "none", outline: "none", fontSize: ".88rem", color: t.dark ? "#eee" : "#111", width: "100%", background: "transparent", fontFamily: "'Inter', system-ui, sans-serif" }}
+        style={{ border: "none", outline: "none", fontSize: "1rem", color: t.dark ? "#eee" : "#111", width: "100%", background: "transparent", fontFamily: "'Nunito Sans', system-ui, sans-serif" }}
       />
       {open && hasContent && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
@@ -388,7 +388,7 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           maxHeight: mob ? "55vh" : 320,
           overflow: "hidden",
           display: "flex", flexDirection: "column",
-          fontFamily: "'Inter', system-ui, sans-serif",
+          fontFamily: "'Nunito Sans', system-ui, sans-serif",
         }}>
           <style>{`
             .loc-row { transition: background .12s; cursor: pointer; }
