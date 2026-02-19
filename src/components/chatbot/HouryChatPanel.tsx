@@ -9,7 +9,7 @@ import {
 } from "@/lib/conversationManager";
 import ReactMarkdown from "react-markdown";
 
-const CORAL = "#E8705A";
+const CORAL = "#F97316";
 const NAVY = "#0d1f38";
 const ASK_AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-ai`;
 
