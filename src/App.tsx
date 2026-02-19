@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import LocationPage from "./pages/LocationPage";
 import ResetPassword from "./pages/ResetPassword";
+import ChatPage from "./pages/ChatPage";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
 import DashboardOverview from "./pages/admin/DashboardOverview";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/hotels/:slug" element={<LocationPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/chat" element={<ChatPage />} />
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
                 <AdminLayout />
