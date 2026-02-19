@@ -94,12 +94,13 @@ export function SectionHeader({ title, accent, sub, link, onLink }: SectionHeade
 }
 
 /* ── Nav ── */
-export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick, onListPropertyClick, user, onSignOut }: {
+export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick, onListPropertyClick, onAskAI, user, onSignOut }: {
   onSearch: (q: string) => void;
   onAuthClick?: () => void;
   onProfileClick?: () => void;
   onReservationsClick?: () => void;
   onListPropertyClick?: () => void;
+  onAskAI?: () => void;
   user?: any;
   onSignOut?: () => void;
 }) {
@@ -164,6 +165,11 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
       {mob ? (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={onAskAI} style={{
+              background: "none", border: `1.5px solid ${A}`, borderRadius: 20,
+              padding: "5px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+              fontSize: ".72rem", fontWeight: 700, color: A, fontFamily: "inherit",
+            }}>✦ Ask AI</button>
             <ThemeToggleBtn />
             <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: t.dark ? "#1e1e1e" : "#f0f0f0", border: "none", width: 36, height: 36, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", color: t.text }}>
@@ -189,6 +195,15 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
             <a key={l.label} onClick={l.action} style={{ fontSize: ".8rem", fontWeight: 500, color: t.textSecondary, cursor: "pointer", transition: "color .15s" }}
               onMouseEnter={e => (e.target as HTMLElement).style.color = t.text} onMouseLeave={e => (e.target as HTMLElement).style.color = t.textSecondary}>{l.label}</a>
           ))}
+          <button onClick={onAskAI} style={{
+            background: "none", border: `1.5px solid ${A}`, borderRadius: 24,
+            padding: "7px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+            fontSize: ".8rem", fontWeight: 700, color: A, fontFamily: "inherit",
+            transition: "all .15s",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = `${A}10`; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
+          >✦ Ask AI</button>
           <ThemeToggleBtn />
           <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{ background: t.dark ? "#1e1e1e" : "#f0f0f0", border: `1.5px solid ${t.border}`, height: 40, borderRadius: 24, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "0 12px 0 6px" }}>

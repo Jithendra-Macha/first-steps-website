@@ -4,6 +4,7 @@ import { Nav, Hero, TrustRow } from "@/components/coh/SharedComponents";
 import { DealsSection, ZonesSection, WhySection, AirportsSection, NJSection, OccasionsSection, HowItWorks, Stats, Footer } from "@/components/coh/LandingSections";
 import { OrganizationJsonLd, WebSiteJsonLd, HowToJsonLd, ServiceJsonLd, HomepageFAQJsonLd, SpeakableJsonLd } from "@/components/seo/GEOSchemas";
 import ResultsPage from "@/components/coh/ResultsPage";
+import AskAIPanel from "@/components/coh/AskAIPanel";
 import HotelPage, { ConfirmationPage, type BookingData } from "@/components/coh/HotelPage";
 import AuthPage from "@/pages/AuthPage";
 import ProfilePage from "@/pages/ProfilePage";
@@ -24,6 +25,7 @@ const NAVY = "#0d1f38";
 
 const Index = () => {
   const [page, setPage] = useState<"landing" | "results" | "hotel" | "confirmation" | "profile" | "reservations" | "list-property">("landing");
+  const [showAskAI, setShowAskAI] = useState(false);
   const [query, setQuery] = useState("Manhattan, New York");
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
@@ -101,6 +103,7 @@ const Index = () => {
     onProfileClick: handleProfileClick,
     onReservationsClick: handleReservationsClick,
     onListPropertyClick: handleListPropertyClick,
+    onAskAI: () => setShowAskAI(true),
     user,
     onSignOut: signOut,
   };
@@ -167,6 +170,7 @@ const Index = () => {
       </AnimatePresence>
 
       {showAuth && <AuthPage onClose={() => setShowAuth(false)} />}
+      <AskAIPanel open={showAskAI} onClose={() => setShowAskAI(false)} />
     </>
   );
 };
