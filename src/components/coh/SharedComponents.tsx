@@ -358,6 +358,7 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
   const getStyle = (type: string) => typeStyles[type] || typeStyles.city;
   const getGeoStyle = (type: string) => geoTypeStyles[type] || geoTypeStyles.address;
 
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
   let flatIdx = 0;
   const hasContent = results.length > 0 || geoSuggestions.length > 0 || (value.trim().length > 3);
 
@@ -381,24 +382,43 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           bottom: mob ? 0 : "auto",
           left: mob ? 0 : -18,
           right: mob ? 0 : "auto",
-          width: mob ? "100%" : 440,
+          width: mob ? "100%" : 480,
           background: t.dropdownBg,
           borderRadius: mob ? "20px 20px 0 0" : 20,
           boxShadow: "0 25px 80px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.04)",
           zIndex: 9999,
-          maxHeight: mob ? "70vh" : 520,
+          maxHeight: mob ? "70vh" : 560,
           overflowY: "auto",
-          padding: "8px 0",
+          padding: "0",
           fontFamily: "'Inter', system-ui, sans-serif",
+          animation: "dropdownSlideIn .25s cubic-bezier(.16,1,.3,1)",
         }}>
-          {mob && <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ddd", margin: "6px auto 8px" }} />}
+          <style>{`
+            @keyframes dropdownSlideIn { from { opacity: 0; transform: translateY(-8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+            @keyframes tilePopIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+            .loc-tile { transition: all .2s cubic-bezier(.16,1,.3,1) !important; }
+            .loc-tile:active { transform: scale(.96) !important; }
+          `}</style>
+          {mob && <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ddd", margin: "10px auto 4px" }} />}
 
-          <div style={{ padding: "10px 22px 6px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: ".62rem", fontWeight: 800, color: "#b0b0b0", textTransform: "uppercase", letterSpacing: ".12em" }}>
-              {value.trim() ? `${results.length + geoSuggestions.length} results` : "Popular Destinations"}
-            </span>
+          {/* Header with result count & clear */}
+          <div style={{ padding: "14px 22px 8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: A, animation: "pulse 2s infinite" }} />
+              <span style={{ fontSize: ".65rem", fontWeight: 800, color: t.dark ? "#888" : "#b0b0b0", textTransform: "uppercase", letterSpacing: ".12em" }}>
+                {value.trim() ? `${results.length + geoSuggestions.length} results found` : "Popular Destinations"}
+              </span>
+            </div>
             {value.trim() && (
-              <button onClick={() => { onChange(""); }} style={{ fontSize: ".6rem", color: A, fontWeight: 700, background: "none", border: "none", cursor: "pointer", padding: "2px 6px" }}>Clear</button>
+              <button onClick={() => { onChange(""); }} style={{
+                fontSize: ".62rem", color: "#fff", fontWeight: 700,
+                background: A, border: "none", cursor: "pointer",
+                padding: "3px 10px", borderRadius: 12,
+                transition: "all .15s",
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = "#e03d00"}
+                onMouseLeave={e => e.currentTarget.style.background = A}
+              >✕ Clear</button>
             )}
           </div>
 
@@ -407,18 +427,25 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
             <div style={{ marginBottom: 4 }}>
               <div style={{ padding: "10px 22px 6px", display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: "1rem" }}>📍</span>
-                <span style={{ fontSize: ".75rem", fontWeight: 800, color: NAVY, letterSpacing: ".02em" }}>Addresses & Places</span>
-                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BRD}, transparent)` }} />
-                {geoLoading && <span style={{ fontSize: ".58rem", fontWeight: 600, color: A }}>Searching...</span>}
+                <span style={{ fontSize: ".75rem", fontWeight: 800, color: t.dark ? "#ddd" : NAVY, letterSpacing: ".02em" }}>Addresses & Places</span>
+                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${t.border}, transparent)` }} />
+                {geoLoading && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", border: `2px solid ${A}`, borderTopColor: "transparent", animation: "spin .6s linear infinite" }} />
+                    <span style={{ fontSize: ".58rem", fontWeight: 600, color: A }}>Searching...</span>
+                  </div>
+                )}
               </div>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }`}</style>
               <div style={{ padding: "0 14px 4px" }}>
-                {geoSuggestions.map((place) => {
+                {geoSuggestions.map((place, i) => {
                   const gs = getGeoStyle(place.type);
                   const gIdx = flatIdx++;
                   const isHovered = hoveredIdx === gIdx;
                   return (
                     <div
                       key={place.id}
+                      className="loc-tile"
                       onClick={() => { onChange(place.fullAddress); setOpen(false); }}
                       onMouseEnter={() => setHoveredIdx(gIdx)}
                       onMouseLeave={() => setHoveredIdx(null)}
@@ -428,18 +455,19 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
                         borderRadius: 14,
                         background: isHovered ? gs.bg : "transparent",
                         border: `1.5px solid ${isHovered ? gs.border : "transparent"}`,
-                        transition: "all .18s ease",
+                        transform: isHovered ? "translateX(4px)" : "translateX(0)",
+                        animation: `tilePopIn .3s cubic-bezier(.16,1,.3,1) ${i * 0.05}s both`,
                       }}
                     >
                       <div style={{
-                        width: 38, height: 38, borderRadius: 11,
+                        width: 40, height: 40, borderRadius: 12,
                         background: isHovered ? "#fff" : gs.iconBg,
                         border: `1.5px solid ${gs.border}`,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         flexShrink: 0,
-                        transform: isHovered ? "scale(1.08) rotate(-3deg)" : "scale(1) rotate(0)",
-                        transition: "all .2s ease",
-                        boxShadow: isHovered ? `0 4px 12px ${gs.border}` : "none",
+                        transform: isHovered ? "scale(1.12) rotate(-5deg)" : "scale(1) rotate(0)",
+                        transition: "all .25s cubic-bezier(.16,1,.3,1)",
+                        boxShadow: isHovered ? `0 6px 16px ${gs.border}` : "none",
                       }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={gs.text} strokeWidth="1.8" strokeLinecap="round">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
@@ -447,12 +475,12 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
-                          fontSize: ".85rem", fontWeight: 700, color: isHovered ? gs.text : "#1a1a1a",
+                          fontSize: ".85rem", fontWeight: 700, color: isHovered ? gs.text : (t.dark ? "#ddd" : "#1a1a1a"),
                           lineHeight: 1.2, transition: "color .15s",
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                         }}>{place.name}</div>
                         <div style={{
-                          fontSize: ".68rem", color: "#999", marginTop: 2,
+                          fontSize: ".68rem", color: t.dark ? "#777" : "#999", marginTop: 2,
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                         }}>{place.fullAddress}</div>
                         <span style={{
@@ -464,11 +492,9 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
                           {gs.label}
                         </span>
                       </div>
-                      {isHovered && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={gs.text} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, opacity: .6 }}>
-                          <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                        </svg>
-                      )}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isHovered ? gs.text : "#ddd"} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, transition: "all .2s", opacity: isHovered ? .8 : .3, transform: isHovered ? "translateX(2px)" : "translateX(0)" }}>
+                        <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                      </svg>
                     </div>
                   );
                 })}
@@ -479,81 +505,118 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           {/* Predefined location results */}
           {Array.from(grouped.entries()).map(([state, locs]) => {
             const stateInfo = getStateDisplay(state);
+            const isExpanded = activeGroup === null || activeGroup === state;
             return (
               <div key={state} style={{ marginBottom: 4 }}>
-                <div style={{ padding: "10px 22px 6px", display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  onClick={() => setActiveGroup(activeGroup === state ? null : state)}
+                  style={{
+                    padding: "10px 22px 6px", display: "flex", alignItems: "center", gap: 8,
+                    cursor: "pointer", userSelect: "none",
+                  }}
+                >
                   <span style={{ fontSize: "1rem" }}>{stateInfo.icon}</span>
-                  <span style={{ fontSize: ".75rem", fontWeight: 800, color: NAVY, letterSpacing: ".02em" }}>{stateInfo.name}</span>
-                  <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BRD}, transparent)` }} />
-                  <span style={{ fontSize: ".58rem", fontWeight: 600, color: "#ccc" }}>{locs.length}</span>
+                  <span style={{ fontSize: ".75rem", fontWeight: 800, color: t.dark ? "#ddd" : NAVY, letterSpacing: ".02em" }}>{stateInfo.name}</span>
+                  <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${t.border}, transparent)` }} />
+                  <span style={{
+                    fontSize: ".58rem", fontWeight: 700, color: "#fff",
+                    background: isExpanded ? A : (t.dark ? "#555" : "#ccc"),
+                    padding: "2px 8px", borderRadius: 10,
+                    transition: "all .2s",
+                  }}>{locs.length}</span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#888" : "#999"} strokeWidth="2.5" style={{
+                    transition: "transform .25s cubic-bezier(.16,1,.3,1)",
+                    transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                  }}><polyline points="6 9 12 15 18 9" /></svg>
                 </div>
 
-                <div style={{ padding: "0 14px 4px", display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 5 }}>
-                  {locs.map((loc) => {
-                    const idx = flatIdx++;
-                    const s = getStyle(loc.type);
-                    const isHovered = hoveredIdx === idx;
-                    const currentIdx = idx;
+                {isExpanded && (
+                  <div style={{ padding: "0 14px 4px", display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 5 }}>
+                    {locs.map((loc, i) => {
+                      const idx = flatIdx++;
+                      const s = getStyle(loc.type);
+                      const isHovered = hoveredIdx === idx;
+                      const currentIdx = idx;
 
-                    return (
-                      <div
-                        key={`${loc.name}-${loc.state}-${currentIdx}`}
-                        onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
-                        onMouseEnter={() => setHoveredIdx(currentIdx)}
-                        onMouseLeave={() => setHoveredIdx(null)}
-                        style={{
-                          display: "flex", alignItems: "center", gap: 11,
-                          padding: "10px 12px", cursor: "pointer",
-                          borderRadius: 14,
-                          background: isHovered ? s.bg : "transparent",
-                          border: `1.5px solid ${isHovered ? s.border : "transparent"}`,
-                          transition: "all .18s ease",
-                        }}
-                      >
-                        <div style={{
-                          width: 38, height: 38, borderRadius: 11,
-                          background: isHovered ? "#fff" : s.iconBg,
-                          border: `1.5px solid ${s.border}`,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          flexShrink: 0,
-                          transform: isHovered ? "scale(1.08) rotate(-3deg)" : "scale(1) rotate(0)",
-                          transition: "all .2s ease",
-                          boxShadow: isHovered ? `0 4px 12px ${s.border}` : "none",
-                        }}>
-                          <LocationIcon type={loc.type} color={s.text} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                      return (
+                        <div
+                          key={`${loc.name}-${loc.state}-${currentIdx}`}
+                          className="loc-tile"
+                          onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
+                          onMouseEnter={() => setHoveredIdx(currentIdx)}
+                          onMouseLeave={() => setHoveredIdx(null)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 11,
+                            padding: "10px 12px", cursor: "pointer",
+                            borderRadius: 14,
+                            background: isHovered ? s.bg : "transparent",
+                            border: `1.5px solid ${isHovered ? s.border : "transparent"}`,
+                            transform: isHovered ? "translateX(4px)" : "translateX(0)",
+                            animation: `tilePopIn .3s cubic-bezier(.16,1,.3,1) ${i * 0.04}s both`,
+                          }}
+                        >
                           <div style={{
-                            fontSize: ".85rem", fontWeight: 700, color: isHovered ? s.text : "#1a1a1a",
-                            lineHeight: 1.2, transition: "color .15s",
-                          }}>{loc.name}</div>
-                          <span style={{
-                            display: "inline-block", marginTop: 3,
-                            fontSize: ".56rem", fontWeight: 800, color: s.text,
-                            background: s.bg, border: `1px solid ${s.border}`,
-                            padding: "2px 8px", borderRadius: 20, textTransform: "uppercase", letterSpacing: ".06em",
+                            width: 40, height: 40, borderRadius: 12,
+                            background: isHovered ? "#fff" : s.iconBg,
+                            border: `1.5px solid ${s.border}`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            flexShrink: 0,
+                            transform: isHovered ? "scale(1.12) rotate(-5deg)" : "scale(1) rotate(0)",
+                            transition: "all .25s cubic-bezier(.16,1,.3,1)",
+                            boxShadow: isHovered ? `0 6px 16px ${s.border}` : "none",
                           }}>
-                            {loc.type}
-                          </span>
-                        </div>
-                        {isHovered && (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={s.text} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, opacity: .6 }}>
+                            <LocationIcon type={loc.type} color={s.text} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              fontSize: ".85rem", fontWeight: 700, color: isHovered ? s.text : (t.dark ? "#ddd" : "#1a1a1a"),
+                              lineHeight: 1.2, transition: "color .15s",
+                            }}>{loc.name}</div>
+                            <span style={{
+                              display: "inline-block", marginTop: 3,
+                              fontSize: ".56rem", fontWeight: 800, color: s.text,
+                              background: s.bg, border: `1px solid ${s.border}`,
+                              padding: "2px 8px", borderRadius: 20, textTransform: "uppercase", letterSpacing: ".06em",
+                            }}>
+                              {loc.type}
+                            </span>
+                          </div>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isHovered ? s.text : (t.dark ? "#555" : "#ddd")} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, transition: "all .2s", opacity: isHovered ? .8 : .3, transform: isHovered ? "translateX(2px)" : "translateX(0)" }}>
                             <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
                           </svg>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {!isExpanded && (() => { flatIdx += locs.length; return null; })()}
               </div>
             );
           })}
 
-          <div style={{ padding: "10px 22px 14px", borderTop: `1px solid ${BRD}`, marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-            </svg>
-            <span style={{ fontSize: ".68rem", color: "#999", fontStyle: "italic" }}>Search by address, city or neighborhood</span>
+          {/* Footer with search hint */}
+          <div style={{
+            padding: "12px 22px 16px", borderTop: `1px solid ${t.border}`, marginTop: 4,
+            display: "flex", alignItems: "center", gap: 10,
+            background: t.dark ? "rgba(255,255,255,.02)" : "rgba(0,0,0,.015)",
+          }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 8,
+              background: `${A}15`, border: `1px solid ${A}30`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: ".7rem", fontWeight: 700, color: t.dark ? "#aaa" : "#666" }}>Type to search</div>
+              <div style={{ fontSize: ".6rem", color: t.dark ? "#666" : "#aaa" }}>Street address, city, or neighborhood</div>
+            </div>
+            <div style={{ marginLeft: "auto", display: "flex", gap: 3 }}>
+              <kbd style={{ fontSize: ".55rem", padding: "2px 6px", borderRadius: 4, background: t.dark ? "#2a2a2a" : "#f0f0f0", border: `1px solid ${t.border}`, color: t.dark ? "#888" : "#999", fontFamily: "monospace" }}>↵</kbd>
+              <kbd style={{ fontSize: ".55rem", padding: "2px 6px", borderRadius: 4, background: t.dark ? "#2a2a2a" : "#f0f0f0", border: `1px solid ${t.border}`, color: t.dark ? "#888" : "#999", fontFamily: "monospace" }}>esc</kbd>
+            </div>
           </div>
         </div>
       )}
