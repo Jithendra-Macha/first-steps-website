@@ -12,6 +12,7 @@ import ReservationsPage from "@/pages/ReservationsPage";
 import ListPropertyPage from "@/pages/ListPropertyPage";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import type { Hotel } from "@/data/hotels";
 
 const pageVariants = {
@@ -32,6 +33,24 @@ const Index = () => {
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const { user, signOut } = useAuth();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Show auth modal when redirected with ?auth=login
+  useEffect(() => {
+    if (searchParams.get("auth") === "login") {
+      setShowAuth(true);
+    }
+  }, [searchParams]);
+
+  // After login, redirect to the intended page
+  useEffect(() => {
+    if (user && searchParams.get("redirect")) {
+      const redirect = searchParams.get("redirect")!;
+      setShowAuth(false);
+      navigate(redirect, { replace: true });
+    }
+  }, [user, searchParams, navigate]);
 
   // Proactive message after 20 seconds
   useEffect(() => {
