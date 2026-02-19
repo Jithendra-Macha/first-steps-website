@@ -411,23 +411,17 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
                         const loc = results.find(r => r.name === name);
                         if (loc) { onChange(`${name}, ${loc.state}`); onSelect(loc); setOpen(false); }
                       }}
-                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px" }}
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 16px" }}
                     >
-                      <span style={{ fontSize: ".85rem", width: 22, textAlign: "center" }}>{fd.emoji}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ fontSize: ".78rem", fontWeight: 600, color: t.text }}>{name}</span>
-                          {fd.tag && (
-                            <span style={{
-                              fontSize: ".42rem", fontWeight: 800, color: "#fff",
-                              background: fd.tag === "TRENDING" ? "#8b5cf6" : fd.tag === "NEW" ? "#10b981" : A,
-                              padding: "1px 5px", borderRadius: 3, textTransform: "uppercase", letterSpacing: ".03em",
-                            }}>{fd.tag}</span>
-                          )}
-                        </div>
-                      </div>
-                      <span style={{ fontSize: ".58rem", fontWeight: 600, color: t.dark ? "#555" : "#aaa" }}>{fd.hotels} hotels</span>
-                      <span style={{ fontSize: ".6rem", fontWeight: 700, color: "#4ade80" }}>${fd.from}/hr</span>
+                      <span style={{ fontSize: "1rem", width: 24, textAlign: "center" }}>{fd.emoji}</span>
+                      <span style={{ fontSize: ".92rem", fontWeight: 600, color: t.text, flex: 1 }}>{name}</span>
+                      {fd.tag && (
+                        <span style={{
+                          fontSize: ".46rem", fontWeight: 800, color: "#fff",
+                          background: fd.tag === "TRENDING" ? "#8b5cf6" : fd.tag === "NEW" ? "#10b981" : A,
+                          padding: "2px 6px", borderRadius: 3, textTransform: "uppercase", letterSpacing: ".03em",
+                        }}>{fd.tag}</span>
+                      )}
                     </div>
                   );
                 })}
