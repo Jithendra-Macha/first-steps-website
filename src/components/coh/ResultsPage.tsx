@@ -121,26 +121,52 @@ function NavDatePicker({ selectedDate, onSelect }: { selectedDate: Date; onSelec
 const TIME_SLOTS = ["6am–12pm", "11am–5pm", "1pm–7pm", "5pm–11pm"];
 
 /* ── Filter Sidebar ── */
-function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () => void; count: number }) {
+function FilterSidebar({ open, onToggle, count, filters, onFiltersChange }: {
+  open: boolean; onToggle: () => void; count: number;
+  filters: FilterState; onFiltersChange: (f: FilterState) => void;
+}) {
   const t = useThemeColors();
-  const [priceRange, setPriceRange] = useState<[number, number]>([10, 40]);
-  const [selectedStars, setSelectedStars] = useState<Set<number>>(new Set());
-  const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(new Set());
-  const [dealsOnly, setDealsOnly] = useState(false);
+  const { priceRange, selectedStars, selectedAmenities, dealsOnly, duration, guests, neighborhoods, bookingType } = filters;
 
-  const toggleStar = (s: number) => setSelectedStars(prev => {
-    const n = new Set(prev);
+  const setPriceRange = (v: [number, number]) => onFiltersChange({ ...filters, priceRange: v });
+  const setDealsOnly = (v: boolean) => onFiltersChange({ ...filters, dealsOnly: v });
+  const setDuration = (v: string | null) => onFiltersChange({ ...filters, duration: v });
+  const setGuests = (v: number) => onFiltersChange({ ...filters, guests: v });
+  const setBookingType = (v: string | null) => onFiltersChange({ ...filters, bookingType: v });
+
+  const toggleStar = (s: number) => {
+    const n = new Set(selectedStars);
     n.has(s) ? n.delete(s) : n.add(s);
-    return n;
-  });
-  const toggleAmenity = (a: string) => setSelectedAmenities(prev => {
-    const n = new Set(prev);
+    onFiltersChange({ ...filters, selectedStars: n });
+  };
+  const toggleAmenity = (a: string) => {
+    const n = new Set(selectedAmenities);
     n.has(a) ? n.delete(a) : n.add(a);
-    return n;
-  });
+    onFiltersChange({ ...filters, selectedAmenities: n });
+  };
+  const toggleNeighborhood = (nb: string) => {
+    const n = new Set(neighborhoods);
+    n.has(nb) ? n.delete(nb) : n.add(nb);
+    onFiltersChange({ ...filters, neighborhoods: n });
+  };
 
-  const amenities = ["WiFi", "Pool", "Spa", "Gym", "Rooftop", "Bar", "City View", "Parking", "Room Service"];
-  const activeCount = selectedStars.size + selectedAmenities.size + (dealsOnly ? 1 : 0);
+  const amenities = ["WiFi", "Pool", "Spa", "Gym", "Rooftop", "Bar", "City View", "Parking", "Room Service", "Jacuzzi", "Breakfast", "AC"];
+  const neighborhoodList = ["Midtown", "Chelsea", "Upper West", "Upper East", "Tribeca", "Gramercy", "Meatpacking"];
+  const durationOptions = [
+    { value: "2h", label: "2 hours", icon: "⚡" },
+    { value: "4h", label: "4 hours", icon: "☀️" },
+    { value: "6h", label: "6 hours", icon: "🌤" },
+    { value: "8h", label: "8 hours", icon: "🌙" },
+    { value: "12h", label: "12 hours", icon: "🌜" },
+  ];
+  const bookingTypes = [
+    { value: "instant", label: "Instant Book", icon: "⚡", desc: "Confirmed in seconds" },
+    { value: "request", label: "On Request", icon: "📩", desc: "Usually within 1 hour" },
+    { value: "cancel", label: "Free Cancel", icon: "✓", desc: "Cancel anytime" },
+  ];
+
+  const activeCount = selectedStars.size + selectedAmenities.size + neighborhoods.size
+    + (dealsOnly ? 1 : 0) + (duration ? 1 : 0) + (guests > 1 ? 1 : 0) + (bookingType ? 1 : 0);
 
   return (
     <>
@@ -173,8 +199,8 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
 
       {/* Expanded sidebar */}
       <div style={{
-        width: open ? 260 : 0,
-        minWidth: open ? 260 : 0,
+        width: open ? 280 : 0,
+        minWidth: open ? 280 : 0,
         overflow: "hidden",
         transition: "all .3s cubic-bezier(.4,0,.2,1)",
         borderRight: open ? `1px solid ${t.border}` : "none",
@@ -198,11 +224,8 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
             }}>✕</button>
           </div>
 
-          {/* Price Range */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: ".85rem" }}>💰</span> Price Range
-            </div>
+          {/* ── Price Range ── */}
+          <FilterSection icon="💰" title="Price Range">
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <div style={{
                 flex: 1, padding: "8px 10px", borderRadius: 8,
@@ -221,7 +244,6 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
               </div>
               <span style={{ fontSize: ".65rem", color: SEC }}>/hr</span>
             </div>
-            {/* Visual price bar */}
             <div style={{ position: "relative", height: 6, background: "#f0f0f0", borderRadius: 3, margin: "0 4px" }}>
               <div style={{
                 position: "absolute",
@@ -235,13 +257,74 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: ".6rem", color: "#ccc" }}>
               <span>$5</span><span>$50</span>
             </div>
-          </div>
+          </FilterSection>
 
-          {/* Star Rating */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: ".85rem" }}>⭐</span> Star Rating
+          {/* ── Duration ── */}
+          <FilterSection icon="⏱" title="Duration">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {durationOptions.map(d => (
+                <button
+                  key={d.value}
+                  onClick={() => setDuration(duration === d.value ? null : d.value)}
+                  style={{
+                    padding: "8px 12px", borderRadius: 10,
+                    border: duration === d.value ? `2px solid ${A}` : `1.5px solid ${BRD}`,
+                    background: duration === d.value ? "#fff5f0" : "#fff",
+                    cursor: "pointer", fontFamily: "inherit",
+                    display: "flex", alignItems: "center", gap: 5,
+                    transition: "all .15s",
+                  }}
+                >
+                  <span style={{ fontSize: ".75rem" }}>{d.icon}</span>
+                  <span style={{
+                    fontSize: ".68rem", fontWeight: 700,
+                    color: duration === d.value ? A : NAVY,
+                  }}>{d.label}</span>
+                </button>
+              ))}
             </div>
+          </FilterSection>
+
+          {/* ── Guests ── */}
+          <FilterSection icon="👥" title="Guests">
+            <div style={{
+              display: "flex", alignItems: "center", gap: 12,
+              background: "#f8f8f8", borderRadius: 12, padding: "8px 14px",
+              border: `1px solid ${BRD}`,
+            }}>
+              <button
+                onClick={() => setGuests(Math.max(1, guests - 1))}
+                style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  border: `1.5px solid ${guests > 1 ? A : "#ddd"}`,
+                  background: guests > 1 ? "#fff5f0" : "#fff",
+                  color: guests > 1 ? A : "#ccc",
+                  fontSize: "1rem", fontWeight: 700, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontFamily: "inherit", transition: "all .15s",
+                }}
+              >−</button>
+              <div style={{ flex: 1, textAlign: "center" }}>
+                <div style={{ fontSize: "1.1rem", fontWeight: 900, color: NAVY }}>{guests}</div>
+                <div style={{ fontSize: ".58rem", color: SEC, marginTop: -2 }}>{guests === 1 ? "guest" : "guests"}</div>
+              </div>
+              <button
+                onClick={() => setGuests(Math.min(6, guests + 1))}
+                style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  border: `1.5px solid ${A}`,
+                  background: "#fff5f0",
+                  color: A,
+                  fontSize: "1rem", fontWeight: 700, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontFamily: "inherit", transition: "all .15s",
+                }}
+              >+</button>
+            </div>
+          </FilterSection>
+
+          {/* ── Star Rating ── */}
+          <FilterSection icon="⭐" title="Star Rating">
             <div style={{ display: "flex", gap: 6 }}>
               {[3, 4, 5].map(s => (
                 <button
@@ -264,10 +347,41 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
                 </button>
               ))}
             </div>
-          </div>
+          </FilterSection>
 
-          {/* Deals toggle */}
-          <div style={{ marginBottom: 24 }}>
+          {/* ── Booking Type ── */}
+          <FilterSection icon="📋" title="Booking Type">
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {bookingTypes.map(bt => (
+                <button
+                  key={bt.value}
+                  onClick={() => setBookingType(bookingType === bt.value ? null : bt.value)}
+                  style={{
+                    width: "100%", padding: "10px 12px", borderRadius: 10,
+                    border: bookingType === bt.value ? `2px solid ${A}` : `1.5px solid ${BRD}`,
+                    background: bookingType === bt.value ? "linear-gradient(135deg, #fff5f0, #ffe8dd)" : "#fff",
+                    cursor: "pointer", fontFamily: "inherit",
+                    display: "flex", alignItems: "center", gap: 10,
+                    transition: "all .15s", textAlign: "left",
+                  }}
+                >
+                  <span style={{
+                    fontSize: "1rem", width: 32, height: 32, borderRadius: 8,
+                    background: bookingType === bt.value ? `${A}15` : "#f5f5f5",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>{bt.icon}</span>
+                  <div>
+                    <div style={{ fontSize: ".72rem", fontWeight: 700, color: bookingType === bt.value ? A : NAVY }}>{bt.label}</div>
+                    <div style={{ fontSize: ".58rem", color: SEC }}>{bt.desc}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </FilterSection>
+
+          {/* ── Deals toggle ── */}
+          <FilterSection icon="🔥" title="Special Offers">
             <button
               onClick={() => setDealsOnly(!dealsOnly)}
               style={{
@@ -281,7 +395,7 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
                 transition: "all .15s",
               }}
             >
-              <span style={{ fontSize: "1.1rem" }}>🔥</span>
+              <span style={{ fontSize: "1.1rem" }}>🏷️</span>
               <div style={{ textAlign: "left" }}>
                 <div style={{ fontSize: ".76rem", fontWeight: 700, color: dealsOnly ? A : NAVY }}>Deals Only</div>
                 <div style={{ fontSize: ".6rem", color: SEC }}>Show discounted hotels</div>
@@ -301,13 +415,10 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
                 }} />
               </div>
             </button>
-          </div>
+          </FilterSection>
 
-          {/* Amenities */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: ".85rem" }}>🏨</span> Amenities
-            </div>
+          {/* ── Amenities ── */}
+          <FilterSection icon="🏨" title="Amenities">
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {amenities.map(a => (
                 <button
@@ -327,26 +438,294 @@ function FilterSidebar({ open, onToggle, count }: { open: boolean; onToggle: () 
                 </button>
               ))}
             </div>
-          </div>
+          </FilterSection>
+
+          {/* ── Neighborhood ── */}
+          <FilterSection icon="📍" title="Neighborhood">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {neighborhoodList.map(nb => (
+                <button
+                  key={nb}
+                  onClick={() => toggleNeighborhood(nb)}
+                  style={{
+                    padding: "6px 12px", borderRadius: 20,
+                    border: neighborhoods.has(nb) ? `1.5px solid ${A}` : `1px solid #e8e8e8`,
+                    background: neighborhoods.has(nb) ? "#fff5f0" : "#fafafa",
+                    color: neighborhoods.has(nb) ? A : "#777",
+                    fontSize: ".68rem", fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit",
+                    transition: "all .15s",
+                  }}
+                >
+                  {nb}
+                </button>
+              ))}
+            </div>
+          </FilterSection>
 
           {/* Clear all */}
           {activeCount > 0 && (
             <button
-              onClick={() => { setSelectedStars(new Set()); setSelectedAmenities(new Set()); setDealsOnly(false); }}
+              onClick={() => onFiltersChange(defaultFilters())}
               style={{
                 width: "100%", padding: "10px", borderRadius: 10,
                 background: "transparent", border: `1.5px solid ${BRD}`,
                 color: SEC, fontSize: ".72rem", fontWeight: 600,
                 cursor: "pointer", fontFamily: "inherit",
+                marginTop: 8,
               }}
             >
-              Clear all filters
+              Clear all filters ({activeCount})
             </button>
           )}
         </div>
       </div>
     </>
   );
+}
+
+/* ── Filter Section wrapper ── */
+function FilterSection({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
+  const [expanded, setExpanded] = useState(true);
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          display: "flex", alignItems: "center", gap: 6, width: "100%",
+          background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+          padding: "0 0 8px", marginBottom: expanded ? 8 : 0,
+          borderBottom: expanded ? "none" : `1px solid #f0f0f0`,
+        }}
+      >
+        <span style={{ fontSize: ".85rem" }}>{icon}</span>
+        <span style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, flex: 1, textAlign: "left" }}>{title}</span>
+        <span style={{
+          fontSize: ".65rem", color: SEC, transition: "transform .2s",
+          transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+        }}>▾</span>
+      </button>
+      {expanded && children}
+    </div>
+  );
+}
+
+/* ── Quick Filter Pills (horizontal scrollable bar) ── */
+const QUICK_FILTERS = [
+  { key: "best_rated", icon: "🏆", label: "Best Rated" },
+  { key: "best_deals", icon: "🔥", label: "Best Deals" },
+  { key: "luxury", icon: "⭐", label: "4 & 5-Star" },
+  { key: "couples", icon: "💑", label: "Couples" },
+  { key: "pools", icon: "🏊", label: "Best Pools" },
+  { key: "spa", icon: "🧘", label: "Spa & Wellness" },
+  { key: "city_view", icon: "🌃", label: "City Views" },
+  { key: "new", icon: "✨", label: "New Hotels" },
+  { key: "rooftop", icon: "🌇", label: "Rooftop Bar" },
+  { key: "business", icon: "💼", label: "Business Ready" },
+  { key: "romantic", icon: "❤️", label: "Romance" },
+  { key: "free_cancel", icon: "✓", label: "Free Cancel" },
+];
+
+function QuickFilterBar({ active, onToggle }: { active: Set<string>; onToggle: (k: string) => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  };
+
+  useEffect(() => { checkScroll(); }, []);
+
+  const scroll = (dir: number) => {
+    scrollRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });
+  };
+
+  return (
+    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+      {/* Left arrow */}
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll(-1)}
+          style={{
+            position: "absolute", left: 0, zIndex: 5,
+            width: 28, height: 28, borderRadius: "50%",
+            background: "#fff", border: "1px solid #e8e8e8",
+            boxShadow: "0 2px 8px rgba(0,0,0,.08)",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: ".7rem", color: NAVY,
+          }}
+        >‹</button>
+      )}
+
+      <div
+        ref={scrollRef}
+        onScroll={checkScroll}
+        style={{
+          display: "flex", gap: 8, overflowX: "auto",
+          scrollbarWidth: "none", msOverflowStyle: "none",
+          padding: "0 4px",
+          flex: 1,
+        }}
+      >
+        {QUICK_FILTERS.map(f => {
+          const isActive = active.has(f.key);
+          return (
+            <button
+              key={f.key}
+              onClick={() => onToggle(f.key)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 16px",
+                borderRadius: 24,
+                border: isActive ? `2px solid ${A}` : "1.5px solid #e4e4e4",
+                background: isActive ? "linear-gradient(135deg, #fff5f0, #ffe8dd)" : "#fff",
+                color: isActive ? A : NAVY,
+                fontSize: ".72rem", fontWeight: 700,
+                cursor: "pointer", fontFamily: "inherit",
+                whiteSpace: "nowrap", flexShrink: 0,
+                transition: "all .2s cubic-bezier(.4,0,.2,1)",
+                boxShadow: isActive ? `0 2px 8px rgba(255,77,0,.15)` : "none",
+              }}
+            >
+              <span style={{ fontSize: ".8rem" }}>{f.icon}</span>
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Right arrow */}
+      {canScrollRight && (
+        <button
+          onClick={() => scroll(1)}
+          style={{
+            position: "absolute", right: 0, zIndex: 5,
+            width: 28, height: 28, borderRadius: "50%",
+            background: "#fff", border: "1px solid #e8e8e8",
+            boxShadow: "0 2px 8px rgba(0,0,0,.08)",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: ".7rem", color: NAVY,
+          }}
+        >›</button>
+      )}
+
+      <style>{`
+        div::-webkit-scrollbar { display: none; }
+      `}</style>
+    </div>
+  );
+}
+
+/* ── Sort Dropdown ── */
+function SortDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const t = useThemeColors();
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const options = [
+    { value: "rec", label: "Popularity", icon: "📈" },
+    { value: "rating", label: "Top Review", icon: "⭐" },
+    { value: "price_asc", label: "Price: Low → High", icon: "💰" },
+    { value: "price_desc", label: "Price: High → Low", icon: "💎" },
+  ];
+
+  const current = options.find(o => o.value === value) || options[0];
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", gap: 6,
+          padding: "6px 14px", borderRadius: 10,
+          border: `1.5px solid ${t.border}`, background: t.bgCard,
+          cursor: "pointer", fontFamily: "inherit",
+          fontSize: ".74rem", fontWeight: 700, color: t.navy,
+          transition: "all .15s",
+        }}
+      >
+        Sort by: <span style={{ color: A }}>{current.label}</span>
+        <span style={{
+          fontSize: ".6rem", transition: "transform .2s",
+          transform: open ? "rotate(180deg)" : "rotate(0deg)",
+        }}>▾</span>
+      </button>
+
+      {open && (
+        <>
+          <div style={{ position: "fixed", inset: 0, zIndex: 998 }} onClick={() => setOpen(false)} />
+          <div style={{
+            position: "absolute", top: "calc(100% + 6px)", right: 0,
+            background: t.bgCard, borderRadius: 14,
+            boxShadow: `0 12px 40px ${t.shadow}`, border: `1px solid ${t.border}`,
+            zIndex: 999, minWidth: 200, overflow: "hidden",
+            padding: "6px",
+          }}>
+            {options.map(o => (
+              <button
+                key={o.value}
+                onClick={() => { onChange(o.value); setOpen(false); }}
+                style={{
+                  width: "100%", padding: "10px 14px", borderRadius: 10,
+                  border: "none",
+                  background: value === o.value ? "#fff5f0" : "transparent",
+                  color: value === o.value ? A : t.text,
+                  fontSize: ".76rem", fontWeight: value === o.value ? 800 : 500,
+                  cursor: "pointer", fontFamily: "inherit",
+                  display: "flex", alignItems: "center", gap: 8,
+                  transition: "all .1s",
+                  textAlign: "left",
+                }}
+                onMouseEnter={e => { if (value !== o.value) e.currentTarget.style.background = "#f8f8f8"; }}
+                onMouseLeave={e => { if (value !== o.value) e.currentTarget.style.background = "transparent"; }}
+              >
+                <span style={{ fontSize: ".85rem" }}>{o.icon}</span>
+                {o.label}
+                {value === o.value && <span style={{ marginLeft: "auto", fontSize: ".7rem" }}>✓</span>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ── Filter State ── */
+interface FilterState {
+  priceRange: [number, number];
+  selectedStars: Set<number>;
+  selectedAmenities: Set<string>;
+  dealsOnly: boolean;
+  duration: string | null;
+  guests: number;
+  neighborhoods: Set<string>;
+  bookingType: string | null;
+  quickFilters: Set<string>;
+}
+
+function defaultFilters(): FilterState {
+  return {
+    priceRange: [10, 40],
+    selectedStars: new Set(),
+    selectedAmenities: new Set(),
+    dealsOnly: false,
+    duration: null,
+    guests: 1,
+    neighborhoods: new Set(),
+    bookingType: null,
+    quickFilters: new Set(),
+  };
 }
 
 /* ── Compare Tray ── */
@@ -1078,6 +1457,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
   const [filtersOpen, setFiltersOpen] = useState(!mob);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
+  const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const t = useThemeColors();
 
   const toggleCompare = (id: number) => {
@@ -1086,6 +1466,14 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
       if (n.has(id)) { n.delete(id); }
       else if (n.size < 3) { n.add(id); }
       return n;
+    });
+  };
+
+  const toggleQuickFilter = (key: string) => {
+    setFilters(prev => {
+      const n = new Set(prev.quickFilters);
+      n.has(key) ? n.delete(key) : n.add(key);
+      return { ...prev, quickFilters: n };
     });
   };
 
@@ -1203,43 +1591,37 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
 
       {/* Results header strip */}
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "10px 24px",
+        display: "flex", flexDirection: "column",
         background: t.bgCard,
         borderBottom: `1px solid ${t.border}`,
         flexShrink: 0,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ fontSize: ".8rem", color: t.textSecondary }}>
-            Hourly hotels in <span style={{ fontWeight: 800, color: t.navy }}>{query}</span>
+        {/* Top row: info + sort */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "10px 24px 6px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ fontSize: ".8rem", color: t.textSecondary }}>
+              Hourly hotels in <span style={{ fontWeight: 800, color: t.navy }}>{query}</span>
+              <span style={{ marginLeft: 6, fontSize: ".7rem", color: SEC }}>· {sorted.length} results</span>
+            </div>
+            {compareMode && (
+              <span style={{
+                background: t.dark ? "rgba(255,77,0,.15)" : "#fff5f0", color: A,
+                fontSize: ".65rem", fontWeight: 700,
+                padding: "3px 10px", borderRadius: 6,
+              }}>
+                Select up to 3 hotels to compare
+              </span>
+            )}
           </div>
-          {compareMode && (
-            <span style={{
-              background: t.dark ? "rgba(255,77,0,.15)" : "#fff5f0", color: A,
-              fontSize: ".65rem", fontWeight: 700,
-              padding: "3px 10px", borderRadius: 6,
-            }}>
-              Select up to 3 hotels to compare
-            </span>
-          )}
+          <SortDropdown value={sort} onChange={setSort} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: ".7rem", color: t.textSecondary }}>Sort:</span>
-          <select
-            value={sort}
-            onChange={e => setSort(e.target.value)}
-            style={{
-              border: `1px solid ${t.border}`, background: t.bgCard,
-              fontSize: ".74rem", fontWeight: 700, color: t.navy,
-              cursor: "pointer", fontFamily: "inherit", outline: "none",
-              padding: "4px 8px", borderRadius: 6,
-            }}
-          >
-            <option value="rec">Recommended</option>
-            <option value="price_asc">Price: Low → High</option>
-            <option value="price_desc">Price: High → Low</option>
-            <option value="rating">Top Rated</option>
-          </select>
+
+        {/* Quick filter pills */}
+        <div style={{ padding: "6px 24px 10px" }}>
+          <QuickFilterBar active={filters.quickFilters} onToggle={toggleQuickFilter} />
         </div>
       </div>
 
@@ -1247,7 +1629,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
       <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0, position: "relative", gap: 0 }}>
         {/* Filter Sidebar */}
         {view !== "map" && (
-          <FilterSidebar open={filtersOpen} onToggle={() => setFiltersOpen(!filtersOpen)} count={sorted.length} />
+          <FilterSidebar open={filtersOpen} onToggle={() => setFiltersOpen(!filtersOpen)} count={sorted.length} filters={filters} onFiltersChange={setFilters} />
         )}
 
         {/* Results list */}
