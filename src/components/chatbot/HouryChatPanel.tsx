@@ -14,10 +14,10 @@ const NAVY = "#0d1f38";
 const ASK_AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-ai`;
 
 const CONVERSATION_STARTERS = [
-  "Find me a room in Manhattan this afternoon",
-  "I need a quiet workspace for 2 hours",
-  "Something romantic tonight for two",
-  "Hotels near JFK for a layover",
+  "I need a room in Manhattan",
+  "Looking for a hotel in Brooklyn tomorrow",
+  "Hotels near JFK airport",
+  "Book a room in Jersey City this evening",
 ];
 
 // ─── Typing Indicator ───
@@ -541,16 +541,27 @@ function getContextualReplies(messages: ChatMessage[], slots: BookingSlots): str
 
   const content = lastBot.content.toLowerCase();
 
-  if (!slots.borough) return ["Manhattan", "Brooklyn", "Near JFK", "Queens"];
-  if (!slots.durationHours) return ["2 hours", "3 hours", "4 hours", "Just a quick stay"];
-  if (!slots.guests) return ["Just me", "2 guests", "3 guests", "4 guests"];
-  if (content.includes("shall i confirm") || content.includes("shall i book") || content.includes("want to book")) {
-    return ["Yes, confirm!", "Modify", "Show more options"];
+  // Step 1: Location
+  if (!slots.borough) return ["Manhattan", "Brooklyn", "Queens", "Jersey City"];
+  // Step 2: Date  
+  if (content.includes("date") || content.includes("when")) return ["Today", "Tomorrow", "This Saturday"];
+  // Step 3: Time slot
+  if (content.includes("time slot") || content.includes("time of day") || content.includes("preferred time")) {
+    return ["🌅 Morning", "☀️ Mid-day", "🌤️ Afternoon", "🌆 Evening", "🌙 Night"].slice(0, 4);
   }
-  if (content.includes("which one") || content.includes("catches your eye")) {
-    return ["Option 1", "Option 2", "Show more", "Different area"];
+  // Step 5: After hotel selection — guest details prompt
+  if (content.includes("first name") || content.includes("few details") || content.includes("guest details")) {
+    return [];
   }
-  return ["Show cheaper options", "Different area", "Change time", "Help"];
+  // Step 6: Confirm booking
+  if (content.includes("shall i confirm") || content.includes("shall i book")) {
+    return ["Yes, confirm!", "Modify details", "Cancel"];
+  }
+  // Step 4: Hotel selection
+  if (content.includes("which") && (content.includes("hotel") || content.includes("catches your eye"))) {
+    return ["Option 1", "Option 2", "Option 3", "Show more"];
+  }
+  return ["Show other options", "Different area", "Help"];
 }
 
 // ─── Floating Widget Launcher ───
