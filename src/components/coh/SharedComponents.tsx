@@ -632,6 +632,35 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
     return () => obs.disconnect();
   }, [navH]);
 
+  // Compact mobile sticky bar
+  const mobileSticky = (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 6,
+      background: "#fff", borderRadius: 10, height: 44,
+      padding: "0 4px 0 12px",
+      boxShadow: "0 2px 12px rgba(0,0,0,.08)",
+    }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: ".75rem", fontWeight: 600, color: "#333", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {city || "Where are you going?"}
+        </div>
+        <div style={{ fontSize: ".65rem", color: "#999", whiteSpace: "nowrap" }}>
+          {fmtDate(date)} · {hours}h
+        </div>
+      </div>
+      <button onClick={() => onSearch(city || "Manhattan")} style={{
+        background: A, color: "#fff", border: "none", borderRadius: 8,
+        padding: "8px 14px", fontSize: ".75rem", fontWeight: 700,
+        cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+        display: "flex", alignItems: "center", gap: 4,
+      }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+        Search
+      </button>
+    </div>
+  );
+
   const searchBar = (
     <div style={{
       background: "#fff", borderRadius: isStuck ? 10 : 14,
@@ -746,12 +775,11 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
           position: "fixed", top: navH, left: 0, right: 0, zIndex: 199,
           background: "hsl(var(--background))",
           borderBottom: "1px solid hsl(var(--border))",
-          padding: mob ? "8px 4%" : "8px 8%",
+          padding: mob ? "6px 4%" : "8px 8%",
           boxShadow: "0 2px 12px rgba(0,0,0,.06)",
-          transition: "opacity .2s",
         }}>
           <div style={{ maxWidth: 860, margin: "0 auto" }}>
-            {searchBar}
+            {mob ? mobileSticky : searchBar}
           </div>
         </div>
       )}
