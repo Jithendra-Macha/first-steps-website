@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Nav, Hero, TrustRow } from "@/components/coh/SharedComponents";
 import { DealsSection, ZonesSection, WhySection, AirportsSection, NJSection, OccasionsSection, HowItWorks, Stats, Footer } from "@/components/coh/LandingSections";
+import { OrganizationJsonLd, WebSiteJsonLd, HowToJsonLd, ServiceJsonLd, HomepageFAQJsonLd, SpeakableJsonLd } from "@/components/seo/GEOSchemas";
 import ResultsPage from "@/components/coh/ResultsPage";
 import HotelPage, { ConfirmationPage, type BookingData } from "@/components/coh/HotelPage";
 import AuthPage from "@/pages/AuthPage";
@@ -140,6 +141,12 @@ const Index = () => {
         {page === "landing" && (
           <motion.div key="landing" variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <div>
+              <OrganizationJsonLd />
+              <WebSiteJsonLd />
+              <HowToJsonLd />
+              <ServiceJsonLd />
+              <HomepageFAQJsonLd />
+              <SpeakableJsonLd selectors={["[data-speakable]", "h1", ".geo-answer"]} />
               <div style={{ background: NAVY, padding: ".55rem 8%", display: "flex", alignItems: "center", justifyContent: "center", gap: ".8rem" }}>
                 <span style={{ fontSize: ".72rem", color: "rgba(255,255,255,.75)" }}>🎉 New: Book by the hour in New Jersey — <a onClick={() => goSearch("Hoboken, NJ")} style={{ color: A, fontWeight: 700, cursor: "pointer" }}>Explore NJ Hotels →</a></span>
               </div>

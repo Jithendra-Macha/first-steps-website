@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useIsMobile, useThemeColors, Nav, SectionHeader, Btn } from "./SharedComponents";
+import { LocalBusinessJsonLd, SpeakableJsonLd } from "@/components/seo/GEOSchemas";
 import type { LocationPageData } from "@/data/locationPages";
 
 const A = "#ff4d00";
@@ -309,8 +310,12 @@ export default function LocationLanding({ data }: { data: LocationPageData }) {
   return (
     <main>
       <LocationJsonLd data={data} />
+      <LocalBusinessJsonLd name={data.name} state={data.state} slug={data.slug} avgRate={data.avgRate} />
+      <SpeakableJsonLd selectors={["[data-speakable]", "h1", ".geo-answer"]} />
       <Nav onSearch={() => {}} />
       <Hero data={data} />
+      {/* GEO: Direct-answer summary block for AI engines to cite */}
+      <GEOSummary data={data} />
       <Highlights data={data} />
       <Neighborhoods data={data} />
       <NearbyAirports data={data} />
@@ -318,5 +323,35 @@ export default function LocationLanding({ data }: { data: LocationPageData }) {
       <CTABanner data={data} />
       <SEOFooter data={data} />
     </main>
+  );
+}
+
+/* ── GEO: Direct-Answer Summary Block ── */
+function GEOSummary({ data }: { data: LocationPageData }) {
+  const mob = useIsMobile();
+  const t = useThemeColors();
+  const ratingStat = data.stats.find(s => s.label.includes("Rating"))?.value || "4.5★";
+  const hotelsStat = data.stats.find(s => s.label.includes("Hotels"))?.value || "50+";
+
+  return (
+    <section
+      data-speakable="true"
+      className="geo-answer"
+      style={{ padding: mob ? "2rem 5%" : "2.5rem 8%", background: t.bg, borderBottom: `1px solid ${t.border}` }}
+    >
+      <div style={{ maxWidth: 780 }}>
+        <p style={{ fontSize: ".92rem", color: t.navy, lineHeight: 1.75, fontWeight: 500, margin: 0 }}>
+          <strong>{data.name}</strong> has <strong>{hotelsStat}</strong> hourly hotels available through CoupleOfHours,
+          with rates starting from <strong>{data.avgRate}/hr</strong>.
+          Guests rate {data.name} hotels <strong>{ratingStat}</strong> on average.
+          {data.name} hourly hotels are ideal for{" "}
+          {data.nearbyAirports.length > 0
+            ? `airport layovers (near ${data.nearbyAirports.join(", ")}), `
+            : ""}
+          business meetings, day stays, and short visits.
+          Book 2–12 hours with instant confirmation and no hidden fees.
+        </p>
+      </div>
+    </section>
   );
 }

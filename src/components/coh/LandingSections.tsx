@@ -313,7 +313,7 @@ export function HowItWorks() {
     { n: "04", icon: "🏨", title: "Check In & Enjoy", desc: "Walk in, check in, use all hotel amenities. Leave when done." },
   ];
   return (
-    <section style={{ padding: mob ? "2rem 5%" : "3rem 8%", background: t.bgCard }}>
+    <section data-speakable="true" style={{ padding: mob ? "2rem 5%" : "3rem 8%", background: t.bgCard }}>
       <SectionHeader title="How it" accent="works" />
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4,1fr)", border: `1px solid ${t.border}`, borderRadius: 16, overflow: "hidden" }}>
         {steps.map((s, i) => (
@@ -348,17 +348,36 @@ export function Stats() {
 /* ── Footer ── */
 export function Footer() {
   const mob = useIsMobile();
-  const cols = [
-    { title: "Explore NY", links: ["Manhattan Hotels", "Brooklyn Hotels", "Queens Hotels", "The Bronx Hotels", "Staten Island"] },
-    { title: "Airports & NJ", links: ["Hotels Near JFK", "Hotels Near LGA", "Hotels Near EWR", "Jersey City Hotels", "Hoboken Hotels"] },
-    { title: "Company", links: ["About Us", "List Your Hotel", "Privacy Policy", "Terms of Service", "Contact Us"] },
+  const cols: { title: string; links: { label: string; href: string | null }[] }[] = [
+    { title: "Explore NY", links: [
+      { label: "Manhattan Hotels", href: "/hotels/new-york-city" },
+      { label: "Brooklyn Hotels", href: "/hotels/brooklyn" },
+      { label: "Queens Hotels", href: "/hotels/queens" },
+      { label: "The Bronx Hotels", href: "/hotels/bronx" },
+    ]},
+    { title: "Airports & NJ", links: [
+      { label: "Hotels Near JFK", href: null },
+      { label: "Hotels Near LGA", href: null },
+      { label: "Hotels Near EWR", href: null },
+      { label: "Jersey City Hotels", href: null },
+      { label: "Hoboken Hotels", href: null },
+    ]},
+    { title: "Company", links: [
+      { label: "About Us", href: null },
+      { label: "List Your Hotel", href: null },
+      { label: "Privacy Policy", href: null },
+      { label: "Terms of Service", href: null },
+      { label: "Contact Us", href: null },
+    ]},
   ];
   return (
     <footer style={{ background: BLK, color: "rgba(255,255,255,.6)", padding: mob ? "2rem 5% 1.5rem" : "3.5rem 8% 2rem" }}>
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1.6fr 1fr 1fr 1fr", gap: mob ? "1.5rem" : "2.5rem", marginBottom: mob ? "1.5rem" : "2.5rem" }}>
         <div>
           <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#fff", marginBottom: ".6rem" }}>coupleofhours<span style={{ color: A }}>.com</span></div>
-          <p style={{ fontSize: ".76rem", lineHeight: 1.68, maxWidth: 240, marginBottom: "1rem" }}>Hourly hotel bookings across New York & New Jersey. Flexible, private, instant — pay only for the time you need.</p>
+          <p data-speakable="true" className="geo-answer" style={{ fontSize: ".76rem", lineHeight: 1.68, maxWidth: 280, marginBottom: "1rem" }}>
+            CoupleOfHours is the leading platform for booking hourly hotel rooms in New York City and New Jersey. Over 200 vetted hotels, rates from $10/hr, 4.7★ average rating from 2,400+ guests.
+          </p>
           <div style={{ display: "flex", gap: 6 }}>
             {["🔒 SSL Secured", "🇺🇸 New York · NJ"].map(b => (
               <span key={b} style={{ fontSize: ".62rem", background: "rgba(255,255,255,.08)", color: "rgba(255,255,255,.65)", padding: "3px 10px", borderRadius: 4, border: "1px solid rgba(255,255,255,.1)" }}>{b}</span>
@@ -370,20 +389,21 @@ export function Footer() {
             <div style={{ fontSize: ".7rem", fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: ".9rem" }}>{col.title}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: ".5rem" }}>
               {col.links.map(l => (
-                <a key={l} style={{ fontSize: ".76rem", color: "rgba(255,255,255,.52)", cursor: "pointer", transition: "color .15s" }}
-                  onMouseEnter={e => (e.target as HTMLElement).style.color = "rgba(255,255,255,.9)"} onMouseLeave={e => (e.target as HTMLElement).style.color = "rgba(255,255,255,.52)"}>{l}</a>
+                l.href ? (
+                  <Link key={l.label} to={l.href} style={{ fontSize: ".76rem", color: "rgba(255,255,255,.52)", textDecoration: "none", transition: "color .15s" }}
+                    onMouseEnter={e => (e.target as HTMLElement).style.color = "rgba(255,255,255,.9)"} onMouseLeave={e => (e.target as HTMLElement).style.color = "rgba(255,255,255,.52)"}>{l.label}</Link>
+                ) : (
+                  <a key={l.label} style={{ fontSize: ".76rem", color: "rgba(255,255,255,.52)", cursor: "pointer", transition: "color .15s" }}
+                    onMouseEnter={e => (e.target as HTMLElement).style.color = "rgba(255,255,255,.9)"} onMouseLeave={e => (e.target as HTMLElement).style.color = "rgba(255,255,255,.52)"}>{l.label}</a>
+                )
               ))}
             </div>
           </div>
         ))}
       </div>
-      <div style={{ borderTop: "1px solid rgba(255,255,255,.1)", paddingTop: "1.4rem", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: ".72rem", color: "rgba(255,255,255,.3)", flexWrap: "wrap", gap: 8 }}>
-        <span>© 2025 CoupleOfHours.com — All rights reserved.</span>
-        <div style={{ display: "flex", gap: "1.5rem" }}>
-          {["Privacy Policy", "Terms", "Cookies"].map(l => (
-            <a key={l} style={{ cursor: "pointer" }}>{l}</a>
-          ))}
-        </div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,.1)", paddingTop: "1rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: ".8rem" }}>
+        <span style={{ fontSize: ".68rem" }}>© {new Date().getFullYear()} CoupleOfHours. All rights reserved.</span>
+        <span style={{ fontSize: ".64rem", color: "rgba(255,255,255,.3)" }}>Hourly hotels in NYC · Brooklyn · Queens · Bronx · New Jersey</span>
       </div>
     </footer>
   );
