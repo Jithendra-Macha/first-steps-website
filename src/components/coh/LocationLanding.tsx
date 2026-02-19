@@ -402,19 +402,21 @@ function FeaturedHotels({ data }: { data: LocationPageData }) {
       <SectionHeader title="Hotels in" accent={data.name} sub={`${hotels.length} verified hourly hotels available`} />
       <div className="hotel-scroll" style={{
         display: "flex",
+        flexDirection: "row",
+        flexWrap: "nowrap",
         gap: 16,
         overflowX: "auto",
         scrollSnapType: "x mandatory",
         WebkitOverflowScrolling: "touch",
-        paddingBottom: 12,
+        paddingBottom: 16,
         scrollbarWidth: "none",
-        msOverflowStyle: "none",
+        msOverflowStyle: "none" as any,
       }}>
         <style>{`.hotel-scroll::-webkit-scrollbar{display:none}`}</style>
         {hotels.map(hotel => {
           const cheapest = Math.min(...hotel.rooms.map(r => r.hourly_rate));
           return (
-            <div key={hotel.id} style={{ minWidth: mob ? "85%" : 320, maxWidth: mob ? "85%" : 340, scrollSnapAlign: "start", flexShrink: 0 }}>
+            <div key={hotel.id} style={{ flex: "0 0 auto", width: mob ? "85vw" : 340, scrollSnapAlign: "start" }}>
               <HotelListingCard hotel={hotel} cheapest={cheapest} />
             </div>
           );
