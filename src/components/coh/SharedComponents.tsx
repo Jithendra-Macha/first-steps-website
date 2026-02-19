@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { searchLocations, getTypeIcon, getStateDisplay, type USLocation } from "@/data/usLocations";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isBefore, startOfDay } from "date-fns";
 import cohLogo from "@/assets/logo-coh.jpeg";
@@ -161,7 +162,7 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
 
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? t.navBg : t.navBgSolid, backdropFilter: "blur(14px)", borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "0 4%" : "0 5%", height: mob ? 52 : 62, boxShadow: scrolled ? `0 2px 20px ${t.shadow}` : "none", transition: "box-shadow .25s" }}>
-      <div style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer", color: t.text }}>coupleofhours<span style={{ color: A }}>.com</span></div>
+      <Link to="/" style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer", color: t.text, textDecoration: "none" }}>coupleofhours<span style={{ color: A }}>.com</span></Link>
       {mob ? (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
