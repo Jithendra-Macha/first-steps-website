@@ -265,54 +265,66 @@ export type Database = {
           check_in_date: string
           check_out_date: string | null
           created_at: string
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
           guests: number
           hotel_address: string | null
           hotel_image: string | null
           hotel_listing_id: string | null
           hotel_name: string
           id: string
+          platform_commission: number
           room_type: string
           status: Database["public"]["Enums"]["reservation_status"]
           time_slot: string | null
           total_price: number
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           booking_id: string
           check_in_date: string
           check_out_date?: string | null
           created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           guests?: number
           hotel_address?: string | null
           hotel_image?: string | null
           hotel_listing_id?: string | null
           hotel_name: string
           id?: string
+          platform_commission?: number
           room_type: string
           status?: Database["public"]["Enums"]["reservation_status"]
           time_slot?: string | null
           total_price: number
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           booking_id?: string
           check_in_date?: string
           check_out_date?: string | null
           created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           guests?: number
           hotel_address?: string | null
           hotel_image?: string | null
           hotel_listing_id?: string | null
           hotel_name?: string
           id?: string
+          platform_commission?: number
           room_type?: string
           status?: Database["public"]["Enums"]["reservation_status"]
           time_slot?: string | null
           total_price?: number
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
