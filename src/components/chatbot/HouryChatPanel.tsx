@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Send, Clock, RotateCcw, Star, MapPin, Wifi, Waves, Dumbbell, UtensilsCrossed, Car, Coffee } from "lucide-react";
+import { X, Minus, Send, RotateCcw, Star, MapPin, Wifi, Waves, Dumbbell, UtensilsCrossed, Car, Coffee } from "lucide-react";
 import { searchHotels, formatResultsForAI, type SearchResult } from "@/lib/hotelSearch";
 import {
   type ChatMessage, type BookingSlots, type ConversationStep,
@@ -8,6 +8,7 @@ import {
   detectMoodTags, detectAirport, detectBorough, generateBookingId,
 } from "@/lib/conversationManager";
 import ReactMarkdown from "react-markdown";
+import sandyAvatar from "@/assets/sandy-avatar.png";
 
 const CORAL = "#F97316";
 const NAVY = "#0d1f38";
@@ -171,10 +172,7 @@ function MessageBubble({ msg, searchResults }: { msg: ChatMessage; searchResults
       className={`flex ${isUser ? "justify-end" : "justify-start"} px-4 mb-3`}
     >
       {!isUser && (
-        <div className="w-7 h-7 rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0"
-          style={{ background: CORAL }}>
-          <Clock size={14} color="#fff" />
-        </div>
+        <img src={sandyAvatar} alt="Sandy" className="w-7 h-7 rounded-full mr-2 mt-1 flex-shrink-0 object-cover" />
       )}
       <div className={`max-w-[85%] ${isUser ? "" : "space-y-2"}`}>
         <div
@@ -215,10 +213,8 @@ function MessageBubble({ msg, searchResults }: { msg: ChatMessage; searchResults
 function ConversationStarters({ onSelect }: { onSelect: (s: string) => void }) {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4 px-6">
-      <div className="w-14 h-14 rounded-full flex items-center justify-center mb-2" style={{ background: CORAL }}>
-        <Clock size={28} color="#fff" />
-      </div>
-      <h3 className="text-lg font-bold text-foreground">Hi! I'm Houry 🕐</h3>
+      <img src={sandyAvatar} alt="Sandy" className="w-14 h-14 rounded-full object-cover mb-2" />
+      <h3 className="text-lg font-bold text-foreground">Hi! I'm Sandy ✨</h3>
       <p className="text-sm text-muted-foreground text-center max-w-[280px]">
         Your personal booking assistant. Tell me what you need and I'll find the perfect hourly hotel for you!
       </p>
@@ -450,11 +446,9 @@ export default function HouryChatPanel({
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-border flex-shrink-0">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: CORAL }}>
-            <Clock size={18} color="#fff" />
-          </div>
+          <img src={sandyAvatar} alt="Sandy" className="w-9 h-9 rounded-full object-cover" />
           <div className="flex-1">
-            <div className="text-sm font-bold text-foreground">Houry</div>
+            <div className="text-sm font-bold text-foreground">Sandy</div>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-green-500" />
               <span className="text-xs text-muted-foreground">Online</span>
@@ -590,9 +584,9 @@ export function HouryWidgetLauncher({
         animate={{ scale: [1, 1.3], opacity: [0.6, 0] }}
         transition={{ duration: 1.5, repeat: Infinity }}
       />
-      <Clock size={18} />
-      <span>Ask AI to book the Hourly room</span>
-      <span>🕐</span>
+      <img src={sandyAvatar} alt="Sandy" className="w-6 h-6 rounded-full object-cover" />
+      <span>Ask Sandy to book a room</span>
+      <span>✨</span>
       {hasUnread && (
         <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
           1
