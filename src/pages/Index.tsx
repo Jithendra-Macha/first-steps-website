@@ -64,22 +64,32 @@ const Index = () => {
   }, []);
 
   const handleBookingComplete = useCallback(async (data: BookingData) => {
-    // Save reservation to database if user is logged in
+    // Save reservation to database for both logged-in and guest users
+    const reservationData: Record<string, any> = {
+      hotel_name: data.hotel.name,
+      hotel_image: data.hotel.photoBg,
+      hotel_address: data.hotel.addr,
+      room_type: data.room.name,
+      check_in_date: data.date || new Date().toISOString().split("T")[0],
+      time_slot: data.slot.time,
+      guests: data.rooms * 2,
+      total_price: data.total,
+      booking_id: data.bookingId,
+      status: "upcoming" as any,
+      platform_commission: 5,
+    };
+
     if (user) {
-      await supabase.from("reservations").insert({
-        user_id: user.id,
-        hotel_name: data.hotel.name,
-        hotel_image: data.hotel.photoBg,
-        hotel_address: data.hotel.addr,
-        room_type: data.room.name,
-        check_in_date: new Date().toISOString().split("T")[0],
-        time_slot: data.slot.time,
-        guests: data.rooms * 2,
-        total_price: data.total,
-        booking_id: data.bookingId,
-        status: "upcoming" as any,
-      });
+      reservationData.user_id = user.id;
+    } else {
+      // Guest checkout - store guest info
+      reservationData.guest_name = data.guest.name;
+      reservationData.guest_email = data.guest.email;
+      reservationData.guest_phone = data.guest.phone;
     }
+
+    await supabase.from("reservations").insert(reservationData as any);
+
     setBookingData(data);
     setPage("confirmation");
     window.scrollTo(0, 0);
