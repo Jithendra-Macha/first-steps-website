@@ -67,7 +67,7 @@ export const DEALS_DATA: Deal[] = [
 
 export const ZONE_DATA: Zone[] = [
   { key:"manhattan", emoji:"🗽", name:"Manhattan", count:42, bg:"linear-gradient(155deg,#0a1628,#2a4a7a 55%,#b8966e)", fill:"rgba(180,200,255,.85)" },
-  { key:"brooklyn", emoji:"🌉", name:"Brooklyn", count:28, bg:"linear-gradient(155deg,#16082a,#4a1870 55%,#c880e8)", fill:"rgba(200,160,255,.85)" },
+  { key:"brooklyn", emoji:"🌉", name:"Brooklyn", count:17, bg:"linear-gradient(155deg,#16082a,#4a1870 55%,#c880e8)", fill:"rgba(200,160,255,.85)" },
   { key:"queens", emoji:"✈️", name:"Queens", count:35, bg:"linear-gradient(155deg,#00142e,#0066cc)", fill:"rgba(120,180,255,.85)" },
   { key:"bronx", emoji:"🏟️", name:"The Bronx", count:14, bg:"linear-gradient(155deg,#0a1a08,#2d6e18)", fill:"rgba(140,220,120,.85)" },
   { key:"nj", emoji:"🌿", name:"New Jersey", count:31, bg:"linear-gradient(155deg,#1a1008,#7a5a10)", fill:"rgba(255,200,100,.85)" },
