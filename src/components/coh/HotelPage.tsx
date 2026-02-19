@@ -62,7 +62,7 @@ export interface BookingData {
   taxRate?: number;
   taxFlatFee?: number;
   subtotal?: number;
-  serviceFee?: number;
+  
 }
 
 /* ── Booking Form Modal ── */
@@ -81,10 +81,9 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const total = room.price * 6 * rooms;
-  const serviceFee = Math.round(total * 0.08);
   const taxInfo = getTaxInfo(hotel.addr);
   const taxAmount = parseFloat((total * taxInfo.taxRate / 100 + taxInfo.taxFlatFee).toFixed(2));
-  const grandTotal = total + serviceFee + taxAmount;
+  const grandTotal = total + taxAmount;
 
   const validateStep1 = () => {
     const e: Record<string, string> = {};
@@ -124,7 +123,6 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
         taxRate: taxInfo.taxRate,
         taxFlatFee: taxInfo.taxFlatFee,
         subtotal: total,
-        serviceFee,
       });
     }, 2500);
   };
@@ -247,10 +245,6 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem", color: "#555" }}>
                   <span>{room.name} × {rooms} room{rooms > 1 ? "s" : ""} × 6hrs</span>
                   <span style={{ fontWeight: 700 }}>${total}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem", color: "#555" }}>
-                  <span>Service fee</span>
-                  <span style={{ fontWeight: 700 }}>${serviceFee}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem", color: "#555" }}>
                   <span>Tax ({taxInfo.stateName} {taxInfo.taxRate}% + ${taxInfo.taxFlatFee.toFixed(2)} fee)</span>
@@ -476,12 +470,6 @@ export function ConfirmationPage({ booking, onHome }: { booking: BookingData; on
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: ".74rem", color: "#555" }}>
                   <span>{booking.room.name} × {booking.rooms} room{booking.rooms > 1 ? "s" : ""}</span>
                   <span style={{ fontWeight: 600 }}>${booking.subtotal}</span>
-                </div>
-              )}
-              {booking.serviceFee !== undefined && (
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: ".74rem", color: "#555" }}>
-                  <span>Service fee</span>
-                  <span style={{ fontWeight: 600 }}>${booking.serviceFee}</span>
                 </div>
               )}
               {booking.taxAmount !== undefined && (
