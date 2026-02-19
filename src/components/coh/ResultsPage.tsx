@@ -653,6 +653,10 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const onPinRef = useRef(onPin);
+  const onHotelClickRef = useRef(onHotelClick);
+  onPinRef.current = onPin;
+  onHotelClickRef.current = onHotelClick;
 
   // Resize map when container size changes (e.g. filter sidebar toggle)
   useEffect(() => {
@@ -688,6 +692,10 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
     if (!map.current) return;
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
+    popupRef.current?.remove();
+    popupRef.current = null;
+
+    let pinClickedRecently = false;
 
     hotels.forEach((h, i) => {
       const el = document.createElement("div");
@@ -705,57 +713,99 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
         .setLngLat([h.lng, h.lat])
         .addTo(map.current!);
 
-      el.addEventListener("click", () => { onPin(i); });
-      el.addEventListener("dblclick", () => { onHotelClick?.(h); });
+      // Click pin → show persistent popup + select
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        pinClickedRecently = true;
+        setTimeout(() => { pinClickedRecently = false; }, 200);
 
-      el.addEventListener("mouseenter", () => {
+        onPinRef.current(i);
+
+        // Remove existing popup
         popupRef.current?.remove();
-        popupRef.current = new mapboxgl.Popup({ offset: 30, closeButton: false, closeOnClick: false, maxWidth: "240px" })
-          .setLngLat([h.lng, h.lat])
-          .setHTML(`
-            <div style="font-family:system-ui;padding:6px 2px;">
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-                <div style="width:40px;height:40px;border-radius:8px;background:${h.photoBg};flex-shrink:0;"></div>
-                <div>
-                  <div style="font-weight:800;font-size:.8rem;color:${NAVY};line-height:1.2;">${h.name}</div>
-                  <div style="font-size:.65rem;color:#999;">${h.addr}</div>
+        popupRef.current = null;
+
+        // Delay popup creation slightly to avoid race with map click and re-render
+        setTimeout(() => {
+          if (!map.current) return;
+
+          const popupContent = document.createElement("div");
+          popupContent.style.cssText = "font-family:system-ui,-apple-system,sans-serif;padding:4px 0;";
+          popupContent.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <div style="width:52px;height:52px;border-radius:10px;background:${h.photoBg};flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15);"></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:800;font-size:.85rem;color:${NAVY};line-height:1.25;margin-bottom:2px;">${h.name}</div>
+                <div style="font-size:.68rem;color:#888;display:flex;align-items:center;gap:3px;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  ${h.addr}
                 </div>
               </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;">
-                <div style="display:flex;align-items:center;gap:5px;">
-                  <span style="background:${h.rating >= 4.7 ? "#0a7c4e" : "#1565c0"};color:#fff;font-size:.64rem;font-weight:800;padding:2px 6px;border-radius:4px;">${h.rating}</span>
-                  <span style="color:#f5a623;font-size:.6rem;">${"★".repeat(h.stars)}</span>
-                </div>
-                <div style="text-align:right;">
-                  ${h.origRate ? `<span style="font-size:.65rem;color:#ccc;text-decoration:line-through;">$${h.origRate}</span> ` : ""}
-                  <span style="font-size:1rem;font-weight:900;color:${NAVY};">$${h.rate}</span>
-                  <span style="font-size:.6rem;color:#999;">/hr</span>
-                </div>
-              </div>
-              <button data-hotel-idx="${i}" style="width:100%;margin-top:8px;padding:7px 0;border:none;border-radius:8px;background:${NAVY};color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;">View Hotel →</button>
             </div>
-          `)
-          .addTo(map.current!);
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="background:${h.rating >= 4.7 ? "#0a7c4e" : "#1565c0"};color:#fff;font-size:.7rem;font-weight:800;padding:3px 8px;border-radius:6px;">${h.rating}</span>
+                <span style="color:#f5a623;font-size:.65rem;letter-spacing:-1px;">${"★".repeat(h.stars)}</span>
+              </div>
+              <div style="text-align:right;">
+                ${h.origRate ? `<span style="font-size:.68rem;color:#bbb;text-decoration:line-through;margin-right:3px;">$${h.origRate}</span>` : ""}
+                <span style="font-size:1.2rem;font-weight:900;color:${NAVY};letter-spacing:-.02em;">$${h.rate}</span>
+                <span style="font-size:.62rem;color:#999;margin-left:1px;">/hr</span>
+              </div>
+            </div>
+          `;
 
-        // Add click handler for "View Hotel" button in popup
-        const popupEl = popupRef.current!.getElement();
-        if (popupEl) {
-          popupEl.addEventListener("click", (e) => {
-            const target = e.target as HTMLElement;
-            if (target.tagName === "BUTTON" && target.dataset.hotelIdx !== undefined) {
-              onHotelClick?.(hotels[parseInt(target.dataset.hotelIdx)]);
-            }
+          const viewBtn = document.createElement("button");
+          viewBtn.textContent = "View Hotel →";
+          viewBtn.style.cssText = `
+            width:100%;padding:10px 0;border:none;border-radius:10px;
+            background:${NAVY};color:#fff;font-size:.78rem;font-weight:700;
+            cursor:pointer;font-family:inherit;letter-spacing:.01em;
+            transition:background .15s,transform .1s;
+            box-shadow:0 2px 8px rgba(13,31,56,.25);
+          `;
+          viewBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            onHotelClickRef.current?.(h);
           });
-        }
-      });
+          viewBtn.addEventListener("mouseenter", () => {
+            viewBtn.style.background = "#1a3558";
+            viewBtn.style.transform = "scale(1.02)";
+          });
+          viewBtn.addEventListener("mouseleave", () => {
+            viewBtn.style.background = NAVY;
+            viewBtn.style.transform = "scale(1)";
+          });
+          popupContent.appendChild(viewBtn);
 
-      el.addEventListener("mouseleave", () => {
-        popupRef.current?.remove();
+          popupRef.current = new mapboxgl.Popup({
+            offset: 35,
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: "280px",
+            className: "hotel-map-popup",
+          })
+            .setLngLat([h.lng, h.lat])
+            .setDOMContent(popupContent)
+            .addTo(map.current!);
+        }, 50);
       });
 
       markersRef.current.push(marker);
     });
-  }, [hotels, onPin]);
+
+    // Close popup when clicking on map (not on a pin)
+    const closePopup = () => {
+      if (pinClickedRecently) return;
+      popupRef.current?.remove();
+      popupRef.current = null;
+    };
+    map.current.on("click", closePopup);
+
+    return () => {
+      map.current?.off("click", closePopup);
+    };
+  }, [hotels]);
 
   useEffect(() => {
     markersRef.current.forEach((marker, i) => {
@@ -842,6 +892,29 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
         }
         .mapbox-hotel-pin:hover .pin-unit {
           opacity: 1 !important;
+        }
+        .hotel-map-popup .mapboxgl-popup-content {
+          border-radius: 16px !important;
+          padding: 14px 16px !important;
+          box-shadow: 0 12px 40px rgba(0,0,0,.22) !important;
+          border: 1px solid #eee !important;
+        }
+        .hotel-map-popup .mapboxgl-popup-close-button {
+          font-size: 18px !important;
+          color: #999 !important;
+          right: 8px !important;
+          top: 6px !important;
+          width: 24px !important;
+          height: 24px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          border-radius: 50% !important;
+          transition: all .15s !important;
+        }
+        .hotel-map-popup .mapboxgl-popup-close-button:hover {
+          background: #f0f0f0 !important;
+          color: #333 !important;
         }
         .mapboxgl-popup-content {
           border-radius: 14px !important;
