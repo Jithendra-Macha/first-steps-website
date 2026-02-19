@@ -341,22 +341,19 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
 
   const hasContent = results.length > 0 || geoSuggestions.length > 0 || (value.trim().length > 3);
 
-  // Trending data for popular locations
-  const trendingMap: Record<string, string> = {
-    "Manhattan": "🔥 Most Popular",
-    "Brooklyn": "📈 Trending",
-    "Jersey City": "⭐ Top Rated",
-    "Queens": "💰 Best Value",
+  // Featured location cards with gradient themes & metadata
+  const featuredData: Record<string, { gradient: string; hotels: number; from: number; emoji: string; tag?: string }> = {
+    "Manhattan": { gradient: "linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)", hotels: 48, from: 39, emoji: "🏙️", tag: "MOST BOOKED" },
+    "Brooklyn": { gradient: "linear-gradient(135deg, #2d1b69, #11998e)", hotels: 32, from: 29, emoji: "🌉", tag: "TRENDING" },
+    "Queens": { gradient: "linear-gradient(135deg, #c94b4b, #4b134f)", hotels: 18, from: 25, emoji: "✈️" },
+    "The Bronx": { gradient: "linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b)", hotels: 12, from: 22, emoji: "🏟️" },
+    "Staten Island": { gradient: "linear-gradient(135deg, #134e5e, #71b280)", hotels: 8, from: 19, emoji: "⛴️" },
+    "Jersey City": { gradient: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)", hotels: 22, from: 27, emoji: "🌃", tag: "NEW" },
+    "Hoboken": { gradient: "linear-gradient(135deg, #373b44, #4286f4)", hotels: 14, from: 24, emoji: "🚂" },
+    "Newark": { gradient: "linear-gradient(135deg, #1f1c2c, #928dab)", hotels: 16, from: 21, emoji: "🛫" },
   };
 
-  const typeColor: Record<string, string> = {
-    borough: "#6366f1",
-    city: "#10b981",
-    neighborhood: "#f59e0b",
-    county: "#ec4899",
-    village: "#8b5cf6",
-    region: "#0ea5e9",
-  };
+  const isSearching = value.trim().length > 0;
 
   return (
     <div ref={ref} style={{ position: "relative", flex: 1, minWidth: 0 }}>
@@ -381,85 +378,184 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
           bottom: mob ? 0 : "auto",
           left: mob ? 0 : -24,
           right: mob ? 0 : "auto",
-          width: mob ? "100%" : 420,
-          background: t.dark ? "#1a1a1a" : "#fff",
-          borderRadius: mob ? "16px 16px 0 0" : 16,
+          width: mob ? "100%" : 520,
+          background: t.dark ? "#111" : "#fff",
+          borderRadius: mob ? "20px 20px 0 0" : 18,
           boxShadow: t.dark
-            ? "0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08)"
-            : "0 20px 60px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06)",
+            ? "0 24px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)"
+            : "0 24px 80px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.8)",
           zIndex: 9999,
-          maxHeight: mob ? "75vh" : 480,
+          maxHeight: mob ? "80vh" : 520,
           overflow: "hidden",
           display: "flex", flexDirection: "column",
           fontFamily: "'Inter', system-ui, sans-serif",
         }}>
           <style>{`
-            @keyframes ddFadeIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
-            @keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
-            .dd-row { transition: background .15s, padding-left .2s cubic-bezier(.16,1,.3,1); }
-            .dd-row:active { opacity: .7; }
+            @keyframes locDdIn { from { opacity:0; transform: translateY(-8px) scale(.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+            @keyframes locShimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+            @keyframes locPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+            .loc-card { transition: transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s; cursor: pointer; }
+            .loc-card:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+            .loc-card:active { transform: scale(.98); }
+            .loc-item { transition: all .15s ease; }
+            .loc-item:hover { background: ${t.dark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.03)'} !important; }
+            .loc-item:active { opacity: .7; }
           `}</style>
 
-          {mob && <div style={{ width: 36, height: 4, borderRadius: 2, background: t.dark ? "#333" : "#ddd", margin: "8px auto 4px", flexShrink: 0 }} />}
+          {mob && <div style={{ width: 36, height: 4, borderRadius: 2, background: t.dark ? "#333" : "#ddd", margin: "8px auto 2px", flexShrink: 0 }} />}
 
-          {/* Search input inside dropdown on mobile */}
-          {mob && (
-            <div style={{ padding: "8px 16px 12px", borderBottom: `1px solid ${t.border}`, flexShrink: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, background: t.dark ? "#222" : "#f5f5f5", borderRadius: 10, padding: "8px 12px" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#666" : "#aaa"} strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-                <input
-                  value={value}
-                  onChange={e => onChange(e.target.value)}
-                  placeholder="Search locations..."
-                  autoFocus
-                  style={{ border: "none", outline: "none", fontSize: ".85rem", color: t.text, width: "100%", background: "transparent" }}
-                />
-                {value.trim() && (
-                  <button onClick={() => onChange("")} style={{ background: t.dark ? "#444" : "#ddd", border: "none", width: 20, height: 20, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#aaa" : "#666"} strokeWidth="3"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Scrollable content area */}
+          <div style={{ overflowY: "auto", flex: 1, animation: "locDdIn .25s cubic-bezier(.16,1,.3,1)" }}>
 
-          {/* Scrollable content */}
-          <div style={{ overflowY: "auto", flex: 1, animation: "ddFadeIn .2s ease" }}>
-
-            {/* Quick picks — only when no search query */}
-            {!value.trim() && (
-              <div style={{ padding: "12px 16px 4px" }}>
-                <div style={{ fontSize: ".6rem", fontWeight: 700, color: t.dark ? "#666" : "#bbb", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>Quick Picks</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {["Manhattan", "Brooklyn", "JFK Area", "Jersey City"].map(q => (
-                    <button key={q} onClick={() => { onChange(q); }}
-                      style={{
-                        background: t.dark ? "#252525" : "#f7f7f7",
-                        border: `1px solid ${t.dark ? "#333" : "#eee"}`,
-                        borderRadius: 20, padding: "5px 14px",
-                        fontSize: ".75rem", fontWeight: 600, color: t.dark ? "#ccc" : "#555",
-                        cursor: "pointer", transition: "all .15s",
+            {/* ── Default state: Featured grid ── */}
+            {!isSearching && (
+              <>
+                {/* Top featured cards — grid of visual location cards */}
+                <div style={{ padding: "16px 16px 8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: ".62rem", fontWeight: 800, color: t.dark ? "#555" : "#bbb", textTransform: "uppercase", letterSpacing: ".12em" }}>
+                      Explore Destinations
+                    </span>
+                    <span style={{ fontSize: ".58rem", color: t.dark ? "#444" : "#ccc" }}>
+                      {results.length} available
+                    </span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {/* Hero card — Manhattan takes top full width */}
+                    <div
+                      className="loc-card"
+                      onClick={() => {
+                        const loc = results.find(r => r.name === "Manhattan");
+                        if (loc) { onChange(`Manhattan, ${loc.state}`); onSelect(loc); setOpen(false); }
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.background = A; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = A; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = t.dark ? "#252525" : "#f7f7f7"; e.currentTarget.style.color = t.dark ? "#ccc" : "#555"; e.currentTarget.style.borderColor = t.dark ? "#333" : "#eee"; }}
-                    >{q}</button>
-                  ))}
+                      style={{
+                        gridColumn: "1 / -1",
+                        background: featuredData["Manhattan"]?.gradient || "linear-gradient(135deg, #1a1a2e, #0f3460)",
+                        borderRadius: 14, padding: "16px 18px",
+                        position: "relative", overflow: "hidden",
+                      }}
+                    >
+                      <div style={{ position: "absolute", top: -20, right: -10, fontSize: "4rem", opacity: .12, pointerEvents: "none" }}>🏙️</div>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                            <span style={{ fontSize: "1.1rem" }}>🏙️</span>
+                            <span style={{ fontSize: "1rem", fontWeight: 800, color: "#fff", letterSpacing: "-.02em" }}>Manhattan</span>
+                          </div>
+                          <div style={{ fontSize: ".65rem", color: "rgba(255,255,255,.6)", marginBottom: 8 }}>New York's iconic heart</div>
+                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            <span style={{ fontSize: ".6rem", fontWeight: 700, color: "#fff", background: "rgba(255,255,255,.15)", padding: "2px 8px", borderRadius: 8 }}>48 hotels</span>
+                            <span style={{ fontSize: ".6rem", fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,.12)", padding: "2px 8px", borderRadius: 8 }}>From $39/hr</span>
+                          </div>
+                        </div>
+                        <span style={{
+                          fontSize: ".5rem", fontWeight: 800, color: "#fff",
+                          background: A, padding: "3px 8px", borderRadius: 6,
+                          textTransform: "uppercase", letterSpacing: ".06em",
+                        }}>MOST BOOKED</span>
+                      </div>
+                    </div>
+
+                    {/* Smaller cards for other featured locations */}
+                    {["Brooklyn", "Queens", "Jersey City", "Hoboken"].map(name => {
+                      const fd = featuredData[name];
+                      if (!fd) return null;
+                      return (
+                        <div
+                          key={name}
+                          className="loc-card"
+                          onClick={() => {
+                            const loc = results.find(r => r.name === name);
+                            if (loc) { onChange(`${name}, ${loc.state}`); onSelect(loc); setOpen(false); }
+                          }}
+                          style={{
+                            background: fd.gradient,
+                            borderRadius: 12, padding: "12px 14px",
+                            position: "relative", overflow: "hidden",
+                          }}
+                        >
+                          <div style={{ position: "absolute", bottom: -8, right: -4, fontSize: "2.2rem", opacity: .1, pointerEvents: "none" }}>{fd.emoji}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
+                            <span style={{ fontSize: ".8rem" }}>{fd.emoji}</span>
+                            <span style={{ fontSize: ".78rem", fontWeight: 700, color: "#fff" }}>{name}</span>
+                          </div>
+                          <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                            <span style={{ fontSize: ".55rem", fontWeight: 600, color: "rgba(255,255,255,.7)" }}>{fd.hotels} hotels</span>
+                            <span style={{ fontSize: ".55rem", color: "rgba(255,255,255,.4)" }}>·</span>
+                            <span style={{ fontSize: ".55rem", fontWeight: 600, color: "#4ade80" }}>${fd.from}/hr</span>
+                          </div>
+                          {fd.tag && (
+                            <span style={{
+                              position: "absolute", top: 8, right: 8,
+                              fontSize: ".42rem", fontWeight: 800, color: "#fff",
+                              background: fd.tag === "TRENDING" ? "#8b5cf6" : (fd.tag === "NEW" ? "#10b981" : A),
+                              padding: "2px 6px", borderRadius: 4,
+                              textTransform: "uppercase", letterSpacing: ".06em",
+                            }}>{fd.tag}</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+
+                {/* Remaining locations as compact list */}
+                {Array.from(grouped.entries()).map(([state, locs]) => {
+                  const stateInfo = getStateDisplay(state);
+                  const remaining = locs.filter(l => !["Manhattan", "Brooklyn", "Queens", "Jersey City", "Hoboken"].includes(l.name));
+                  if (remaining.length === 0) return null;
+                  return (
+                    <div key={state}>
+                      <div style={{ padding: "8px 18px 4px", display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: ".75rem" }}>{stateInfo.icon}</span>
+                        <span style={{ fontSize: ".6rem", fontWeight: 800, color: t.dark ? "#555" : "#bbb", textTransform: "uppercase", letterSpacing: ".1em" }}>More in {stateInfo.name}</span>
+                      </div>
+                      {remaining.map(loc => {
+                        const id = `loc-${loc.name}`;
+                        const hovered = hoveredId === id;
+                        const fd = featuredData[loc.name];
+                        return (
+                          <div
+                            key={id} className="loc-item"
+                            onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
+                            onMouseEnter={() => setHoveredId(id)}
+                            onMouseLeave={() => setHoveredId(null)}
+                            style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 18px", cursor: "pointer" }}
+                          >
+                            <span style={{ fontSize: ".9rem", width: 24, textAlign: "center" }}>{fd?.emoji || "📍"}</span>
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: ".8rem", fontWeight: 600, color: t.text }}>{loc.name}</span>
+                              {fd && <span style={{ fontSize: ".6rem", color: t.dark ? "#555" : "#aaa", marginLeft: 6 }}>{fd.hotels} hotels · From ${fd.from}/hr</span>}
+                            </div>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#333" : "#ddd"} strokeWidth="3" style={{ opacity: hovered ? 1 : 0, transition: "opacity .15s" }}>
+                              <path d="m9 18 6-6-6-6" />
+                            </svg>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </>
             )}
 
-            {/* Geocoded results */}
-            {value.trim().length >= 3 && (geoSuggestions.length > 0 || geoLoading) && (
+            {/* ── Search state: address results ── */}
+            {isSearching && value.trim().length >= 3 && (geoSuggestions.length > 0 || geoLoading) && (
               <div style={{ padding: "8px 0" }}>
-                <div style={{ padding: "4px 18px 6px", display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-                  <span style={{ fontSize: ".6rem", fontWeight: 700, color: t.dark ? "#666" : "#bbb", textTransform: "uppercase", letterSpacing: ".1em" }}>Search Results</span>
+                <div style={{ padding: "8px 18px 6px", display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{
+                    width: 6, height: 6, borderRadius: "50%", background: A,
+                    animation: geoLoading ? "locPulse .8s infinite" : "none",
+                  }} />
+                  <span style={{ fontSize: ".6rem", fontWeight: 700, color: t.dark ? "#555" : "#bbb", textTransform: "uppercase", letterSpacing: ".1em" }}>
+                    {geoLoading ? "Searching..." : `${geoSuggestions.length} addresses found`}
+                  </span>
                   {geoLoading && (
                     <div style={{
-                      marginLeft: "auto", height: 3, width: 50, borderRadius: 2,
+                      marginLeft: "auto", height: 2, width: 40, borderRadius: 2,
                       background: `linear-gradient(90deg, transparent, ${A}, transparent)`,
                       backgroundSize: "200% 100%",
-                      animation: "shimmer 1.5s infinite",
+                      animation: "locShimmer 1.2s infinite",
                     }} />
                   )}
                 </div>
@@ -468,37 +564,27 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
                   const hovered = hoveredId === id;
                   return (
                     <div
-                      key={place.id}
-                      className="dd-row"
+                      key={place.id} className="loc-item"
                       onClick={() => { onChange(place.fullAddress); setOpen(false); }}
                       onMouseEnter={() => setHoveredId(id)}
                       onMouseLeave={() => setHoveredId(null)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 12,
-                        padding: hovered ? "9px 18px 9px 22px" : "9px 18px",
-                        cursor: "pointer",
-                        background: hovered ? (t.dark ? "#252525" : "#f8f8f8") : "transparent",
-                      }}
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 18px", cursor: "pointer" }}
                     >
                       <div style={{
-                        width: 34, height: 34, borderRadius: 10,
-                        background: hovered ? `${A}15` : (t.dark ? "#252525" : "#f5f5f5"),
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0, transition: "all .2s",
+                        width: 32, height: 32, borderRadius: 9,
+                        background: hovered ? `${A}12` : (t.dark ? "#1e1e1e" : "#f5f5f5"),
+                        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                        transition: "all .15s",
                       }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={hovered ? A : (t.dark ? "#666" : "#aaa")} strokeWidth="2" strokeLinecap="round" style={{ transition: "stroke .15s" }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={hovered ? A : (t.dark ? "#555" : "#bbb")} strokeWidth="2" style={{ transition: "stroke .15s" }}>
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                         </svg>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: ".82rem", fontWeight: 600, color: t.text, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {place.name}
-                        </div>
-                        <div style={{ fontSize: ".68rem", color: t.dark ? "#666" : "#aaa", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 }}>
-                          {place.fullAddress}
-                        </div>
+                        <div style={{ fontSize: ".8rem", fontWeight: 600, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{place.name}</div>
+                        <div style={{ fontSize: ".65rem", color: t.dark ? "#555" : "#aaa", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{place.fullAddress}</div>
                       </div>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#444" : "#ddd"} strokeWidth="2.5" style={{ flexShrink: 0, opacity: hovered ? 1 : 0, transition: "opacity .15s" }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#333" : "#ddd"} strokeWidth="3" style={{ opacity: hovered ? 1 : 0, transition: "opacity .15s" }}>
                         <path d="m9 18 6-6-6-6" />
                       </svg>
                     </div>
@@ -507,72 +593,40 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
               </div>
             )}
 
-            {/* Predefined locations grouped by state */}
-            {Array.from(grouped.entries()).map(([state, locs]) => {
+            {/* ── Search state: predefined matches ── */}
+            {isSearching && Array.from(grouped.entries()).map(([state, locs]) => {
               const stateInfo = getStateDisplay(state);
               return (
                 <div key={state}>
-                  <div style={{
-                    padding: "10px 18px 4px",
-                    display: "flex", alignItems: "center", gap: 6,
-                    position: "sticky", top: 0,
-                    background: t.dark ? "#1a1a1a" : "#fff",
-                    zIndex: 2,
-                  }}>
-                    <span style={{ fontSize: ".85rem" }}>{stateInfo.icon}</span>
-                    <span style={{ fontSize: ".7rem", fontWeight: 800, color: t.dark ? "#aaa" : NAVY, letterSpacing: ".02em" }}>{stateInfo.name}</span>
-                    <div style={{ flex: 1, height: 1, background: t.dark ? "#2a2a2a" : "#f0f0f0" }} />
+                  <div style={{ padding: "8px 18px 4px", display: "flex", alignItems: "center", gap: 6, position: "sticky", top: 0, background: t.dark ? "#111" : "#fff", zIndex: 2 }}>
+                    <span style={{ fontSize: ".75rem" }}>{stateInfo.icon}</span>
+                    <span style={{ fontSize: ".6rem", fontWeight: 800, color: t.dark ? "#555" : "#bbb", textTransform: "uppercase", letterSpacing: ".1em" }}>{stateInfo.name}</span>
+                    <div style={{ flex: 1, height: 1, background: t.dark ? "#222" : "#f0f0f0" }} />
                   </div>
-
-                  {locs.map((loc) => {
+                  {locs.map(loc => {
                     const id = `loc-${loc.name}-${loc.state}`;
                     const hovered = hoveredId === id;
-                    const color = typeColor[loc.type] || "#6366f1";
-                    const trending = trendingMap[loc.name];
-
+                    const fd = featuredData[loc.name];
                     return (
                       <div
-                        key={id}
-                        className="dd-row"
+                        key={id} className="loc-item"
                         onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
                         onMouseEnter={() => setHoveredId(id)}
                         onMouseLeave={() => setHoveredId(null)}
-                        style={{
-                          display: "flex", alignItems: "center", gap: 12,
-                          padding: hovered ? "9px 18px 9px 22px" : "9px 18px",
-                          cursor: "pointer",
-                          background: hovered ? (t.dark ? "#252525" : "#f8f8f8") : "transparent",
-                        }}
+                        style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 18px", cursor: "pointer" }}
                       >
-                        <div style={{
-                          width: 34, height: 34, borderRadius: 10,
-                          background: hovered ? `${color}18` : (t.dark ? "#252525" : "#f5f5f5"),
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          flexShrink: 0, transition: "all .2s",
-                        }}>
-                          <LocationIcon type={loc.type} color={hovered ? color : (t.dark ? "#555" : "#bbb")} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: ".9rem", width: 24, textAlign: "center" }}>{fd?.emoji || "📍"}</span>
+                        <div style={{ flex: 1 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: ".82rem", fontWeight: 600, color: t.text, lineHeight: 1.3 }}>
-                              {loc.name}
-                            </span>
-                            {trending && (
-                              <span style={{
-                                fontSize: ".55rem", fontWeight: 700, color: A,
-                                background: `${A}10`, padding: "1px 6px", borderRadius: 8,
-                                whiteSpace: "nowrap",
-                              }}>{trending}</span>
+                            <span style={{ fontSize: ".8rem", fontWeight: 600, color: t.text }}>{loc.name}</span>
+                            {fd?.tag && (
+                              <span style={{ fontSize: ".45rem", fontWeight: 800, color: "#fff", background: A, padding: "1px 5px", borderRadius: 4, textTransform: "uppercase" }}>{fd.tag}</span>
                             )}
                           </div>
-                          <span style={{
-                            fontSize: ".58rem", fontWeight: 700,
-                            color: color, textTransform: "uppercase", letterSpacing: ".04em",
-                          }}>
-                            {loc.type}
-                          </span>
+                          <span style={{ fontSize: ".58rem", fontWeight: 600, color: t.dark ? "#444" : "#bbb", textTransform: "uppercase", letterSpacing: ".04em" }}>{loc.type}</span>
                         </div>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#444" : "#ddd"} strokeWidth="2.5" style={{ flexShrink: 0, opacity: hovered ? 1 : 0, transition: "opacity .15s" }}>
+                        {fd && <span style={{ fontSize: ".6rem", fontWeight: 600, color: "#4ade80" }}>${fd.from}/hr</span>}
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#333" : "#ddd"} strokeWidth="3" style={{ opacity: hovered ? 1 : 0, transition: "opacity .15s" }}>
                           <path d="m9 18 6-6-6-6" />
                         </svg>
                       </div>
@@ -584,31 +638,32 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
 
             {/* Empty state */}
             {results.length === 0 && geoSuggestions.length === 0 && value.trim().length >= 3 && !geoLoading && (
-              <div style={{ padding: "24px 18px", textAlign: "center" }}>
-                <div style={{ fontSize: "1.5rem", marginBottom: 6 }}>🔍</div>
-                <div style={{ fontSize: ".82rem", fontWeight: 600, color: t.dark ? "#888" : "#666" }}>No locations found</div>
-                <div style={{ fontSize: ".72rem", color: t.dark ? "#555" : "#aaa", marginTop: 2 }}>Try a different search term</div>
+              <div style={{ padding: "32px 18px", textAlign: "center" }}>
+                <div style={{ fontSize: "2rem", marginBottom: 8 }}>🗺️</div>
+                <div style={{ fontSize: ".85rem", fontWeight: 700, color: t.dark ? "#888" : "#555" }}>No destinations found</div>
+                <div style={{ fontSize: ".72rem", color: t.dark ? "#444" : "#aaa", marginTop: 4 }}>Try searching for a city, borough or address</div>
               </div>
             )}
           </div>
 
-          {/* Footer */}
+          {/* Compact footer */}
           <div style={{
-            padding: "8px 18px",
-            borderTop: `1px solid ${t.dark ? "#2a2a2a" : "#f0f0f0"}`,
+            padding: "6px 18px",
+            borderTop: `1px solid ${t.dark ? "#1e1e1e" : "#f5f5f5"}`,
             display: "flex", alignItems: "center", justifyContent: "space-between",
             flexShrink: 0,
-            background: t.dark ? "#161616" : "#fafafa",
           }}>
-            <span style={{ fontSize: ".62rem", color: t.dark ? "#555" : "#bbb" }}>
-              {results.length + geoSuggestions.length} destinations
-            </span>
-            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-              <kbd style={{ fontSize: ".5rem", padding: "1px 5px", borderRadius: 3, background: t.dark ? "#2a2a2a" : "#eee", border: `1px solid ${t.dark ? "#333" : "#ddd"}`, color: t.dark ? "#666" : "#999", fontFamily: "monospace" }}>↵</kbd>
-              <span style={{ fontSize: ".5rem", color: t.dark ? "#444" : "#ccc" }}>select</span>
-              <kbd style={{ fontSize: ".5rem", padding: "1px 5px", borderRadius: 3, background: t.dark ? "#2a2a2a" : "#eee", border: `1px solid ${t.dark ? "#333" : "#ddd"}`, color: t.dark ? "#666" : "#999", fontFamily: "monospace", marginLeft: 4 }}>esc</kbd>
-              <span style={{ fontSize: ".5rem", color: t.dark ? "#444" : "#ccc" }}>close</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#4ade80" }} />
+              <span style={{ fontSize: ".55rem", color: t.dark ? "#444" : "#ccc" }}>All locations verified</span>
             </div>
+            {value.trim() && (
+              <button onClick={() => onChange("")} style={{
+                fontSize: ".58rem", fontWeight: 700, color: A,
+                background: "none", border: "none", cursor: "pointer",
+                padding: "2px 0",
+              }}>Clear search</button>
+            )}
           </div>
         </div>
       )}
