@@ -105,6 +105,8 @@ export type Database = {
           state: string
           status: string
           street_address: string
+          tax_flat_fee: number
+          tax_rate: number
           updated_at: string
           user_id: string
           zip_code: string
@@ -149,6 +151,8 @@ export type Database = {
           state: string
           status?: string
           street_address: string
+          tax_flat_fee?: number
+          tax_rate?: number
           updated_at?: string
           user_id: string
           zip_code: string
@@ -193,6 +197,8 @@ export type Database = {
           state?: string
           status?: string
           street_address?: string
+          tax_flat_fee?: number
+          tax_rate?: number
           updated_at?: string
           user_id?: string
           zip_code?: string
