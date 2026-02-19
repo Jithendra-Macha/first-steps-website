@@ -1732,6 +1732,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
         display: "flex", alignItems: "center",
         padding: mob ? "0 12px" : "0 24px", height: mob ? 48 : 54,
         gap: mob ? 8 : 16, flexShrink: 0,
+        position: "relative", zIndex: 100,
       }}>
         <div onClick={onGoHome} style={{ fontSize: "1.05rem", fontWeight: 900, cursor: "pointer", flexShrink: 0, letterSpacing: "-.02em", color: "#fff" }}>coupleofhours<span style={{ color: A }}>.com</span></div>
 
@@ -1742,7 +1743,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
           display: "flex", alignItems: "center",
           background: "rgba(255,255,255,.12)",
           borderRadius: 12,
-          height: 38, overflow: "hidden",
+          height: 38,
           border: "1px solid rgba(255,255,255,.15)",
           marginLeft: 20,
           backdropFilter: "blur(8px)",
