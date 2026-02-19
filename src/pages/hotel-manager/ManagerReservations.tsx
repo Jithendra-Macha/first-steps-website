@@ -21,7 +21,7 @@ const TABS: { label: string; value: Reservation["status"] | "all" }[] = [
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   confirmed: { bg: "hsla(217, 91%, 60%, 0.15)", text: "hsl(217, 91%, 65%)" },
   "checked-in": { bg: "hsla(142, 71%, 45%, 0.15)", text: "hsl(142, 71%, 55%)" },
-  completed: { bg: "hsla(0, 0%, 100%, 0.08)", text: "hsla(0, 0%, 100%, 0.5)" },
+  completed: { bg: "hsla(0, 0%, 50%, 0.1)", text: "hsl(0, 0%, 55%)" },
   pending: { bg: "hsla(38, 92%, 50%, 0.15)", text: "hsl(38, 92%, 60%)" },
   cancelled: { bg: "hsla(0, 70%, 50%, 0.12)", text: "hsl(0, 70%, 60%)" },
   "no-show": { bg: "hsla(0, 70%, 50%, 0.2)", text: "hsl(0, 70%, 55%)" },
@@ -50,7 +50,7 @@ export default function ManagerReservations() {
     <div className="space-y-5 animate-in fade-in duration-500">
       <div>
         <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>Reservations</h1>
-        <p className="text-sm text-white/40 mt-1">{RESERVATIONS.length} total reservations</p>
+        <p className="text-sm text-muted-foreground mt-1">{RESERVATIONS.length} total reservations</p>
       </div>
 
       {/* Tabs */}
@@ -61,12 +61,11 @@ export default function ManagerReservations() {
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className="px-3 py-1.5 rounded-lg text-xs transition-colors"
-              style={{
-                background: activeTab === tab.value ? "hsla(18, 100%, 50%, 0.12)" : "transparent",
-                color: activeTab === tab.value ? "hsl(18, 100%, 60%)" : "hsla(0,0%,100%,0.4)",
-                border: `1px solid ${activeTab === tab.value ? "hsla(18, 100%, 50%, 0.2)" : "transparent"}`,
-              }}
+              className={`px-3 py-1.5 rounded-lg text-xs transition-colors border ${
+                activeTab === tab.value
+                  ? "bg-primary/10 text-primary border-primary/20"
+                  : "text-muted-foreground border-transparent hover:bg-accent"
+              }`}
             >
               {tab.label} <span className="ml-1 opacity-50">({count})</span>
             </button>
@@ -76,34 +75,34 @@ export default function ManagerReservations() {
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
-        <Input placeholder="Search by name or booking ID..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-white/5 border-white/10 text-white text-sm placeholder:text-white/25" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Search by name or booking ID..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-muted/50 border-border text-foreground text-sm placeholder:text-muted-foreground" />
       </div>
 
       {/* Table */}
-      <Card className="border-white/8 bg-white/[0.03] overflow-hidden">
+      <Card className="border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/8 hover:bg-transparent">
-              <TableHead className="text-white/40 text-[11px]">Booking ID</TableHead>
-              <TableHead className="text-white/40 text-[11px]">Guest</TableHead>
-              <TableHead className="text-white/40 text-[11px]">Room</TableHead>
-              <TableHead className="text-white/40 text-[11px]">Date</TableHead>
-              <TableHead className="text-white/40 text-[11px]">Time Slot</TableHead>
-              <TableHead className="text-white/40 text-[11px]">Amount</TableHead>
-              <TableHead className="text-white/40 text-[11px]">Status</TableHead>
-              <TableHead className="text-white/40 text-[11px]">Actions</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground text-[11px]">Booking ID</TableHead>
+              <TableHead className="text-muted-foreground text-[11px]">Guest</TableHead>
+              <TableHead className="text-muted-foreground text-[11px]">Room</TableHead>
+              <TableHead className="text-muted-foreground text-[11px]">Date</TableHead>
+              <TableHead className="text-muted-foreground text-[11px]">Time Slot</TableHead>
+              <TableHead className="text-muted-foreground text-[11px]">Amount</TableHead>
+              <TableHead className="text-muted-foreground text-[11px]">Status</TableHead>
+              <TableHead className="text-muted-foreground text-[11px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.map(r => (
-              <TableRow key={r.id} className="border-white/5 hover:bg-white/[0.03]">
-                <TableCell className="text-[11px] text-white/30 font-mono">{r.bookingId}</TableCell>
-                <TableCell className="text-xs text-white/70">{r.guestName}</TableCell>
-                <TableCell className="text-xs text-white/50">{r.roomType}</TableCell>
-                <TableCell className="text-xs text-white/50">{r.checkIn}</TableCell>
-                <TableCell className="text-xs text-white/40">{r.timeSlot}</TableCell>
-                <TableCell className="text-xs text-white/70">₹{r.amount.toLocaleString("en-IN")}</TableCell>
+              <TableRow key={r.id} className="border-border/50 hover:bg-accent/50">
+                <TableCell className="text-[11px] text-muted-foreground font-mono">{r.bookingId}</TableCell>
+                <TableCell className="text-xs text-foreground/70">{r.guestName}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{r.roomType}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{r.checkIn}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{r.timeSlot}</TableCell>
+                <TableCell className="text-xs text-foreground/70">₹{r.amount.toLocaleString("en-IN")}</TableCell>
                 <TableCell>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: STATUS_COLORS[r.status]?.bg, color: STATUS_COLORS[r.status]?.text }}>
                     {r.status}
@@ -112,7 +111,7 @@ export default function ManagerReservations() {
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDetailModal(r)}>
-                      <Eye className="h-3.5 w-3.5 text-white/40" />
+                      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
                     {canMarkNoShow(r) && (
                       <Button size="sm" className="h-7 text-[10px] px-2" style={{ background: "hsla(0, 70%, 50%, 0.15)", color: "hsl(0, 70%, 60%)", border: "1px solid hsla(0, 70%, 50%, 0.25)" }} onClick={() => setNoShowModal(r)}>
@@ -124,7 +123,7 @@ export default function ManagerReservations() {
               </TableRow>
             ))}
             {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-white/25 py-10">No reservations found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10">No reservations found</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -132,27 +131,27 @@ export default function ManagerReservations() {
 
       {/* No-Show Confirmation Modal */}
       <Dialog open={!!noShowModal} onOpenChange={() => setNoShowModal(null)}>
-        <DialogContent className="bg-[hsl(225,28%,12%)] border-white/10 text-white max-w-md">
+        <DialogContent className="bg-card border-border text-card-foreground max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" style={{ color: "hsl(0, 70%, 55%)" }} />
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
               Mark as No-Show
             </DialogTitle>
-            <DialogDescription className="text-white/40">
+            <DialogDescription className="text-muted-foreground">
               This action has consequences. Please review carefully.
             </DialogDescription>
           </DialogHeader>
           {noShowModal && (
             <div className="space-y-4 py-2">
-              <div className="rounded-lg p-3" style={{ background: "hsla(0, 70%, 50%, 0.08)", border: "1px solid hsla(0, 70%, 50%, 0.15)" }}>
-                <p className="text-xs text-white/60"><strong>Guest:</strong> {noShowModal.guestName}</p>
-                <p className="text-xs text-white/60"><strong>Booking:</strong> {noShowModal.bookingId}</p>
-                <p className="text-xs text-white/60"><strong>Room:</strong> {noShowModal.roomType}</p>
-                <p className="text-xs text-white/60"><strong>Time:</strong> {noShowModal.timeSlot}</p>
+              <div className="rounded-lg p-3 bg-destructive/5 border border-destructive/15">
+                <p className="text-xs text-foreground/60"><strong>Guest:</strong> {noShowModal.guestName}</p>
+                <p className="text-xs text-foreground/60"><strong>Booking:</strong> {noShowModal.bookingId}</p>
+                <p className="text-xs text-foreground/60"><strong>Room:</strong> {noShowModal.roomType}</p>
+                <p className="text-xs text-foreground/60"><strong>Time:</strong> {noShowModal.timeSlot}</p>
               </div>
               <div className="space-y-2">
-                <p className="text-xs font-medium text-white/70">What will happen:</p>
-                <ul className="space-y-1.5 text-xs text-white/50">
+                <p className="text-xs font-medium text-foreground/70">What will happen:</p>
+                <ul className="space-y-1.5 text-xs text-muted-foreground">
                   <li className="flex items-start gap-2">• The reservation status will change to "No-Show"</li>
                   <li className="flex items-start gap-2">• The guest will be charged the full amount (₹{noShowModal.amount.toLocaleString("en-IN")})</li>
                   <li className="flex items-start gap-2">• A no-show flag will be added to the guest's profile</li>
@@ -163,16 +162,16 @@ export default function ManagerReservations() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" className="text-white/50" onClick={() => setNoShowModal(null)}>Cancel</Button>
-            <Button style={{ background: "hsl(0, 70%, 45%)" }} className="text-white" onClick={() => setNoShowModal(null)}>Confirm No-Show</Button>
+            <Button variant="ghost" className="text-muted-foreground" onClick={() => setNoShowModal(null)}>Cancel</Button>
+            <Button className="bg-destructive text-destructive-foreground" onClick={() => setNoShowModal(null)}>Confirm No-Show</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Detail Modal */}
       <Dialog open={!!detailModal} onOpenChange={() => setDetailModal(null)}>
-        <DialogContent className="bg-[hsl(225,28%,12%)] border-white/10 text-white max-w-md">
-          <DialogHeader><DialogTitle className="text-white">Reservation Details</DialogTitle></DialogHeader>
+        <DialogContent className="bg-card border-border text-card-foreground max-w-md">
+          <DialogHeader><DialogTitle>Reservation Details</DialogTitle></DialogHeader>
           {detailModal && (
             <div className="space-y-3 py-2 text-xs">
               {[
@@ -190,19 +189,19 @@ export default function ManagerReservations() {
                 ["Booked On", new Date(detailModal.createdAt).toLocaleDateString()],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between">
-                  <span className="text-white/35">{k}</span>
-                  <span className="text-white/70 text-right">{v}</span>
+                  <span className="text-muted-foreground">{k}</span>
+                  <span className="text-foreground/70 text-right">{v}</span>
                 </div>
               ))}
               {detailModal.specialRequests && (
-                <div className="rounded-lg p-2.5 mt-2" style={{ background: "hsla(0,0%,100%,0.03)" }}>
-                  <p className="text-white/30 text-[10px] mb-1">Special Requests</p>
-                  <p className="text-white/60">{detailModal.specialRequests}</p>
+                <div className="rounded-lg p-2.5 mt-2 bg-muted/50">
+                  <p className="text-muted-foreground text-[10px] mb-1">Special Requests</p>
+                  <p className="text-foreground/60">{detailModal.specialRequests}</p>
                 </div>
               )}
             </div>
           )}
-          <DialogFooter><Button variant="ghost" className="text-white/50" onClick={() => setDetailModal(null)}>Close</Button></DialogFooter>
+          <DialogFooter><Button variant="ghost" className="text-muted-foreground" onClick={() => setDetailModal(null)}>Close</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, CalendarClock, BookOpen, Building2, Star, BarChart3,
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HOTEL_INFO, NOTIFICATIONS } from "@/data/hotelManagerMockData";
 import { cn } from "@/lib/utils";
+import { useThemeMode } from "@/contexts/ThemeContext";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/manager" },
@@ -23,29 +24,25 @@ const NAV_ITEMS = [
 
 export default function ManagerLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  const [dark, setDark] = useState(true);
+  const { theme, toggleTheme } = useThemeMode();
   const navigate = useNavigate();
   const location = useLocation();
   const unreadCount = NOTIFICATIONS.filter(n => !n.read).length;
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "hsl(225, 25%, 8%)", color: "hsl(0, 0%, 92%)" }}>
+    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       {/* Sidebar */}
-      <aside className={cn("flex flex-col border-r transition-all duration-300 shrink-0", collapsed ? "w-[60px]" : "w-[250px]")} style={{ borderColor: "hsla(0,0%,100%,0.08)", background: "hsl(225, 28%, 10%)" }}>
+      <aside className={cn("flex flex-col border-r border-border transition-all duration-300 shrink-0 bg-sidebar-background", collapsed ? "w-[60px]" : "w-[250px]")}>
         {/* Logo */}
-        <div className="flex items-center gap-2 px-4 h-14 border-b" style={{ borderColor: "hsla(0,0%,100%,0.08)" }}>
+        <div className="flex items-center gap-2 px-4 h-14 border-b border-border">
           {!collapsed && (
             <div className="flex items-center gap-2 min-w-0">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0" style={{ background: "hsl(18, 100%, 50%)" }}>GR</div>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 bg-primary text-primary-foreground">GR</div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold truncate" style={{ fontFamily: "'Syne', sans-serif" }}>{HOTEL_INFO.name}</p>
-                <p className="text-[10px] opacity-40 truncate">{HOTEL_INFO.city}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{HOTEL_INFO.city}</p>
               </div>
             </div>
           )}
@@ -64,15 +61,14 @@ export default function ManagerLayout() {
                 "flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm transition-all",
                 collapsed && "justify-center px-0",
                 isActive(item.path)
-                  ? "text-white" 
-                  : "text-white/45 hover:text-white/80 hover:bg-white/5"
+                  ? "text-foreground bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
               )}
-              style={isActive(item.path) ? { background: "hsla(18, 100%, 50%, 0.12)" } : undefined}
             >
-              <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive(item.path) && "text-[hsl(18,100%,55%)]")} />
+              <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive(item.path) && "text-primary")} />
               {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
               {!collapsed && item.label === "Notifications" && unreadCount > 0 && (
-                <Badge className="h-5 min-w-5 flex items-center justify-center text-[10px] border-0 text-white" style={{ background: "hsl(0, 70%, 50%)" }}>{unreadCount}</Badge>
+                <Badge className="h-5 min-w-5 flex items-center justify-center text-[10px] border-0 text-destructive-foreground bg-destructive">{unreadCount}</Badge>
               )}
             </button>
           ))}
@@ -80,21 +76,21 @@ export default function ManagerLayout() {
 
         {/* Bottom */}
         {!collapsed && (
-          <div className="p-3 border-t space-y-1" style={{ borderColor: "hsla(0,0%,100%,0.08)" }}>
+          <div className="p-3 border-t border-border space-y-1">
             <div className="flex items-center gap-2 px-2 py-2">
               <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: "hsl(200, 60%, 45%)" }}>
                 {HOTEL_INFO.manager.avatar}
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium truncate">{HOTEL_INFO.manager.name}</p>
-                <p className="text-[10px] opacity-35 truncate">Hotel Manager</p>
+                <p className="text-[10px] text-muted-foreground truncate">Hotel Manager</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-white/35 hover:text-white/70" onClick={() => setDark(!dark)}>
-              {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-              {dark ? "Light mode" : "Dark mode"}
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground" onClick={toggleTheme}>
+              {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              {theme === "dark" ? "Light mode" : "Dark mode"}
             </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-white/35 hover:text-white/70" onClick={() => navigate("/")}>
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground" onClick={() => navigate("/")}>
               <LogOut className="h-3.5 w-3.5" />Exit Dashboard
             </Button>
           </div>
@@ -103,19 +99,19 @@ export default function ManagerLayout() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center gap-3 px-6 h-14 border-b shrink-0" style={{ borderColor: "hsla(0,0%,100%,0.08)", background: "hsl(225, 28%, 10%)" }}>
+        <header className="flex items-center gap-3 px-6 h-14 border-b border-border shrink-0 bg-sidebar-background">
           <h2 className="text-sm font-semibold flex-1" style={{ fontFamily: "'Syne', sans-serif" }}>
             {NAV_ITEMS.find(n => isActive(n.path))?.label || "Dashboard"}
           </h2>
           <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/manager/notifications")}>
-            <Bell className="h-4 w-4 text-white/50" />
-            {unreadCount > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full" style={{ background: "hsl(0, 70%, 50%)" }} />}
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            {unreadCount > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />}
           </Button>
-          <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "hsl(200, 60%, 45%)" }}>
+          <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground" style={{ background: "hsl(200, 60%, 45%)" }}>
             {HOTEL_INFO.manager.avatar}
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-6" style={{ background: "hsl(225, 25%, 8%)" }}>
+        <main className="flex-1 overflow-y-auto p-6 bg-background">
           <Outlet />
         </main>
       </div>
