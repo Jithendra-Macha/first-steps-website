@@ -76,10 +76,11 @@ export function DealsSection({ onSearch }: { onSearch: (q: string) => void }) {
 
 /* ── Zone key → SEO slug map ── */
 const ZONE_SLUG_MAP: Record<string, string> = {
-  manhattan: "new-york-city",
+  manhattan: "manhattan",
   brooklyn: "brooklyn",
   queens: "queens",
   bronx: "bronx",
+  nj: "new-jersey",
 };
 
 /* ── Zone Card ── */
