@@ -7,8 +7,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MOCK_NOTIFICATIONS } from "@/data/adminMockData";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMyNotifications } from "@/hooks/useHotelData";
+import { useThemeMode } from "@/contexts/ThemeContext";
 
 interface NavItem {
   icon: React.ElementType;
@@ -41,17 +43,14 @@ export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["Hotels", "Customers"]);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [dark, setDark] = useState(true);
+  const { theme, toggleTheme } = useThemeMode();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut } = useAuth();
+  const { data: notifications } = useMyNotifications();
 
-  const unreadCount = MOCK_NOTIFICATIONS.filter(n => !n.read).length;
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    document.documentElement.classList.toggle("admin-theme", true);
-    return () => { document.documentElement.classList.remove("admin-theme"); };
-  }, [dark]);
+  const unreadCount = notifications?.filter(n => !n.read).length || 0;
+  const adminInitials = user?.email?.substring(0, 2).toUpperCase() || "AD";
 
   // Cmd+K
   useEffect(() => {
@@ -66,19 +65,23 @@ export default function AdminLayout() {
 
   const isActive = (path?: string) => path && location.pathname === path;
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "hsl(220, 26%, 7%)", color: "hsl(0, 0%, 92%)" }}>
+    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       {/* Sidebar */}
       <aside
         className={cn(
-          "flex flex-col border-r transition-all duration-300 shrink-0",
+          "flex flex-col border-r border-border transition-all duration-300 shrink-0 bg-sidebar-background",
           collapsed ? "w-[60px]" : "w-[240px]"
         )}
-        style={{ borderColor: "hsla(0,0%,100%,0.08)", background: "hsl(220, 28%, 9%)" }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2 px-4 h-14 border-b" style={{ borderColor: "hsla(0,0%,100%,0.08)" }}>
-          {!collapsed && <span className="font-bold text-base tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>Admin</span>}
+        <div className="flex items-center gap-2 px-4 h-14 border-b border-border">
+          {!collapsed && <span className="font-bold text-base tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>Admin Panel</span>}
           <Button variant="ghost" size="icon" className="ml-auto h-8 w-8" onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
@@ -93,11 +96,11 @@ export default function AdminLayout() {
                   <button
                     onClick={() => collapsed ? navigate(item.children![0].path) : toggleGroup(item.label)}
                     className={cn(
-                      "flex items-center gap-2 w-full rounded-md px-2 py-2 text-sm transition-colors hover:bg-white/5",
+                      "flex items-center gap-2 w-full rounded-md px-2 py-2 text-sm transition-colors text-muted-foreground hover:text-foreground hover:bg-accent",
                       collapsed && "justify-center"
                     )}
                   >
-                    <item.icon className="h-4 w-4 shrink-0 opacity-70" />
+                    <item.icon className="h-4 w-4 shrink-0" />
                     {!collapsed && (
                       <>
                         <span className="flex-1 text-left text-sm">{item.label}</span>
@@ -113,7 +116,7 @@ export default function AdminLayout() {
                           onClick={() => navigate(child.path)}
                           className={cn(
                             "block w-full text-left rounded-md px-2 py-1.5 text-xs transition-colors",
-                            isActive(child.path) ? "bg-blue-600/20 text-blue-400" : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                            isActive(child.path) ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent"
                           )}
                         >
                           {child.label}
@@ -126,15 +129,15 @@ export default function AdminLayout() {
                 <button
                   onClick={() => navigate(item.path!)}
                   className={cn(
-                    "flex items-center gap-2 w-full rounded-md px-2 py-2 text-sm transition-colors hover:bg-white/5",
+                    "flex items-center gap-2 w-full rounded-md px-2 py-2 text-sm transition-colors text-muted-foreground hover:text-foreground hover:bg-accent",
                     collapsed && "justify-center",
-                    isActive(item.path) && "bg-blue-600/20 text-blue-400"
+                    isActive(item.path) && "bg-primary/20 text-primary"
                   )}
                 >
-                  <item.icon className="h-4 w-4 shrink-0 opacity-70" />
+                  <item.icon className="h-4 w-4 shrink-0" />
                   {!collapsed && <span>{item.label}</span>}
                   {item.label === "Notifications" && unreadCount > 0 && (
-                    <Badge className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] bg-red-500 border-0 text-white">{unreadCount}</Badge>
+                    <Badge className="ml-auto h-5 min-w-5 flex items-center justify-center text-[10px] bg-destructive border-0 text-destructive-foreground">{unreadCount}</Badge>
                   )}
                 </button>
               )}
@@ -144,13 +147,22 @@ export default function AdminLayout() {
 
         {/* Bottom */}
         {!collapsed && (
-          <div className="p-3 border-t space-y-1" style={{ borderColor: "hsla(0,0%,100%,0.08)" }}>
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-white/40 hover:text-white/70" onClick={() => setDark(!dark)}>
-              {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-              {dark ? "Light mode" : "Dark mode"}
+          <div className="p-3 border-t border-border space-y-1">
+            <div className="flex items-center gap-2 px-2 py-2">
+              <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-primary text-primary-foreground">
+                {adminInitials}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate">{user?.email}</p>
+                <p className="text-[10px] text-muted-foreground truncate">Administrator</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground" onClick={toggleTheme}>
+              {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              {theme === "dark" ? "Light mode" : "Dark mode"}
             </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-white/40 hover:text-white/70" onClick={() => navigate("/")}>
-              <LogOut className="h-3.5 w-3.5" />Exit Admin
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground" onClick={handleSignOut}>
+              <LogOut className="h-3.5 w-3.5" />Sign Out
             </Button>
           </div>
         )}
@@ -159,27 +171,27 @@ export default function AdminLayout() {
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex items-center gap-3 px-6 h-14 border-b shrink-0" style={{ borderColor: "hsla(0,0%,100%,0.08)", background: "hsl(220, 28%, 9%)" }}>
+        <header className="flex items-center gap-3 px-6 h-14 border-b border-border shrink-0 bg-sidebar-background">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search hotels, customers, reservations... (⌘K)"
-              className="pl-9 h-9 text-sm border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-blue-500/30"
+              className="pl-9 h-9 text-sm"
               onFocus={() => setSearchOpen(true)}
             />
           </div>
           <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/admin/notifications")}>
-            <Bell className="h-4 w-4 text-white/60" />
-            {unreadCount > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />}
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            {unreadCount > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />}
           </Button>
-          <div className="flex items-center gap-2 pl-2 border-l" style={{ borderColor: "hsla(0,0%,100%,0.08)" }}>
-            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "hsl(217, 91%, 60%)" }}>A</div>
-            {!collapsed && <span className="text-sm text-white/70">Admin</span>}
+          <div className="flex items-center gap-2 pl-2 border-l border-border">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold bg-primary text-primary-foreground">{adminInitials}</div>
+            {!collapsed && <span className="text-sm text-muted-foreground">{user?.email?.split("@")[0]}</span>}
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-6" style={{ background: "hsl(220, 26%, 7%)" }}>
+        <main className="flex-1 overflow-y-auto p-6 bg-background">
           <Outlet />
         </main>
       </div>

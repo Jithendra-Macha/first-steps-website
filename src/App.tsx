@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -44,7 +45,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/admin" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<DashboardOverview />} />
               <Route path="hotels" element={<HotelsAll />} />
               <Route path="hotels/pending" element={<HotelsPending />} />
@@ -57,7 +62,11 @@ const App = () => (
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
-            <Route path="/manager" element={<ManagerLayout />}>
+            <Route path="/manager" element={
+              <ProtectedRoute requiredRole="hotel_manager">
+                <ManagerLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<ManagerDashboard />} />
               <Route path="availability" element={<AvailabilityManager />} />
               <Route path="reservations" element={<ManagerReservations />} />
