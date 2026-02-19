@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useIsMobile, useThemeColors, Nav, SectionHeader, Btn } from "./SharedComponents";
 import { LocalBusinessJsonLd, SpeakableJsonLd } from "@/components/seo/GEOSchemas";
 import type { LocationPageData } from "@/data/locationPages";
+import { LOCATION_PAGES } from "@/data/locationPages";
 
 const A = "#ff4d00";
 
@@ -305,6 +306,80 @@ function SEOFooter({ data }: { data: LocationPageData }) {
   );
 }
 
+/* ── Related Locations Map ── */
+const RELATED_SLUGS: Record<string, string[]> = {
+  "new-york-city": ["manhattan", "brooklyn", "queens", "bronx", "staten-island", "jfk-airport"],
+  manhattan: ["new-york-city", "brooklyn", "jersey-city", "hoboken", "jfk-airport"],
+  brooklyn: ["manhattan", "queens", "new-york-city", "jfk-airport", "staten-island"],
+  queens: ["jfk-airport", "lga-airport", "brooklyn", "manhattan", "bronx"],
+  bronx: ["manhattan", "queens", "new-york-city", "lga-airport"],
+  "staten-island": ["brooklyn", "new-jersey", "jersey-city", "manhattan"],
+  "new-jersey": ["jersey-city", "hoboken", "ewr-airport", "manhattan", "staten-island"],
+  "jfk-airport": ["queens", "brooklyn", "lga-airport", "manhattan", "new-york-city"],
+  "lga-airport": ["queens", "jfk-airport", "manhattan", "bronx", "brooklyn"],
+  "ewr-airport": ["new-jersey", "jersey-city", "hoboken", "manhattan", "staten-island"],
+  "jersey-city": ["hoboken", "new-jersey", "manhattan", "ewr-airport", "staten-island"],
+  hoboken: ["jersey-city", "new-jersey", "manhattan", "ewr-airport"],
+};
+
+/* ── Related Locations Section ── */
+function RelatedLocations({ data }: { data: LocationPageData }) {
+  const mob = useIsMobile();
+  const t = useThemeColors();
+  const relatedSlugs = RELATED_SLUGS[data.slug] || [];
+  const related = relatedSlugs
+    .map(slug => LOCATION_PAGES[slug])
+    .filter(Boolean)
+    .slice(0, mob ? 3 : 5);
+
+  if (!related.length) return null;
+
+  return (
+    <section style={{ padding: mob ? "2.5rem 5%" : "3.5rem 8%", background: t.bgCard }}>
+      <SectionHeader title="Explore" accent="Nearby" sub={`More hourly hotel locations near ${data.name}`} />
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : `repeat(${Math.min(related.length, 5)},1fr)`, gap: 14 }}>
+        {related.map(loc => (
+          <RelatedCard key={loc.slug} loc={loc} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function RelatedCard({ loc }: { loc: LocationPageData }) {
+  const [hov, setHov] = useState(false);
+  const t = useThemeColors();
+  return (
+    <Link
+      to={`/hotels/${loc.slug}`}
+      style={{ textDecoration: "none" }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
+      <div style={{
+        background: t.bg,
+        border: `1.5px solid ${hov ? "#ff4d00" : t.border}`,
+        borderRadius: 16,
+        padding: "1.2rem 1.3rem",
+        transform: hov ? "translateY(-3px)" : "none",
+        boxShadow: hov ? `0 8px 28px ${t.shadow}` : "none",
+        transition: "all .2s",
+      }}>
+        <div style={{ fontSize: "1rem", fontWeight: 800, color: t.navy, marginBottom: 4 }}>{loc.name}</div>
+        <div style={{ fontSize: ".72rem", color: t.textSecondary, marginBottom: 8 }}>{loc.state}</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: ".65rem", fontWeight: 700, background: t.dark ? "#2a1a10" : "#fff2ee", color: "#ff4d00", padding: "2px 8px", borderRadius: 12 }}>
+            {loc.stats[0]?.value} hotels
+          </span>
+          <span style={{ fontSize: ".65rem", fontWeight: 600, color: t.textSecondary }}>
+            from {loc.avgRate}/hr
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 /* ── Main Component ── */
 export default function LocationLanding({ data }: { data: LocationPageData }) {
   return (
@@ -314,12 +389,12 @@ export default function LocationLanding({ data }: { data: LocationPageData }) {
       <SpeakableJsonLd selectors={["[data-speakable]", "h1", ".geo-answer"]} />
       <Nav onSearch={() => {}} />
       <Hero data={data} />
-      {/* GEO: Direct-answer summary block for AI engines to cite */}
       <GEOSummary data={data} />
       <Highlights data={data} />
       <Neighborhoods data={data} />
       <NearbyAirports data={data} />
       <FAQs data={data} />
+      <RelatedLocations data={data} />
       <CTABanner data={data} />
       <SEOFooter data={data} />
     </main>
