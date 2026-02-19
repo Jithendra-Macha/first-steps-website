@@ -70,46 +70,38 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
   hotel: Hotel; slot: typeof SLOT_OFFERS[number]; room: typeof ROOM_TYPES[number];
   rooms: number; onClose: () => void; onConfirm: (data: BookingData) => void;
 }) {
-  const [step, setStep] = useState(1); // 1=details, 2=payment, 3=processing
+  const [step, setStep] = useState(1); // 1=details, 2=review, 3=processing
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [special, setSpecial] = useState("");
-  const [cardNum, setCardNum] = useState("");
-  const [cardExp, setCardExp] = useState("");
-  const [cardCvc, setCardCvc] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const total = room.price * 6 * rooms;
   const taxInfo = getTaxInfo(hotel.addr);
   const taxAmount = parseFloat((total * taxInfo.taxRate / 100 + taxInfo.taxFlatFee).toFixed(2));
   const grandTotal = total + taxAmount;
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   const validateStep1 = () => {
     const e: Record<string, string> = {};
-    if (!name.trim()) e.name = "Name is required";
-    if (!email.trim() || !email.includes("@")) e.email = "Valid email is required";
-    if (!phone.trim() || phone.length < 7) e.phone = "Valid phone number is required";
+    if (!name.trim()) e.name = "Full name is required";
+    const hasEmail = email.trim().length > 0;
+    const hasPhone = phone.trim().length > 0;
+    if (!hasEmail && !hasPhone) {
+      e.contact = "Please provide either an email address or phone number";
+    }
+    if (hasEmail && !email.includes("@")) e.email = "Please enter a valid email address";
+    if (hasPhone && phone.replace(/\D/g, "").length < 7) e.phone = "Please enter a valid phone number";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const validateStep2 = () => {
-    const e: Record<string, string> = {};
-    if (!cardNum.trim() || cardNum.replace(/\s/g, "").length < 16) e.cardNum = "Valid card number required";
-    if (!cardExp.trim() || !cardExp.includes("/")) e.cardExp = "Valid expiry required (MM/YY)";
-    if (!cardCvc.trim() || cardCvc.length < 3) e.cardCvc = "Valid CVC required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleSubmit = () => {
-    if (!validateStep2()) return;
+  const handleConfirm = () => {
     setStep(3);
-    // Simulate payment processing
     setTimeout(() => {
       const bookingId = "COH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-      const today = new Date();
       onConfirm({
         hotel,
         slot,
@@ -118,13 +110,13 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
         guest: { name, email, phone, special },
         total: grandTotal,
         bookingId,
-        date: today.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
+        date: dateStr,
         taxAmount,
         taxRate: taxInfo.taxRate,
         taxFlatFee: taxInfo.taxFlatFee,
         subtotal: total,
       });
-    }, 2500);
+    }, 2000);
   };
 
   const inputStyle = (field: string): React.CSSProperties => ({
@@ -166,7 +158,7 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
               cursor: "pointer", fontSize: ".9rem",
             }}>✕</button>
           </div>
-          <div style={{ display: "flex", gap: 12, marginTop: 14 }}>
+          <div style={{ display: "flex", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
             <div style={{ background: "rgba(255,255,255,.1)", padding: "6px 12px", borderRadius: 8, fontSize: ".72rem" }}>
               {slot.emoji} {slot.time}
             </div>
@@ -181,7 +173,7 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
 
         {/* Steps indicator */}
         <div style={{ display: "flex", padding: "16px 28px", gap: 8 }}>
-          {["Guest Details", "Payment", "Confirm"].map((s, i) => (
+          {["Guest Details", "Review & Confirm"].map((s, i) => (
             <div key={s} style={{ flex: 1, textAlign: "center" }}>
               <div style={{
                 height: 4, borderRadius: 2, marginBottom: 6,
@@ -207,19 +199,26 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                 <input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" style={inputStyle("name")} />
                 {errors.name && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.name}</span>}
               </div>
+
+              <div style={{ fontSize: ".68rem", color: SEC, fontWeight: 600, margin: "2px 0 -6px" }}>
+                Provide at least one contact method *
+              </div>
+
               <div>
-                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Email Address *</label>
+                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Email Address</label>
                 <input value={email} onChange={e => setEmail(e.target.value)} placeholder="john@example.com" type="email" style={inputStyle("email")} />
                 {errors.email && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.email}</span>}
               </div>
               <div>
-                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Phone Number *</label>
+                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Phone Number</label>
                 <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" type="tel" style={inputStyle("phone")} />
                 {errors.phone && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.phone}</span>}
               </div>
+              {errors.contact && <span style={{ fontSize: ".62rem", color: "#e53935", display: "block" }}>{errors.contact}</span>}
+
               <div>
                 <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Special Requests <span style={{ fontWeight: 400, color: SEC }}>(optional)</span></label>
-                <textarea value={special} onChange={e => setSpecial(e.target.value)} placeholder="Early check-in, extra pillows, etc." rows={3}
+                <textarea value={special} onChange={e => setSpecial(e.target.value)} placeholder="Early check-in, extra pillows, etc." rows={2}
                   style={{ ...inputStyle("special"), resize: "vertical" }} />
               </div>
               <button onClick={() => { if (validateStep1()) setStep(2); }} style={{
@@ -229,19 +228,62 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                 fontSize: ".88rem", fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
                 boxShadow: `0 6px 20px rgba(255,77,0,.3)`,
               }}>
-                Continue to Payment →
+                Review Reservation →
               </button>
             </div>
           )}
 
-          {/* Step 2: Payment */}
+          {/* Step 2: Review & Confirm */}
           {step === 2 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {/* Order summary */}
-              <div style={{
-                background: "#f8f8f8", borderRadius: 14, padding: "16px 18px",
-              }}>
-                <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10 }}>Order Summary</div>
+              {/* Hotel & Booking Details */}
+              <div style={{ background: "#f8f8f8", borderRadius: 14, padding: "16px 18px" }}>
+                <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10 }}>Reservation Details</div>
+                {[
+                  { label: "Hotel", value: hotel.name },
+                  { label: "Address", value: hotel.addr },
+                  { label: "Room Type", value: `${room.icon} ${room.name}` },
+                  { label: "Rooms", value: `${rooms} room${rooms > 1 ? "s" : ""}` },
+                  { label: "Check-in Date", value: dateStr },
+                  { label: "Check-in Time", value: `${slot.emoji} ${slot.time}` },
+                ].map((item) => (
+                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem" }}>
+                    <span style={{ color: SEC }}>{item.label}</span>
+                    <span style={{ fontWeight: 700, color: NAVY, maxWidth: "55%", textAlign: "right" }}>{item.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Guest Details */}
+              <div style={{ background: "#f8f8f8", borderRadius: 14, padding: "16px 18px" }}>
+                <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10 }}>Guest Information</div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem" }}>
+                  <span style={{ color: SEC }}>Name</span>
+                  <span style={{ fontWeight: 700, color: NAVY }}>{name}</span>
+                </div>
+                {email && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem" }}>
+                    <span style={{ color: SEC }}>Email</span>
+                    <span style={{ fontWeight: 700, color: NAVY }}>{email}</span>
+                  </div>
+                )}
+                {phone && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem" }}>
+                    <span style={{ color: SEC }}>Phone</span>
+                    <span style={{ fontWeight: 700, color: NAVY }}>{phone}</span>
+                  </div>
+                )}
+                {special && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem" }}>
+                    <span style={{ color: SEC }}>Special Requests</span>
+                    <span style={{ fontWeight: 600, color: NAVY, maxWidth: 200, textAlign: "right" }}>{special}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Price Summary */}
+              <div style={{ background: "#f8f8f8", borderRadius: 14, padding: "16px 18px" }}>
+                <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10 }}>Price Summary</div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem", color: "#555" }}>
                   <span>{room.name} × {rooms} room{rooms > 1 ? "s" : ""} × 6hrs</span>
                   <span style={{ fontWeight: 700 }}>${total}</span>
@@ -252,32 +294,14 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                 </div>
                 <div style={{ height: 1, background: BRD, margin: "8px 0" }} />
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".88rem", fontWeight: 900, color: NAVY }}>
-                  <span>Total</span>
+                  <span>Total (pay at hotel)</span>
                   <span>${grandTotal.toFixed(2)}</span>
                 </div>
               </div>
 
-              <div>
-                <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Card Number</label>
-                <input value={cardNum} onChange={e => setCardNum(e.target.value)} placeholder="4242 4242 4242 4242" maxLength={19} style={inputStyle("cardNum")} />
-                {errors.cardNum && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.cardNum}</span>}
-              </div>
-              <div style={{ display: "flex", gap: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>Expiry</label>
-                  <input value={cardExp} onChange={e => setCardExp(e.target.value)} placeholder="12/28" maxLength={5} style={inputStyle("cardExp")} />
-                  {errors.cardExp && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.cardExp}</span>}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, display: "block", marginBottom: 6 }}>CVC</label>
-                  <input value={cardCvc} onChange={e => setCardCvc(e.target.value)} placeholder="123" maxLength={4} type="password" style={inputStyle("cardCvc")} />
-                  {errors.cardCvc && <span style={{ fontSize: ".62rem", color: "#e53935", marginTop: 4, display: "block" }}>{errors.cardCvc}</span>}
-                </div>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#f0fdf4", borderRadius: 10, border: "1px solid #bbf7d0" }}>
-                <span style={{ fontSize: ".9rem" }}>🔒</span>
-                <span style={{ fontSize: ".66rem", color: "#166534" }}>Your payment is encrypted and secure. We never store card details.</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#fff5f0", borderRadius: 10, border: "1px solid #fde8dc" }}>
+                <span style={{ fontSize: ".9rem" }}>🏨</span>
+                <span style={{ fontSize: ".66rem", color: "#9a3412" }}>Payment is collected at the hotel during check-in. No payment required now.</span>
               </div>
 
               <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
@@ -286,8 +310,8 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                   border: `1.5px solid ${BRD}`, background: "#fff",
                   fontSize: ".82rem", fontWeight: 700, color: NAVY,
                   cursor: "pointer", fontFamily: "inherit",
-                }}>← Back</button>
-                <button onClick={handleSubmit} style={{
+                }}>← Edit Details</button>
+                <button onClick={handleConfirm} style={{
                   flex: 2, height: 48, borderRadius: 12,
                   background: `linear-gradient(135deg, ${A}, #ff6b35)`,
                   border: "none", color: "#fff",
@@ -296,7 +320,7 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                   boxShadow: `0 6px 20px rgba(255,77,0,.3)`,
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 }}>
-                  🔒 Pay ${grandTotal.toFixed(2)} & Reserve
+                  ✓ Confirm Reservation
                 </button>
               </div>
             </div>
@@ -312,8 +336,8 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                 animation: "spin 1s linear infinite",
                 margin: "0 auto 20px",
               }} />
-              <div style={{ fontSize: "1rem", fontWeight: 800, color: NAVY }}>Processing your reservation...</div>
-              <div style={{ fontSize: ".76rem", color: SEC, marginTop: 6 }}>Securing your room and confirming availability</div>
+              <div style={{ fontSize: "1rem", fontWeight: 800, color: NAVY }}>Confirming your reservation...</div>
+              <div style={{ fontSize: ".76rem", color: SEC, marginTop: 6 }}>Sending details to the hotel</div>
             </div>
           )}
         </div>
