@@ -363,7 +363,6 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
 
   return (
     <div ref={ref} style={{ position: "relative", flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: ".66rem", color: "#bbb", fontWeight: 600, lineHeight: 1, marginBottom: 2 }}>LOCATION</div>
       <input
         value={value}
         onChange={e => { onChange(e.target.value); setOpen(true); }}
@@ -701,31 +700,34 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
           position: "relative",
         }}>
           {/* Location */}
-          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: mob ? "12px 16px" : "0 18px", gap: 10, height: mob ? "auto" : "100%", minWidth: 0 }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-            <LocationDropdown value={city} onChange={setCity} onSelect={(loc) => setCity(`${loc.name}, ${loc.state}`)} />
+          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: mob ? "10px 16px" : "0 18px", gap: 10, height: mob ? "auto" : "100%", minWidth: 0 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>LOCATION</div>
+              <LocationDropdown value={city} onChange={setCity} onSelect={(loc) => setCity(`${loc.name}, ${loc.state}`)} />
+            </div>
           </div>
 
           {mob ? <div style={{ height: 1, background: BRD }} /> : <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />}
 
           {/* Date + Duration */}
           <div style={{ display: "flex", flexDirection: mob ? "column" : "row", alignItems: mob ? "stretch" : "center", height: mob ? "auto" : "100%" }}>
-            <div onClick={() => setCalOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "12px 16px" : "0 18px", minWidth: mob ? 0 : 170, cursor: "pointer", height: mob ? "auto" : "100%", flexShrink: 0, flex: mob ? "none" : "none", background: calOpen ? "#f9f9f9" : "transparent", position: "relative" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={date ? A : "#bbb"} strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+            <div onClick={() => setCalOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "10px 16px" : "0 18px", minWidth: mob ? 0 : 170, cursor: "pointer", height: mob ? "auto" : "100%", flexShrink: 0, background: calOpen ? "#f9f9f9" : "transparent", position: "relative" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={date ? A : "#bbb"} strokeWidth="2" style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
               <div>
-                <div style={{ fontSize: ".66rem", color: "#bbb", fontWeight: 600, lineHeight: 1, marginBottom: 2 }}>CHECK-IN</div>
-                <div style={{ fontSize: ".84rem", fontWeight: date ? 700 : 400, color: date ? "#111" : "#bbb", lineHeight: 1 }}>{fmtDate(date)}</div>
+                <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>CHECK-IN</div>
+                <div style={{ fontSize: ".84rem", fontWeight: date ? 700 : 400, color: date ? "#111" : "#999", lineHeight: 1 }}>{fmtDate(date)}</div>
               </div>
               {calOpen && <HeroCalendar selected={date} onSelect={setDate} onClose={() => setCalOpen(false)} />}
             </div>
 
             {mob ? <div style={{ height: 1, background: BRD }} /> : <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />}
 
-            <div style={{ position: "relative", flexShrink: 0, flex: mob ? "none" : "none" }}>
-              <div onClick={() => setHoursOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "12px 16px" : "0 16px", minWidth: mob ? 0 : 130, cursor: "pointer", height: mob ? "auto" : 58, background: hoursOpen ? "#f9f9f9" : "transparent" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <div onClick={() => setHoursOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "10px 16px" : "0 16px", minWidth: mob ? 0 : 130, cursor: "pointer", height: mob ? "auto" : 58, background: hoursOpen ? "#f9f9f9" : "transparent" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                 <div>
-                  <div style={{ fontSize: ".66rem", color: "#bbb", fontWeight: 600, lineHeight: 1, marginBottom: 2 }}>DURATION</div>
+                  <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>DURATION</div>
                   <div style={{ fontSize: ".84rem", fontWeight: 700, color: "#111", lineHeight: 1 }}>{hours} Hours</div>
                 </div>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
