@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { SectionHeader, Btn, useIsMobile, useThemeColors } from "./SharedComponents";
 import { DEALS_DATA, ZONE_DATA, OCC_DATA, WHY_CARDS } from "@/data/hotels";
 import cohLogo from "@/assets/logo-coh.jpeg";
@@ -73,15 +74,25 @@ export function DealsSection({ onSearch }: { onSearch: (q: string) => void }) {
   );
 }
 
+/* ── Zone key → SEO slug map ── */
+const ZONE_SLUG_MAP: Record<string, string> = {
+  manhattan: "new-york-city",
+  brooklyn: "brooklyn",
+  queens: "queens",
+  bronx: "bronx",
+};
+
 /* ── Zone Card ── */
 function ZoneCard({ zone: z, onSearch }: { zone: typeof ZONE_DATA[0]; onSearch: (q: string) => void }) {
   const [hov, setHov] = useState(false);
   const img = zoneImages[z.key];
-  return (
-    <div onClick={() => onSearch(z.name + ", New York")} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+  const slug = ZONE_SLUG_MAP[z.key];
+
+  const content = (
+    <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{ borderRadius: 18, overflow: "hidden", cursor: "pointer", position: "relative", height: 220, transform: hov ? "translateY(-6px) scale(1.02)" : "none", boxShadow: hov ? "0 22px 52px rgba(0,0,0,.24)" : "0 2px 8px rgba(0,0,0,.06)", transition: "all .28s cubic-bezier(.25,.46,.45,.94)" }}>
       {img ? (
-        <img src={img} alt={z.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: hov ? "scale(1.08)" : "scale(1)", transition: "transform .5s ease" }} />
+        <img src={img} alt={`Hourly hotels in ${z.name}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: hov ? "scale(1.08)" : "scale(1)", transition: "transform .5s ease" }} />
       ) : (
         <div style={{ position: "absolute", inset: 0, background: z.bg, transform: hov ? "scale(1.06)" : "scale(1)", transition: "transform .35s ease" }} />
       )}
@@ -94,6 +105,11 @@ function ZoneCard({ zone: z, onSearch }: { zone: typeof ZONE_DATA[0]; onSearch: 
       <div style={{ position: "absolute", top: 14, right: 14, zIndex: 3, background: "rgba(255,255,255,.18)", color: "#fff", fontSize: ".62rem", fontWeight: 700, padding: "4px 10px", borderRadius: 20, backdropFilter: "blur(6px)", opacity: hov ? 1 : 0, transition: "all .2s" }}>Explore →</div>
     </div>
   );
+
+  if (slug) {
+    return <Link to={`/hotels/${slug}`} style={{ textDecoration: "none" }}>{content}</Link>;
+  }
+  return <div onClick={() => onSearch(z.name + ", New York")}>{content}</div>;
 }
 
 export function ZonesSection({ onSearch }: { onSearch: (q: string) => void }) {
