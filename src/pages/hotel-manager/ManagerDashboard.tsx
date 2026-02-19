@@ -2,27 +2,60 @@ import { CalendarCheck, DollarSign, Users, TrendingUp, ArrowUpRight, Clock, Star
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { useManagerListing, useHotelReservations, useAvailabilitySlots, useHotelReviews } from "@/hooks/useHotelData";
 import { HOTEL_INFO, MANAGER_KPIS, TODAY_TIMELINE, RECENT_ACTIVITY, ROOM_TYPES, AVAILABILITY_SLOTS } from "@/data/hotelManagerMockData";
-
-const KPI_CARDS = [
-  { title: "Today's Bookings", value: MANAGER_KPIS.todayBookings, icon: CalendarCheck, accent: "hsl(217, 91%, 60%)", sub: `${MANAGER_KPIS.pendingCheckIns} pending check-ins` },
-  { title: "Today's Revenue", value: `₹${MANAGER_KPIS.todayRevenue.toLocaleString("en-IN")}`, icon: DollarSign, accent: "hsl(142, 71%, 45%)", sub: "Across all room types" },
-  { title: "Occupancy Rate", value: `${MANAGER_KPIS.occupancyRate}%`, icon: TrendingUp, accent: "hsl(38, 92%, 50%)", sub: `${MANAGER_KPIS.activeGuests} active guests` },
-  { title: "Avg Rating", value: MANAGER_KPIS.avgRating, icon: Star, accent: "hsl(270, 60%, 60%)", sub: `${HOTEL_INFO.totalReviews} total reviews` },
-];
 
 export default function ManagerDashboard() {
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
-  const todaySlots = AVAILABILITY_SLOTS.filter(s => s.date === today);
+
+  // Real data hooks
+  const { data: listing, isLoading: listingLoading } = useManagerListing();
+  const { data: dbReservations } = useHotelReservations(listing?.id);
+  const { data: dbSlots } = useAvailabilitySlots(listing?.id, today);
+  const { data: dbReviews } = useHotelReviews(listing?.id);
+
+  // Use real data if available, fall back to mock
+  const hasRealData = !!listing;
+  const hotelName = listing?.hotel_name || HOTEL_INFO.name;
+  const managerName = listing?.contact_person_name?.split(" ")[0] || HOTEL_INFO.manager.name.split(" ")[0];
+
+  // Compute KPIs from real data or use mock
+  const todayReservations = dbReservations?.filter(r => r.check_in_date === today) || [];
+  const todayBookings = hasRealData ? todayReservations.length : MANAGER_KPIS.todayBookings;
+  const todayRevenue = hasRealData ? todayReservations.reduce((s, r) => s + Number(r.total_price), 0) : MANAGER_KPIS.todayRevenue;
+  const totalReviews = hasRealData ? (dbReviews?.length || 0) : HOTEL_INFO.totalReviews;
+  const avgRating = hasRealData
+    ? (dbReviews && dbReviews.length > 0 ? (dbReviews.reduce((s, r) => s + r.rating, 0) / dbReviews.length).toFixed(1) : "N/A")
+    : MANAGER_KPIS.avgRating;
+
+  // Room types from listing or mock
+  const roomTypes = hasRealData && listing?.room_types
+    ? (listing.room_types as any[]).map((rt: any, i: number) => ({ id: rt.id || `rt-${i}`, name: rt.name || rt.type, ...rt }))
+    : ROOM_TYPES;
+
+  // Availability slots
+  const todaySlots = hasRealData && dbSlots ? dbSlots : AVAILABILITY_SLOTS.filter(s => s.date === today);
+
+  const KPI_CARDS = [
+    { title: "Today's Bookings", value: todayBookings, icon: CalendarCheck, accent: "hsl(217, 91%, 60%)", sub: `${hasRealData ? todayReservations.filter(r => r.status === 'upcoming').length : MANAGER_KPIS.pendingCheckIns} pending check-ins` },
+    { title: "Today's Revenue", value: `₹${todayRevenue.toLocaleString("en-IN")}`, icon: DollarSign, accent: "hsl(142, 71%, 45%)", sub: "Across all room types" },
+    { title: "Occupancy Rate", value: `${MANAGER_KPIS.occupancyRate}%`, icon: TrendingUp, accent: "hsl(38, 92%, 50%)", sub: `${hasRealData ? (dbReservations?.filter(r => r.status === 'upcoming').length || 0) : MANAGER_KPIS.activeGuests} active guests` },
+    { title: "Avg Rating", value: avgRating, icon: Star, accent: "hsl(270, 60%, 60%)", sub: `${totalReviews} total reviews` },
+  ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
         <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
-          Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 17 ? "Afternoon" : "Evening"}, {HOTEL_INFO.manager.name.split(" ")[0]}
+          Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 17 ? "Afternoon" : "Evening"}, {managerName}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Here's what's happening at {HOTEL_INFO.name} today</p>
+        <p className="text-sm text-muted-foreground mt-1">Here's what's happening at {hotelName} today</p>
+        {!hasRealData && !listingLoading && (
+          <p className="text-xs text-amber-500 mt-2 flex items-center gap-1">
+            ⚠️ No listing found — showing demo data. <button onClick={() => navigate("/manager/listing")} className="underline">Create your listing</button>
+          </p>
+        )}
       </div>
 
       {/* KPIs */}
@@ -55,7 +88,9 @@ export default function ManagerDashboard() {
         </button>
         <button onClick={() => navigate("/manager/reservations")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors" style={{ background: "hsla(217, 91%, 60%, 0.12)", color: "hsl(217, 91%, 65%)", border: "1px solid hsla(217, 91%, 60%, 0.2)" }}>
           <CalendarCheck className="h-3.5 w-3.5" />View Reservations
-          <Badge className="h-5 min-w-5 text-[10px] border-0 text-primary-foreground bg-primary">{MANAGER_KPIS.pendingCheckIns}</Badge>
+          <Badge className="h-5 min-w-5 text-[10px] border-0 text-primary-foreground bg-primary">
+            {hasRealData ? todayReservations.filter(r => r.status === 'upcoming').length : MANAGER_KPIS.pendingCheckIns}
+          </Badge>
         </button>
       </div>
 
@@ -99,10 +134,10 @@ export default function ManagerDashboard() {
         <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Today's Availability Snapshot</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {ROOM_TYPES.map(rt => {
-              const slots = todaySlots.filter(s => s.roomTypeId === rt.id);
-              const totalListed = slots.reduce((s, sl) => s + sl.roomsListed, 0);
-              const totalBooked = slots.reduce((s, sl) => s + sl.roomsBooked, 0);
+            {roomTypes.map((rt: any) => {
+              const slots = todaySlots.filter((s: any) => (s.roomTypeId || s.room_type_id) === rt.id);
+              const totalListed = slots.reduce((s: number, sl: any) => s + (sl.roomsListed || sl.rooms_listed || 0), 0);
+              const totalBooked = slots.reduce((s: number, sl: any) => s + (sl.roomsBooked || sl.rooms_booked || 0), 0);
               return (
                 <div key={rt.id} className="rounded-lg p-3 bg-muted/50 border border-border">
                   <p className="text-xs font-medium text-foreground/70">{rt.name}</p>

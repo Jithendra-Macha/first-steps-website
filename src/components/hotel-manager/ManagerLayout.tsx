@@ -6,9 +6,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { HOTEL_INFO, NOTIFICATIONS } from "@/data/hotelManagerMockData";
 import { cn } from "@/lib/utils";
 import { useThemeMode } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useManagerListing, useMyNotifications } from "@/hooks/useHotelData";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/manager" },
@@ -27,9 +28,21 @@ export default function ManagerLayout() {
   const { theme, toggleTheme } = useThemeMode();
   const navigate = useNavigate();
   const location = useLocation();
-  const unreadCount = NOTIFICATIONS.filter(n => !n.read).length;
+  const { user, signOut } = useAuth();
+  const { data: listing } = useManagerListing();
+  const { data: notifications } = useMyNotifications();
+
+  const unreadCount = notifications?.filter(n => !n.read).length || 0;
+  const hotelName = listing?.hotel_name || "My Hotel";
+  const hotelCity = listing?.city || "";
+  const managerInitials = user?.email?.substring(0, 2).toUpperCase() || "MG";
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
@@ -39,10 +52,12 @@ export default function ManagerLayout() {
         <div className="flex items-center gap-2 px-4 h-14 border-b border-border">
           {!collapsed && (
             <div className="flex items-center gap-2 min-w-0">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 bg-primary text-primary-foreground">GR</div>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 bg-primary text-primary-foreground">
+                {hotelName.substring(0, 2).toUpperCase()}
+              </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold truncate" style={{ fontFamily: "'Syne', sans-serif" }}>{HOTEL_INFO.name}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{HOTEL_INFO.city}</p>
+                <p className="text-sm font-semibold truncate" style={{ fontFamily: "'Syne', sans-serif" }}>{hotelName}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{hotelCity}</p>
               </div>
             </div>
           )}
@@ -78,11 +93,11 @@ export default function ManagerLayout() {
         {!collapsed && (
           <div className="p-3 border-t border-border space-y-1">
             <div className="flex items-center gap-2 px-2 py-2">
-              <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: "hsl(200, 60%, 45%)" }}>
-                {HOTEL_INFO.manager.avatar}
+              <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-primary-foreground" style={{ background: "hsl(200, 60%, 45%)" }}>
+                {managerInitials}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium truncate">{HOTEL_INFO.manager.name}</p>
+                <p className="text-xs font-medium truncate">{user?.email}</p>
                 <p className="text-[10px] text-muted-foreground truncate">Hotel Manager</p>
               </div>
             </div>
@@ -90,8 +105,8 @@ export default function ManagerLayout() {
               {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               {theme === "dark" ? "Light mode" : "Dark mode"}
             </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground" onClick={() => navigate("/")}>
-              <LogOut className="h-3.5 w-3.5" />Exit Dashboard
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground" onClick={handleSignOut}>
+              <LogOut className="h-3.5 w-3.5" />Sign Out
             </Button>
           </div>
         )}
@@ -108,7 +123,7 @@ export default function ManagerLayout() {
             {unreadCount > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />}
           </Button>
           <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground" style={{ background: "hsl(200, 60%, 45%)" }}>
-            {HOTEL_INFO.manager.avatar}
+            {managerInitials}
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6 bg-background">

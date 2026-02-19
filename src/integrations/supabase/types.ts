@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability_slots: {
+        Row: {
+          created_at: string
+          end_hour: number
+          hotel_listing_id: string
+          id: string
+          price_override: number | null
+          room_type_id: string
+          rooms_booked: number
+          rooms_listed: number
+          slot_date: string
+          start_hour: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_hour: number
+          hotel_listing_id: string
+          id?: string
+          price_override?: number | null
+          room_type_id: string
+          rooms_booked?: number
+          rooms_listed?: number
+          slot_date: string
+          start_hour: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_hour?: number
+          hotel_listing_id?: string
+          id?: string
+          price_override?: number | null
+          room_type_id?: string
+          rooms_booked?: number
+          rooms_listed?: number
+          slot_date?: string
+          start_hour?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_slots_hotel_listing_id_fkey"
+            columns: ["hotel_listing_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_listings: {
         Row: {
           additional_amenities: string[] | null
@@ -149,6 +199,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -185,6 +268,7 @@ export type Database = {
           guests: number
           hotel_address: string | null
           hotel_image: string | null
+          hotel_listing_id: string | null
           hotel_name: string
           id: string
           room_type: string
@@ -202,6 +286,7 @@ export type Database = {
           guests?: number
           hotel_address?: string | null
           hotel_image?: string | null
+          hotel_listing_id?: string | null
           hotel_name: string
           id?: string
           room_type: string
@@ -219,6 +304,7 @@ export type Database = {
           guests?: number
           hotel_address?: string | null
           hotel_image?: string | null
+          hotel_listing_id?: string | null
           hotel_name?: string
           id?: string
           room_type?: string
@@ -228,6 +314,104 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_hotel_listing_id_fkey"
+            columns: ["hotel_listing_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          created_at: string
+          helpful_count: number
+          hotel_listing_id: string
+          id: string
+          manager_responded_at: string | null
+          manager_response: string | null
+          rating: number
+          reported_count: number
+          reservation_id: string | null
+          review_text: string
+          room_type: string | null
+          status: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          helpful_count?: number
+          hotel_listing_id: string
+          id?: string
+          manager_responded_at?: string | null
+          manager_response?: string | null
+          rating: number
+          reported_count?: number
+          reservation_id?: string | null
+          review_text: string
+          room_type?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          helpful_count?: number
+          hotel_listing_id?: string
+          id?: string
+          manager_responded_at?: string | null
+          manager_response?: string | null
+          rating?: number
+          reported_count?: number
+          reservation_id?: string | null
+          review_text?: string
+          room_type?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_hotel_listing_id_fkey"
+            columns: ["hotel_listing_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
         Relationships: []
       }
     }
@@ -235,9 +419,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "hotel_manager" | "customer"
       reservation_status: "upcoming" | "past" | "cancelled"
     }
     CompositeTypes: {
@@ -366,6 +557,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "hotel_manager", "customer"],
       reservation_status: ["upcoming", "past", "cancelled"],
     },
   },
