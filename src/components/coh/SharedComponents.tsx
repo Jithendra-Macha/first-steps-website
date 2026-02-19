@@ -316,7 +316,7 @@ function useGeocodeSuggestions(query: string) {
 /* ── Location Dropdown ── */
 function LocationDropdown({ value, onChange, onSelect }: { value: string; onChange: (v: string) => void; onSelect: (loc: USLocation) => void }) {
   const [open, setOpen] = useState(false);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const results = useMemo(() => searchLocations(value), [value]);
   const { suggestions: geoSuggestions, loading: geoLoading } = useGeocodeSuggestions(value);
@@ -339,28 +339,24 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
     return map;
   }, [results]);
 
-  const typeStyles: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
-    borough: { bg: "#eef2ff", text: "#4338ca", border: "#c7d2fe", iconBg: "#e0e7ff" },
-    city: { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0", iconBg: "#d1fae5" },
-    neighborhood: { bg: "#fffbeb", text: "#d97706", border: "#fde68a", iconBg: "#fef3c7" },
-    county: { bg: "#fdf2f8", text: "#db2777", border: "#fbcfe8", iconBg: "#fce7f3" },
-    village: { bg: "#f5f3ff", text: "#7c3aed", border: "#ddd6fe", iconBg: "#ede9fe" },
-    region: { bg: "#f0f9ff", text: "#0284c7", border: "#bae6fd", iconBg: "#e0f2fe" },
-  };
-
-  const geoTypeStyles: Record<string, { bg: string; text: string; border: string; iconBg: string; label: string }> = {
-    address: { bg: "#fff2ee", text: "#e54d00", border: "#ffd6c4", iconBg: "#ffe8dd", label: "ADDRESS" },
-    poi: { bg: "#f0f9ff", text: "#0369a1", border: "#bae6fd", iconBg: "#e0f2fe", label: "PLACE" },
-    place: { bg: "#ecfdf5", text: "#059669", border: "#a7f3d0", iconBg: "#d1fae5", label: "CITY" },
-    neighborhood: { bg: "#fffbeb", text: "#d97706", border: "#fde68a", iconBg: "#fef3c7", label: "AREA" },
-  };
-
-  const getStyle = (type: string) => typeStyles[type] || typeStyles.city;
-  const getGeoStyle = (type: string) => geoTypeStyles[type] || geoTypeStyles.address;
-
-  const [activeGroup, setActiveGroup] = useState<string | null>(null);
-  let flatIdx = 0;
   const hasContent = results.length > 0 || geoSuggestions.length > 0 || (value.trim().length > 3);
+
+  // Trending data for popular locations
+  const trendingMap: Record<string, string> = {
+    "Manhattan": "🔥 Most Popular",
+    "Brooklyn": "📈 Trending",
+    "Jersey City": "⭐ Top Rated",
+    "Queens": "💰 Best Value",
+  };
+
+  const typeColor: Record<string, string> = {
+    borough: "#6366f1",
+    city: "#10b981",
+    neighborhood: "#f59e0b",
+    county: "#ec4899",
+    village: "#8b5cf6",
+    region: "#0ea5e9",
+  };
 
   return (
     <div ref={ref} style={{ position: "relative", flex: 1, minWidth: 0 }}>
@@ -368,9 +364,12 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
         value={value}
         onChange={e => { onChange(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
-        onKeyDown={e => { if (e.key === "Enter" && value.trim()) { setOpen(false); } }}
-        placeholder="Address, city or neighborhood..."
-        style={{ border: "none", outline: "none", fontSize: ".88rem", color: "#111", width: "100%", background: "transparent", fontFamily: "'Inter', system-ui, sans-serif" }}
+        onKeyDown={e => {
+          if (e.key === "Enter" && value.trim()) setOpen(false);
+          if (e.key === "Escape") setOpen(false);
+        }}
+        placeholder="Where are you going?"
+        style={{ border: "none", outline: "none", fontSize: ".88rem", color: t.dark ? "#eee" : "#111", width: "100%", background: "transparent", fontFamily: "'Inter', system-ui, sans-serif" }}
       />
       {open && hasContent && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
@@ -378,244 +377,237 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
       {open && hasContent && (
         <div style={{
           position: mob ? "fixed" : "absolute",
-          top: mob ? "auto" : "calc(100% + 14px)",
+          top: mob ? "auto" : "calc(100% + 10px)",
           bottom: mob ? 0 : "auto",
-          left: mob ? 0 : -18,
+          left: mob ? 0 : -24,
           right: mob ? 0 : "auto",
-          width: mob ? "100%" : 480,
-          background: t.dropdownBg,
-          borderRadius: mob ? "20px 20px 0 0" : 20,
-          boxShadow: "0 25px 80px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.04)",
+          width: mob ? "100%" : 420,
+          background: t.dark ? "#1a1a1a" : "#fff",
+          borderRadius: mob ? "16px 16px 0 0" : 16,
+          boxShadow: t.dark
+            ? "0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08)"
+            : "0 20px 60px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06)",
           zIndex: 9999,
-          maxHeight: mob ? "70vh" : 560,
-          overflowY: "auto",
-          padding: "0",
+          maxHeight: mob ? "75vh" : 480,
+          overflow: "hidden",
+          display: "flex", flexDirection: "column",
           fontFamily: "'Inter', system-ui, sans-serif",
-          animation: "dropdownSlideIn .25s cubic-bezier(.16,1,.3,1)",
         }}>
           <style>{`
-            @keyframes dropdownSlideIn { from { opacity: 0; transform: translateY(-8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-            @keyframes tilePopIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
-            .loc-tile { transition: all .2s cubic-bezier(.16,1,.3,1) !important; }
-            .loc-tile:active { transform: scale(.96) !important; }
+            @keyframes ddFadeIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+            @keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+            .dd-row { transition: background .15s, padding-left .2s cubic-bezier(.16,1,.3,1); }
+            .dd-row:active { opacity: .7; }
           `}</style>
-          {mob && <div style={{ width: 40, height: 4, borderRadius: 2, background: "#ddd", margin: "10px auto 4px" }} />}
 
-          {/* Header with result count & clear */}
-          <div style={{ padding: "14px 22px 8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: A, animation: "pulse 2s infinite" }} />
-              <span style={{ fontSize: ".65rem", fontWeight: 800, color: t.dark ? "#888" : "#b0b0b0", textTransform: "uppercase", letterSpacing: ".12em" }}>
-                {value.trim() ? `${results.length + geoSuggestions.length} results found` : "Popular Destinations"}
-              </span>
-            </div>
-            {value.trim() && (
-              <button onClick={() => { onChange(""); }} style={{
-                fontSize: ".62rem", color: "#fff", fontWeight: 700,
-                background: A, border: "none", cursor: "pointer",
-                padding: "3px 10px", borderRadius: 12,
-                transition: "all .15s",
-              }}
-                onMouseEnter={e => e.currentTarget.style.background = "#e03d00"}
-                onMouseLeave={e => e.currentTarget.style.background = A}
-              >✕ Clear</button>
-            )}
-          </div>
+          {mob && <div style={{ width: 36, height: 4, borderRadius: 2, background: t.dark ? "#333" : "#ddd", margin: "8px auto 4px", flexShrink: 0 }} />}
 
-          {/* Geocoded address suggestions */}
-          {value.trim().length >= 3 && (geoSuggestions.length > 0 || geoLoading) && (
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ padding: "10px 22px 6px", display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: "1rem" }}>📍</span>
-                <span style={{ fontSize: ".75rem", fontWeight: 800, color: t.dark ? "#ddd" : NAVY, letterSpacing: ".02em" }}>Addresses & Places</span>
-                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${t.border}, transparent)` }} />
-                {geoLoading && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", border: `2px solid ${A}`, borderTopColor: "transparent", animation: "spin .6s linear infinite" }} />
-                    <span style={{ fontSize: ".58rem", fontWeight: 600, color: A }}>Searching...</span>
-                  </div>
+          {/* Search input inside dropdown on mobile */}
+          {mob && (
+            <div style={{ padding: "8px 16px 12px", borderBottom: `1px solid ${t.border}`, flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: t.dark ? "#222" : "#f5f5f5", borderRadius: 10, padding: "8px 12px" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#666" : "#aaa"} strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                <input
+                  value={value}
+                  onChange={e => onChange(e.target.value)}
+                  placeholder="Search locations..."
+                  autoFocus
+                  style={{ border: "none", outline: "none", fontSize: ".85rem", color: t.text, width: "100%", background: "transparent" }}
+                />
+                {value.trim() && (
+                  <button onClick={() => onChange("")} style={{ background: t.dark ? "#444" : "#ddd", border: "none", width: 20, height: 20, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#aaa" : "#666"} strokeWidth="3"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  </button>
                 )}
               </div>
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }`}</style>
-              <div style={{ padding: "0 14px 4px" }}>
-                {geoSuggestions.map((place, i) => {
-                  const gs = getGeoStyle(place.type);
-                  const gIdx = flatIdx++;
-                  const isHovered = hoveredIdx === gIdx;
+            </div>
+          )}
+
+          {/* Scrollable content */}
+          <div style={{ overflowY: "auto", flex: 1, animation: "ddFadeIn .2s ease" }}>
+
+            {/* Quick picks — only when no search query */}
+            {!value.trim() && (
+              <div style={{ padding: "12px 16px 4px" }}>
+                <div style={{ fontSize: ".6rem", fontWeight: 700, color: t.dark ? "#666" : "#bbb", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>Quick Picks</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {["Manhattan", "Brooklyn", "JFK Area", "Jersey City"].map(q => (
+                    <button key={q} onClick={() => { onChange(q); }}
+                      style={{
+                        background: t.dark ? "#252525" : "#f7f7f7",
+                        border: `1px solid ${t.dark ? "#333" : "#eee"}`,
+                        borderRadius: 20, padding: "5px 14px",
+                        fontSize: ".75rem", fontWeight: 600, color: t.dark ? "#ccc" : "#555",
+                        cursor: "pointer", transition: "all .15s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = A; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = A; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = t.dark ? "#252525" : "#f7f7f7"; e.currentTarget.style.color = t.dark ? "#ccc" : "#555"; e.currentTarget.style.borderColor = t.dark ? "#333" : "#eee"; }}
+                    >{q}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Geocoded results */}
+            {value.trim().length >= 3 && (geoSuggestions.length > 0 || geoLoading) && (
+              <div style={{ padding: "8px 0" }}>
+                <div style={{ padding: "4px 18px 6px", display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                  <span style={{ fontSize: ".6rem", fontWeight: 700, color: t.dark ? "#666" : "#bbb", textTransform: "uppercase", letterSpacing: ".1em" }}>Search Results</span>
+                  {geoLoading && (
+                    <div style={{
+                      marginLeft: "auto", height: 3, width: 50, borderRadius: 2,
+                      background: `linear-gradient(90deg, transparent, ${A}, transparent)`,
+                      backgroundSize: "200% 100%",
+                      animation: "shimmer 1.5s infinite",
+                    }} />
+                  )}
+                </div>
+                {geoSuggestions.map((place) => {
+                  const id = `geo-${place.id}`;
+                  const hovered = hoveredId === id;
                   return (
                     <div
                       key={place.id}
-                      className="loc-tile"
+                      className="dd-row"
                       onClick={() => { onChange(place.fullAddress); setOpen(false); }}
-                      onMouseEnter={() => setHoveredIdx(gIdx)}
-                      onMouseLeave={() => setHoveredIdx(null)}
+                      onMouseEnter={() => setHoveredId(id)}
+                      onMouseLeave={() => setHoveredId(null)}
                       style={{
-                        display: "flex", alignItems: "center", gap: 11,
-                        padding: "10px 12px", cursor: "pointer",
-                        borderRadius: 14,
-                        background: isHovered ? gs.bg : "transparent",
-                        border: `1.5px solid ${isHovered ? gs.border : "transparent"}`,
-                        transform: isHovered ? "translateX(4px)" : "translateX(0)",
-                        animation: `tilePopIn .3s cubic-bezier(.16,1,.3,1) ${i * 0.05}s both`,
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: hovered ? "9px 18px 9px 22px" : "9px 18px",
+                        cursor: "pointer",
+                        background: hovered ? (t.dark ? "#252525" : "#f8f8f8") : "transparent",
                       }}
                     >
                       <div style={{
-                        width: 40, height: 40, borderRadius: 12,
-                        background: isHovered ? "#fff" : gs.iconBg,
-                        border: `1.5px solid ${gs.border}`,
+                        width: 34, height: 34, borderRadius: 10,
+                        background: hovered ? `${A}15` : (t.dark ? "#252525" : "#f5f5f5"),
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0,
-                        transform: isHovered ? "scale(1.12) rotate(-5deg)" : "scale(1) rotate(0)",
-                        transition: "all .25s cubic-bezier(.16,1,.3,1)",
-                        boxShadow: isHovered ? `0 6px 16px ${gs.border}` : "none",
+                        flexShrink: 0, transition: "all .2s",
                       }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={gs.text} strokeWidth="1.8" strokeLinecap="round">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={hovered ? A : (t.dark ? "#666" : "#aaa")} strokeWidth="2" strokeLinecap="round" style={{ transition: "stroke .15s" }}>
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                         </svg>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{
-                          fontSize: ".85rem", fontWeight: 700, color: isHovered ? gs.text : (t.dark ? "#ddd" : "#1a1a1a"),
-                          lineHeight: 1.2, transition: "color .15s",
-                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                        }}>{place.name}</div>
-                        <div style={{
-                          fontSize: ".68rem", color: t.dark ? "#777" : "#999", marginTop: 2,
-                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                        }}>{place.fullAddress}</div>
-                        <span style={{
-                          display: "inline-block", marginTop: 3,
-                          fontSize: ".56rem", fontWeight: 800, color: gs.text,
-                          background: gs.bg, border: `1px solid ${gs.border}`,
-                          padding: "2px 8px", borderRadius: 20, textTransform: "uppercase", letterSpacing: ".06em",
-                        }}>
-                          {gs.label}
-                        </span>
+                        <div style={{ fontSize: ".82rem", fontWeight: 600, color: t.text, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {place.name}
+                        </div>
+                        <div style={{ fontSize: ".68rem", color: t.dark ? "#666" : "#aaa", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 }}>
+                          {place.fullAddress}
+                        </div>
                       </div>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isHovered ? gs.text : "#ddd"} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, transition: "all .2s", opacity: isHovered ? .8 : .3, transform: isHovered ? "translateX(2px)" : "translateX(0)" }}>
-                        <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#444" : "#ddd"} strokeWidth="2.5" style={{ flexShrink: 0, opacity: hovered ? 1 : 0, transition: "opacity .15s" }}>
+                        <path d="m9 18 6-6-6-6" />
                       </svg>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Predefined location results */}
-          {Array.from(grouped.entries()).map(([state, locs]) => {
-            const stateInfo = getStateDisplay(state);
-            const isExpanded = activeGroup === null || activeGroup === state;
-            return (
-              <div key={state} style={{ marginBottom: 4 }}>
-                <div
-                  onClick={() => setActiveGroup(activeGroup === state ? null : state)}
-                  style={{
-                    padding: "10px 22px 6px", display: "flex", alignItems: "center", gap: 8,
-                    cursor: "pointer", userSelect: "none",
-                  }}
-                >
-                  <span style={{ fontSize: "1rem" }}>{stateInfo.icon}</span>
-                  <span style={{ fontSize: ".75rem", fontWeight: 800, color: t.dark ? "#ddd" : NAVY, letterSpacing: ".02em" }}>{stateInfo.name}</span>
-                  <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${t.border}, transparent)` }} />
-                  <span style={{
-                    fontSize: ".58rem", fontWeight: 700, color: "#fff",
-                    background: isExpanded ? A : (t.dark ? "#555" : "#ccc"),
-                    padding: "2px 8px", borderRadius: 10,
-                    transition: "all .2s",
-                  }}>{locs.length}</span>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#888" : "#999"} strokeWidth="2.5" style={{
-                    transition: "transform .25s cubic-bezier(.16,1,.3,1)",
-                    transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                  }}><polyline points="6 9 12 15 18 9" /></svg>
-                </div>
-
-                {isExpanded && (
-                  <div style={{ padding: "0 14px 4px", display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 5 }}>
-                    {locs.map((loc, i) => {
-                      const idx = flatIdx++;
-                      const s = getStyle(loc.type);
-                      const isHovered = hoveredIdx === idx;
-                      const currentIdx = idx;
-
-                      return (
-                        <div
-                          key={`${loc.name}-${loc.state}-${currentIdx}`}
-                          className="loc-tile"
-                          onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
-                          onMouseEnter={() => setHoveredIdx(currentIdx)}
-                          onMouseLeave={() => setHoveredIdx(null)}
-                          style={{
-                            display: "flex", alignItems: "center", gap: 11,
-                            padding: "10px 12px", cursor: "pointer",
-                            borderRadius: 14,
-                            background: isHovered ? s.bg : "transparent",
-                            border: `1.5px solid ${isHovered ? s.border : "transparent"}`,
-                            transform: isHovered ? "translateX(4px)" : "translateX(0)",
-                            animation: `tilePopIn .3s cubic-bezier(.16,1,.3,1) ${i * 0.04}s both`,
-                          }}
-                        >
-                          <div style={{
-                            width: 40, height: 40, borderRadius: 12,
-                            background: isHovered ? "#fff" : s.iconBg,
-                            border: `1.5px solid ${s.border}`,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            flexShrink: 0,
-                            transform: isHovered ? "scale(1.12) rotate(-5deg)" : "scale(1) rotate(0)",
-                            transition: "all .25s cubic-bezier(.16,1,.3,1)",
-                            boxShadow: isHovered ? `0 6px 16px ${s.border}` : "none",
-                          }}>
-                            <LocationIcon type={loc.type} color={s.text} />
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{
-                              fontSize: ".85rem", fontWeight: 700, color: isHovered ? s.text : (t.dark ? "#ddd" : "#1a1a1a"),
-                              lineHeight: 1.2, transition: "color .15s",
-                            }}>{loc.name}</div>
-                            <span style={{
-                              display: "inline-block", marginTop: 3,
-                              fontSize: ".56rem", fontWeight: 800, color: s.text,
-                              background: s.bg, border: `1px solid ${s.border}`,
-                              padding: "2px 8px", borderRadius: 20, textTransform: "uppercase", letterSpacing: ".06em",
-                            }}>
-                              {loc.type}
-                            </span>
-                          </div>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isHovered ? s.text : (t.dark ? "#555" : "#ddd")} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, transition: "all .2s", opacity: isHovered ? .8 : .3, transform: isHovered ? "translateX(2px)" : "translateX(0)" }}>
-                            <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                          </svg>
-                        </div>
-                      );
-                    })}
+            {/* Predefined locations grouped by state */}
+            {Array.from(grouped.entries()).map(([state, locs]) => {
+              const stateInfo = getStateDisplay(state);
+              return (
+                <div key={state}>
+                  <div style={{
+                    padding: "10px 18px 4px",
+                    display: "flex", alignItems: "center", gap: 6,
+                    position: "sticky", top: 0,
+                    background: t.dark ? "#1a1a1a" : "#fff",
+                    zIndex: 2,
+                  }}>
+                    <span style={{ fontSize: ".85rem" }}>{stateInfo.icon}</span>
+                    <span style={{ fontSize: ".7rem", fontWeight: 800, color: t.dark ? "#aaa" : NAVY, letterSpacing: ".02em" }}>{stateInfo.name}</span>
+                    <div style={{ flex: 1, height: 1, background: t.dark ? "#2a2a2a" : "#f0f0f0" }} />
                   </div>
-                )}
-                {!isExpanded && (() => { flatIdx += locs.length; return null; })()}
-              </div>
-            );
-          })}
 
-          {/* Footer with search hint */}
+                  {locs.map((loc) => {
+                    const id = `loc-${loc.name}-${loc.state}`;
+                    const hovered = hoveredId === id;
+                    const color = typeColor[loc.type] || "#6366f1";
+                    const trending = trendingMap[loc.name];
+
+                    return (
+                      <div
+                        key={id}
+                        className="dd-row"
+                        onClick={() => { onChange(`${loc.name}, ${loc.state}`); onSelect(loc); setOpen(false); }}
+                        onMouseEnter={() => setHoveredId(id)}
+                        onMouseLeave={() => setHoveredId(null)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 12,
+                          padding: hovered ? "9px 18px 9px 22px" : "9px 18px",
+                          cursor: "pointer",
+                          background: hovered ? (t.dark ? "#252525" : "#f8f8f8") : "transparent",
+                        }}
+                      >
+                        <div style={{
+                          width: 34, height: 34, borderRadius: 10,
+                          background: hovered ? `${color}18` : (t.dark ? "#252525" : "#f5f5f5"),
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0, transition: "all .2s",
+                        }}>
+                          <LocationIcon type={loc.type} color={hovered ? color : (t.dark ? "#555" : "#bbb")} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontSize: ".82rem", fontWeight: 600, color: t.text, lineHeight: 1.3 }}>
+                              {loc.name}
+                            </span>
+                            {trending && (
+                              <span style={{
+                                fontSize: ".55rem", fontWeight: 700, color: A,
+                                background: `${A}10`, padding: "1px 6px", borderRadius: 8,
+                                whiteSpace: "nowrap",
+                              }}>{trending}</span>
+                            )}
+                          </div>
+                          <span style={{
+                            fontSize: ".58rem", fontWeight: 700,
+                            color: color, textTransform: "uppercase", letterSpacing: ".04em",
+                          }}>
+                            {loc.type}
+                          </span>
+                        </div>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.dark ? "#444" : "#ddd"} strokeWidth="2.5" style={{ flexShrink: 0, opacity: hovered ? 1 : 0, transition: "opacity .15s" }}>
+                          <path d="m9 18 6-6-6-6" />
+                        </svg>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+
+            {/* Empty state */}
+            {results.length === 0 && geoSuggestions.length === 0 && value.trim().length >= 3 && !geoLoading && (
+              <div style={{ padding: "24px 18px", textAlign: "center" }}>
+                <div style={{ fontSize: "1.5rem", marginBottom: 6 }}>🔍</div>
+                <div style={{ fontSize: ".82rem", fontWeight: 600, color: t.dark ? "#888" : "#666" }}>No locations found</div>
+                <div style={{ fontSize: ".72rem", color: t.dark ? "#555" : "#aaa", marginTop: 2 }}>Try a different search term</div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
           <div style={{
-            padding: "12px 22px 16px", borderTop: `1px solid ${t.border}`, marginTop: 4,
-            display: "flex", alignItems: "center", gap: 10,
-            background: t.dark ? "rgba(255,255,255,.02)" : "rgba(0,0,0,.015)",
+            padding: "8px 18px",
+            borderTop: `1px solid ${t.dark ? "#2a2a2a" : "#f0f0f0"}`,
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            flexShrink: 0,
+            background: t.dark ? "#161616" : "#fafafa",
           }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: 8,
-              background: `${A}15`, border: `1px solid ${A}30`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2.5" strokeLinecap="round">
-                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: ".7rem", fontWeight: 700, color: t.dark ? "#aaa" : "#666" }}>Type to search</div>
-              <div style={{ fontSize: ".6rem", color: t.dark ? "#666" : "#aaa" }}>Street address, city, or neighborhood</div>
-            </div>
-            <div style={{ marginLeft: "auto", display: "flex", gap: 3 }}>
-              <kbd style={{ fontSize: ".55rem", padding: "2px 6px", borderRadius: 4, background: t.dark ? "#2a2a2a" : "#f0f0f0", border: `1px solid ${t.border}`, color: t.dark ? "#888" : "#999", fontFamily: "monospace" }}>↵</kbd>
-              <kbd style={{ fontSize: ".55rem", padding: "2px 6px", borderRadius: 4, background: t.dark ? "#2a2a2a" : "#f0f0f0", border: `1px solid ${t.border}`, color: t.dark ? "#888" : "#999", fontFamily: "monospace" }}>esc</kbd>
+            <span style={{ fontSize: ".62rem", color: t.dark ? "#555" : "#bbb" }}>
+              {results.length + geoSuggestions.length} destinations
+            </span>
+            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+              <kbd style={{ fontSize: ".5rem", padding: "1px 5px", borderRadius: 3, background: t.dark ? "#2a2a2a" : "#eee", border: `1px solid ${t.dark ? "#333" : "#ddd"}`, color: t.dark ? "#666" : "#999", fontFamily: "monospace" }}>↵</kbd>
+              <span style={{ fontSize: ".5rem", color: t.dark ? "#444" : "#ccc" }}>select</span>
+              <kbd style={{ fontSize: ".5rem", padding: "1px 5px", borderRadius: 3, background: t.dark ? "#2a2a2a" : "#eee", border: `1px solid ${t.dark ? "#333" : "#ddd"}`, color: t.dark ? "#666" : "#999", fontFamily: "monospace", marginLeft: 4 }}>esc</kbd>
+              <span style={{ fontSize: ".5rem", color: t.dark ? "#444" : "#ccc" }}>close</span>
             </div>
           </div>
         </div>
