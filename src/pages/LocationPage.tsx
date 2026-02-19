@@ -46,6 +46,26 @@ const LocationPage = () => {
       setMeta("og:description", data.metaDescription);
       setMeta("og:url", `https://coupleofhours.com/hotels/${data.slug}`);
       setMeta("og:type", "website");
+      setMeta("og:image", `https://coupleofhours.com${data.ogImage}`);
+      setMeta("og:image:width", "1200");
+      setMeta("og:image:height", "640");
+      setMeta("og:image:type", "image/jpeg");
+
+      // Twitter Card
+      const setTwitter = (name: string, content: string) => {
+        let el = document.querySelector(`meta[name="${name}"]`);
+        if (el) el.setAttribute("content", content);
+        else {
+          el = document.createElement("meta");
+          el.setAttribute("name", name);
+          el.setAttribute("content", content);
+          document.head.appendChild(el);
+        }
+      };
+      setTwitter("twitter:card", "summary_large_image");
+      setTwitter("twitter:title", data.metaTitle);
+      setTwitter("twitter:description", data.metaDescription);
+      setTwitter("twitter:image", `https://coupleofhours.com${data.ogImage}`);
     }
     window.scrollTo(0, 0);
   }, [data]);

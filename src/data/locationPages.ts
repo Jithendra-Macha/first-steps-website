@@ -6,6 +6,7 @@ export interface LocationPageData {
   heroSubtitle: string;
   metaTitle: string;
   metaDescription: string;
+  ogImage: string;
   heroImage: string;
   stats: { label: string; value: string }[];
   neighborhoods: { name: string; description: string; hotels: number }[];
@@ -24,6 +25,7 @@ export const LOCATION_PAGES: Record<string, LocationPageData> = {
     heroSubtitle: "Book premium NYC hotel rooms by the hour — perfect for layovers, day stays, business meetings, and more.",
     metaTitle: "Hourly Hotels in NYC | Book by the Hour | CoupleOfHours",
     metaDescription: "Find and book hourly hotel rooms across New York City. Premium hotels in Manhattan, Brooklyn, Queens & more. Starting from $12/hr.",
+    ogImage: "/og/og-new-york-city.jpg",
     heroImage: "linear-gradient(135deg, #0d1f38 0%, #1a3a5c 50%, #ff4d00 100%)",
     avgRate: "$18",
     stats: [
@@ -63,6 +65,7 @@ export const LOCATION_PAGES: Record<string, LocationPageData> = {
     heroSubtitle: "Discover Brooklyn's best hourly hotel rooms — from waterfront suites to boutique stays in Williamsburg and DUMBO.",
     metaTitle: "Hourly Hotels in Brooklyn, NY | Book by the Hour | CoupleOfHours",
     metaDescription: "Book hourly hotels in Brooklyn. Trendy stays in Williamsburg, DUMBO, Park Slope & more. Starting from $14/hr.",
+    ogImage: "/og/og-brooklyn.jpg",
     heroImage: "linear-gradient(135deg, #1a3a2a 0%, #0d3020 50%, #ff4d00 100%)",
     avgRate: "$16",
     stats: [
@@ -101,6 +104,7 @@ export const LOCATION_PAGES: Record<string, LocationPageData> = {
     heroSubtitle: "Affordable hourly hotel rooms in The Bronx — near Yankee Stadium, Bronx Zoo, and major expressways.",
     metaTitle: "Hourly Hotels in The Bronx, NY | Book by the Hour | CoupleOfHours",
     metaDescription: "Book affordable hourly hotels in The Bronx. Near Yankee Stadium, Bronx Zoo & more. Starting from $10/hr.",
+    ogImage: "/og/og-bronx.jpg",
     heroImage: "linear-gradient(135deg, #2a1a0a 0%, #4a2a10 50%, #ff4d00 100%)",
     avgRate: "$12",
     stats: [
@@ -139,6 +143,7 @@ export const LOCATION_PAGES: Record<string, LocationPageData> = {
     heroSubtitle: "Book hourly rooms in Queens — the most diverse borough, near JFK & LaGuardia airports.",
     metaTitle: "Hourly Hotels in Queens, NY | Book by the Hour | CoupleOfHours",
     metaDescription: "Book hourly hotels in Queens near JFK & LaGuardia airports. Diverse neighborhoods, great rates from $12/hr.",
+    ogImage: "/og/og-queens.jpg",
     heroImage: "linear-gradient(135deg, #0a1530 0%, #1a2a50 50%, #ff4d00 100%)",
     avgRate: "$14",
     stats: [
