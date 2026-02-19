@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Nav, Hero, TrustRow } from "@/components/coh/SharedComponents";
 import { DealsSection, ZonesSection, WhySection, AirportsSection, NJSection, OccasionsSection, HowItWorks, Stats, Footer } from "@/components/coh/LandingSections";
 import { OrganizationJsonLd, WebSiteJsonLd, HowToJsonLd, ServiceJsonLd, HomepageFAQJsonLd, SpeakableJsonLd } from "@/components/seo/GEOSchemas";
 import ResultsPage from "@/components/coh/ResultsPage";
-import AskAIPanel from "@/components/coh/AskAIPanel";
+import HouryChatPanel, { HouryWidgetLauncher } from "@/components/chatbot/HouryChatPanel";
 import HotelPage, { ConfirmationPage, type BookingData } from "@/components/coh/HotelPage";
 import AuthPage from "@/pages/AuthPage";
 import ProfilePage from "@/pages/ProfilePage";
@@ -25,12 +25,21 @@ const NAVY = "#0d1f38";
 
 const Index = () => {
   const [page, setPage] = useState<"landing" | "results" | "hotel" | "confirmation" | "profile" | "reservations" | "list-property">("landing");
-  const [showAskAI, setShowAskAI] = useState(false);
+  const [showHoury, setShowHoury] = useState(false);
+  const [houryProactive, setHouryProactive] = useState(false);
   const [query, setQuery] = useState("Manhattan, New York");
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const { user, signOut } = useAuth();
+
+  // Proactive message after 20 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!showHoury) setHouryProactive(true);
+    }, 20000);
+    return () => clearTimeout(timer);
+  }, [showHoury]);
 
   const goSearch = useCallback((q: string) => {
     setQuery(q || "Manhattan");
@@ -103,7 +112,7 @@ const Index = () => {
     onProfileClick: handleProfileClick,
     onReservationsClick: handleReservationsClick,
     onListPropertyClick: handleListPropertyClick,
-    onAskAI: () => setShowAskAI(true),
+    onAskAI: () => setShowHoury(true),
     user,
     onSignOut: signOut,
   };
@@ -170,7 +179,23 @@ const Index = () => {
       </AnimatePresence>
 
       {showAuth && <AuthPage onClose={() => setShowAuth(false)} />}
-      <AskAIPanel open={showAskAI} onClose={() => setShowAskAI(false)} />
+      
+      {/* Houry Floating Widget */}
+      <AnimatePresence>
+        {showHoury && (
+          <HouryChatPanel
+            open={showHoury}
+            onClose={() => setShowHoury(false)}
+            onMinimize={() => setShowHoury(false)}
+          />
+        )}
+      </AnimatePresence>
+      {!showHoury && (
+        <HouryWidgetLauncher
+          onClick={() => { setShowHoury(true); setHouryProactive(false); }}
+          hasUnread={houryProactive}
+        />
+      )}
     </>
   );
 };
