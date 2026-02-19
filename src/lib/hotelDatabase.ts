@@ -305,6 +305,31 @@ export const HOTEL_DATABASE: RAGHotel[] = [
     policies: { cancellation: "Free cancellation up to 1 hour before check-in", early_checkin: true, late_checkout: false },
   },
   {
+    id: "h36", name: "Days Inn by Wyndham Brooklyn Borough Park", area: "Borough Park", borough: "Brooklyn",
+    distance_from_center_km: 8.5, rating: 3.8, total_reviews: 1420,
+    image: "linear-gradient(155deg,#1a1406 0%,#34280c 30%,#4e3c14 55%,#7a6020 80%,#a6842c 100%)",
+    address: "3117 13th Ave, Borough Park, Brooklyn",
+    rooms: [
+      { room_id: "h36-std", type: "Standard", hourly_rate: 10, max_guests: 2, amenities: ["WiFi", "AC", "Parking", "TV"], min_hours: 1, max_hours: 8 },
+      { room_id: "h36-dlx", type: "Deluxe", hourly_rate: 16, max_guests: 3, amenities: ["WiFi", "AC", "Parking", "Breakfast", "Gym"], min_hours: 2, max_hours: 10 },
+    ],
+    tags: ["budget", "family", "parking", "quiet"],
+    policies: { cancellation: "Free cancellation up to 1 hour before check-in", early_checkin: true, late_checkout: false },
+  },
+  {
+    id: "h37", name: "Hampton Inn Brooklyn/Downtown", area: "Downtown Brooklyn", borough: "Brooklyn",
+    distance_from_center_km: 5.3, rating: 4.3, total_reviews: 2180,
+    image: "linear-gradient(155deg,#0a0e1a 0%,#141e34 30%,#1e2e50 55%,#2e4a78 80%,#3e66a0 100%)",
+    address: "125 Flatbush Ave Extension, Downtown Brooklyn, Brooklyn",
+    rooms: [
+      { room_id: "h37-std", type: "Standard", hourly_rate: 15, max_guests: 2, amenities: ["WiFi", "AC", "Breakfast", "Gym"], min_hours: 2, max_hours: 8 },
+      { room_id: "h37-dlx", type: "Deluxe", hourly_rate: 24, max_guests: 3, amenities: ["WiFi", "AC", "Breakfast", "Gym", "City View", "Business Center"], min_hours: 2, max_hours: 10 },
+      { room_id: "h37-ste", type: "Suite", hourly_rate: 36, max_guests: 4, amenities: ["WiFi", "Breakfast", "Gym", "City View", "Room Service", "Business Center"], min_hours: 3, max_hours: 12 },
+    ],
+    tags: ["business", "family", "transit-friendly", "breakfast-included"],
+    policies: { cancellation: "Free cancellation up to 2 hours before check-in", early_checkin: true, late_checkout: true },
+  },
+  {
     id: "h8", name: "JFK Airport Suites", area: "Jamaica", borough: "Queens",
     distance_from_center_km: 22.0, rating: 4.4, total_reviews: 2105,
     image: "linear-gradient(155deg,#0a0a1a 0%,#1a1a3a 30%,#2a2a5a 55%,#4a4a8a 80%,#6a6ab0 100%)",
