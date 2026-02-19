@@ -357,11 +357,11 @@ export function Footer() {
       { label: "The Bronx Hotels", href: "/hotels/bronx" },
     ]},
     { title: "Airports & NJ", links: [
-      { label: "Hotels Near JFK", href: null },
-      { label: "Hotels Near LGA", href: null },
-      { label: "Hotels Near EWR", href: null },
-      { label: "Jersey City Hotels", href: null },
-      { label: "Hoboken Hotels", href: null },
+      { label: "Hotels Near JFK", href: "/hotels/jfk-airport" },
+      { label: "Hotels Near LGA", href: "/hotels/lga-airport" },
+      { label: "Hotels Near EWR", href: "/hotels/ewr-airport" },
+      { label: "Jersey City Hotels", href: "/hotels/jersey-city" },
+      { label: "Hoboken Hotels", href: "/hotels/hoboken" },
     ]},
     { title: "Company", links: [
       { label: "About Us", href: null },
