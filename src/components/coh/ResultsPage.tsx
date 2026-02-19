@@ -1034,7 +1034,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
       </div>
 
       {/* Main content area */}
-      <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0, position: "relative" }}>
+      <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0, position: "relative", gap: 0 }}>
         {/* Filter Sidebar */}
         {view !== "map" && (
           <FilterSidebar open={filtersOpen} onToggle={() => setFiltersOpen(!filtersOpen)} count={sorted.length} />
@@ -1043,10 +1043,12 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
         {/* Results list */}
         {view !== "map" && (
           <div style={{
-            flex: 1,
+            flex: "1 1 50%",
+            maxWidth: view === "list" ? "100%" : "50%",
             overflowY: "auto",
-            padding: "14px 20px",
+            padding: "14px 16px 14px 20px",
             paddingBottom: comparedHotels.length > 0 ? 80 : 14,
+            borderRight: view === "split" ? `1px solid ${t.border}` : "none",
           }}>
             {sorted.map((h, i) => (
               <HotelCard
