@@ -650,8 +650,8 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
         Pay only for the hours you need — perfect for layovers, day stays,{!mob && <br />}business meetings & couple escapes.
       </p>
 
-      {/* search bar */}
-      <div style={{ maxWidth: 860, margin: "0 auto 1.4rem", position: "relative", zIndex: 100 }}>
+      {/* search bar — sticky */}
+      <div style={{ position: "sticky", top: mob ? 52 : 62, zIndex: 100, maxWidth: 860, margin: "0 auto 1.4rem", background: "inherit" }}>
         <div style={{
           background: "#fff", borderRadius: 14,
           display: "flex",
