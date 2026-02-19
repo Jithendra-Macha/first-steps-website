@@ -38,7 +38,7 @@ export default function ChatPage() {
           </h1>
           <p className="text-white/60 text-sm leading-relaxed">
             Premium hotel rooms from $10/hr across NYC, Brooklyn, Queens, and New Jersey. 
-            Tell Houry what you need — our AI will handle the rest.
+            Tell Sandy what you need — she'll handle the rest.
           </p>
         </div>
 
