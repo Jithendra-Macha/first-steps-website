@@ -778,25 +778,8 @@ function BookingCard({ hotel, selectedSlot, onSlotChange, selectedRoom, onRoomCh
           ))}
         </div>
 
-        {/* Room type */}
-        <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginTop: 18, marginBottom: 10 }}>Select room type</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {ROOM_TYPES.map((r, i) => (
-            <button key={i} onClick={() => onRoomChange(i)} style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "10px 12px", borderRadius: 10,
-              border: selectedRoom === i ? `2px solid ${A}` : `1.5px solid ${BRD}`,
-              background: selectedRoom === i ? "#fff5f0" : "#fff",
-              cursor: "pointer", fontFamily: "inherit", transition: "all .15s",
-            }}>
-              <span>{r.icon}</span>
-              <div style={{ flex: 1, textAlign: "left" }}>
-                <div style={{ fontSize: ".72rem", fontWeight: 700, color: selectedRoom === i ? A : NAVY }}>{r.name}</div>
-              </div>
-              <span style={{ fontSize: ".76rem", fontWeight: 800, color: selectedRoom === i ? A : NAVY }}>${r.price}/hr</span>
-            </button>
-          ))}
-        </div>
+
+
 
         {/* Room count */}
         <div style={{
