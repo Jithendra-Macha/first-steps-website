@@ -411,10 +411,10 @@ function LocationDropdown({ value, onChange, onSelect }: { value: string; onChan
                         const loc = results.find(r => r.name === name);
                         if (loc) { onChange(`${name}, ${loc.state}`); onSelect(loc); setOpen(false); }
                       }}
-                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 16px" }}
+                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", justifyContent: "flex-start" }}
                     >
-                      <span style={{ fontSize: "1rem", width: 24, textAlign: "center" }}>{fd.emoji}</span>
-                      <span style={{ fontSize: ".92rem", fontWeight: 600, color: t.text, flex: 1 }}>{name}</span>
+                      <span style={{ fontSize: "1rem", width: 24, textAlign: "center", flexShrink: 0 }}>{fd.emoji}</span>
+                      <span style={{ fontSize: ".92rem", fontWeight: 600, color: t.text, flex: 1, textAlign: "left" }}>{name}</span>
                       {fd.tag && (
                         <span style={{
                           fontSize: ".46rem", fontWeight: 800, color: "#fff",
