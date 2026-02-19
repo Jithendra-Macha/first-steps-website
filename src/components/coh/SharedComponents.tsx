@@ -106,12 +106,17 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
   onSignOut?: () => void;
 }) {
   const [scrolled, setScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
+  const [stickyQuery, setStickyQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const mob = useIsMobile();
   const t = useThemeColors();
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 50);
+    const h = () => {
+      setScrolled(window.scrollY > 50);
+      setPastHero(window.scrollY > 400);
+    };
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
@@ -162,7 +167,21 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
 
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? t.navBg : t.navBgSolid, backdropFilter: "blur(14px)", borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "0 4%" : "0 5%", height: mob ? 52 : 62, boxShadow: scrolled ? `0 2px 20px ${t.shadow}` : "none", transition: "box-shadow .25s" }}>
-      <a href="/" style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer", color: t.text, textDecoration: "none" }}>coupleofhours<span style={{ color: A }}>.com</span></a>
+      <a href="/" style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer", color: t.text, textDecoration: "none", flexShrink: 0 }}>coupleofhours<span style={{ color: A }}>.com</span></a>
+      {pastHero && !mob && (
+        <form onSubmit={e => { e.preventDefault(); onSearch(stickyQuery || "Manhattan"); }} style={{ display: "flex", alignItems: "center", background: t.dark ? "#1e1e1e" : "#f5f5f5", borderRadius: 10, height: 38, padding: "0 4px 0 12px", gap: 6, flex: "0 1 340px", marginLeft: 16, transition: "opacity .2s", border: `1px solid ${t.border}` }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+          <input value={stickyQuery} onChange={e => setStickyQuery(e.target.value)} placeholder="Search city or neighborhood..." style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: ".8rem", fontFamily: "inherit", color: t.text }} />
+          <button type="submit" style={{ background: A, color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: ".75rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Search</button>
+        </form>
+      )}
+      {pastHero && mob && (
+        <form onSubmit={e => { e.preventDefault(); onSearch(stickyQuery || "Manhattan"); }} style={{ display: "flex", alignItems: "center", background: t.dark ? "#1e1e1e" : "#f5f5f5", borderRadius: 8, height: 34, padding: "0 4px 0 10px", gap: 4, flex: "1 1 0", marginLeft: 8, marginRight: 8, border: `1px solid ${t.border}` }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+          <input value={stickyQuery} onChange={e => setStickyQuery(e.target.value)} placeholder="Search..." style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: ".75rem", fontFamily: "inherit", color: t.text, minWidth: 0 }} />
+          <button type="submit" style={{ background: A, color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: ".7rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Go</button>
+        </form>
+      )}
       {mob ? (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
