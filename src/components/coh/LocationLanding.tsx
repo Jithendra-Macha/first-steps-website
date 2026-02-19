@@ -400,11 +400,23 @@ function FeaturedHotels({ data }: { data: LocationPageData }) {
   return (
     <section style={{ padding: mob ? "2.5rem 5%" : "3.5rem 8%", background: t.bg }}>
       <SectionHeader title="Hotels in" accent={data.name} sub={`${hotels.length} verified hourly hotels available`} />
-      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap: 16 }}>
+      <div className="hotel-scroll" style={{
+        display: "flex",
+        gap: 16,
+        overflowX: "auto",
+        scrollSnapType: "x mandatory",
+        WebkitOverflowScrolling: "touch",
+        paddingBottom: 12,
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+      }}>
+        <style>{`.hotel-scroll::-webkit-scrollbar{display:none}`}</style>
         {hotels.map(hotel => {
           const cheapest = Math.min(...hotel.rooms.map(r => r.hourly_rate));
           return (
-            <HotelListingCard key={hotel.id} hotel={hotel} cheapest={cheapest} />
+            <div key={hotel.id} style={{ minWidth: mob ? "85%" : 320, maxWidth: mob ? "85%" : 340, scrollSnapAlign: "start", flexShrink: 0 }}>
+              <HotelListingCard hotel={hotel} cheapest={cheapest} />
+            </div>
           );
         })}
       </div>
