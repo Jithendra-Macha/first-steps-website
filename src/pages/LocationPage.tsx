@@ -11,14 +11,41 @@ const LocationPage = () => {
   useEffect(() => {
     if (data) {
       document.title = data.metaTitle;
-      const meta = document.querySelector('meta[name="description"]');
+
+      // Meta description
+      let meta = document.querySelector('meta[name="description"]');
       if (meta) meta.setAttribute("content", data.metaDescription);
       else {
-        const m = document.createElement("meta");
-        m.name = "description";
-        m.content = data.metaDescription;
-        document.head.appendChild(m);
+        meta = document.createElement("meta");
+        (meta as HTMLMetaElement).name = "description";
+        (meta as HTMLMetaElement).content = data.metaDescription;
+        document.head.appendChild(meta);
       }
+
+      // Canonical URL
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.rel = "canonical";
+        document.head.appendChild(canonical);
+      }
+      canonical.href = `https://coupleofhours.com/hotels/${data.slug}`;
+
+      // OG tags
+      const setMeta = (property: string, content: string) => {
+        let el = document.querySelector(`meta[property="${property}"]`);
+        if (el) el.setAttribute("content", content);
+        else {
+          el = document.createElement("meta");
+          el.setAttribute("property", property);
+          el.setAttribute("content", content);
+          document.head.appendChild(el);
+        }
+      };
+      setMeta("og:title", data.metaTitle);
+      setMeta("og:description", data.metaDescription);
+      setMeta("og:url", `https://coupleofhours.com/hotels/${data.slug}`);
+      setMeta("og:type", "website");
     }
     window.scrollTo(0, 0);
   }, [data]);

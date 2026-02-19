@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import LocationPage from "./pages/LocationPage";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -44,6 +45,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/hotels/:slug" element={<LocationPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
