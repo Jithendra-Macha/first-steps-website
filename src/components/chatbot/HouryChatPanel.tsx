@@ -546,8 +546,8 @@ function getContextualReplies(messages: ChatMessage[], slots: BookingSlots): str
   // Step 2: Date  
   if (content.includes("date") || content.includes("when")) return ["Today", "Tomorrow", "This Saturday"];
   // Step 3: Time slot
-  if (content.includes("time slot") || content.includes("time of day") || content.includes("preferred time")) {
-    return ["🌅 Morning", "☀️ Mid-day", "🌤️ Afternoon", "🌆 Evening", "🌙 Night"].slice(0, 4);
+  if (content.includes("time slot") || content.includes("time of day") || content.includes("preferred time") || content.includes("time slot do you prefer")) {
+    return ["🌅 Morning", "☀️ Mid-day", "🌤️ Afternoon", "🌆 Evening", "🌙 Night"];
   }
   // Step 5: After hotel selection — guest details prompt
   if (content.includes("first name") || content.includes("few details") || content.includes("guest details")) {
