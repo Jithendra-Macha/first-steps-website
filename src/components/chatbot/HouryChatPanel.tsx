@@ -591,7 +591,7 @@ export function HouryWidgetLauncher({
         transition={{ duration: 1.5, repeat: Infinity }}
       />
       <Clock size={18} />
-      <span>Book by the Hour</span>
+      <span>Ask AI to book the Hourly room</span>
       <span>🕐</span>
       {hasUnread && (
         <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
