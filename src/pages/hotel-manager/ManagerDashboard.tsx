@@ -1,0 +1,125 @@
+import { CalendarCheck, DollarSign, Users, TrendingUp, ArrowUpRight, Clock, Star } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { HOTEL_INFO, MANAGER_KPIS, TODAY_TIMELINE, RECENT_ACTIVITY, ROOM_TYPES, AVAILABILITY_SLOTS } from "@/data/hotelManagerMockData";
+
+const KPI_CARDS = [
+  { title: "Today's Bookings", value: MANAGER_KPIS.todayBookings, icon: CalendarCheck, accent: "hsl(217, 91%, 60%)", sub: `${MANAGER_KPIS.pendingCheckIns} pending check-ins` },
+  { title: "Today's Revenue", value: `₹${MANAGER_KPIS.todayRevenue.toLocaleString("en-IN")}`, icon: DollarSign, accent: "hsl(142, 71%, 45%)", sub: "Across all room types" },
+  { title: "Occupancy Rate", value: `${MANAGER_KPIS.occupancyRate}%`, icon: TrendingUp, accent: "hsl(38, 92%, 50%)", sub: `${MANAGER_KPIS.activeGuests} active guests` },
+  { title: "Avg Rating", value: MANAGER_KPIS.avgRating, icon: Star, accent: "hsl(270, 60%, 60%)", sub: `${HOTEL_INFO.totalReviews} total reviews` },
+];
+
+export default function ManagerDashboard() {
+  const navigate = useNavigate();
+  const today = new Date().toISOString().split("T")[0];
+  const todaySlots = AVAILABILITY_SLOTS.filter(s => s.date === today);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
+          Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 17 ? "Afternoon" : "Evening"}, {HOTEL_INFO.manager.name.split(" ")[0]}
+        </h1>
+        <p className="text-sm text-white/40 mt-1">Here's what's happening at {HOTEL_INFO.name} today</p>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {KPI_CARDS.map((kpi, i) => (
+          <Card key={i} className="border-white/8 bg-white/[0.03] text-white">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: `${kpi.accent}20` }}>
+                  <kpi.icon className="h-5 w-5" style={{ color: kpi.accent }} />
+                </div>
+                <span className="flex items-center gap-0.5 text-xs font-medium text-emerald-400">
+                  <ArrowUpRight className="h-3 w-3" />+12%
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>{kpi.value}</div>
+                <p className="text-xs text-white/40 mt-0.5">{kpi.title}</p>
+                <p className="text-[11px] text-white/25 mt-1">{kpi.sub}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-3">
+        <button onClick={() => navigate("/manager/availability")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors" style={{ background: "hsla(18, 100%, 50%, 0.12)", color: "hsl(18, 100%, 60%)", border: "1px solid hsla(18, 100%, 50%, 0.2)" }}>
+          <Clock className="h-3.5 w-3.5" />Manage Availability
+        </button>
+        <button onClick={() => navigate("/manager/reservations")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors" style={{ background: "hsla(217, 91%, 60%, 0.12)", color: "hsl(217, 91%, 65%)", border: "1px solid hsla(217, 91%, 60%, 0.2)" }}>
+          <CalendarCheck className="h-3.5 w-3.5" />View Reservations
+          <Badge className="h-5 min-w-5 text-[10px] border-0 text-white" style={{ background: "hsl(217, 91%, 55%)" }}>{MANAGER_KPIS.pendingCheckIns}</Badge>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Today's Timeline */}
+        <Card className="lg:col-span-2 border-white/8 bg-white/[0.03] text-white">
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-white/60">Today's Schedule</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            {TODAY_TIMELINE.map((item, i) => (
+              <div key={i} className="flex gap-3 items-start">
+                <span className="text-[11px] text-white/30 w-16 shrink-0 pt-0.5">{item.time}</span>
+                <div className="h-2 w-2 rounded-full mt-1.5 shrink-0" style={{
+                  background: item.type === "vip" ? "hsl(38, 92%, 50%)" : item.type === "check-out" ? "hsl(0, 70%, 55%)" : item.type === "housekeeping" ? "hsl(270, 60%, 55%)" : "hsl(142, 71%, 45%)"
+                }} />
+                <p className="text-xs text-white/70">{item.event}</p>
+                {item.type === "vip" && <Badge className="text-[9px] h-4 border-0 ml-auto" style={{ background: "hsla(38, 92%, 50%, 0.2)", color: "hsl(38, 92%, 60%)" }}>VIP</Badge>}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Activity Feed */}
+        <Card className="border-white/8 bg-white/[0.03] text-white">
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-white/60">Recent Activity</CardTitle></CardHeader>
+          <CardContent className="space-y-3 max-h-[300px] overflow-y-auto">
+            {RECENT_ACTIVITY.map(a => (
+              <div key={a.id} className="flex gap-3 items-start">
+                <div className="h-2 w-2 rounded-full mt-1.5 shrink-0" style={{ background: "hsl(217, 91%, 60%)" }} />
+                <div>
+                  <p className="text-xs text-white/70 leading-relaxed">{a.action}</p>
+                  <p className="text-[10px] text-white/25 mt-0.5">{new Date(a.timestamp).toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Today's Slot Overview */}
+      <Card className="border-white/8 bg-white/[0.03] text-white">
+        <CardHeader className="pb-2"><CardTitle className="text-sm text-white/60">Today's Availability Snapshot</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {ROOM_TYPES.map(rt => {
+              const slots = todaySlots.filter(s => s.roomTypeId === rt.id);
+              const totalListed = slots.reduce((s, sl) => s + sl.roomsListed, 0);
+              const totalBooked = slots.reduce((s, sl) => s + sl.roomsBooked, 0);
+              return (
+                <div key={rt.id} className="rounded-lg p-3" style={{ background: "hsla(0,0%,100%,0.03)", border: "1px solid hsla(0,0%,100%,0.06)" }}>
+                  <p className="text-xs font-medium text-white/70">{rt.name}</p>
+                  <div className="flex items-end gap-2 mt-2">
+                    <span className="text-lg font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>{totalBooked}/{totalListed}</span>
+                    <span className="text-[10px] text-white/30 mb-0.5">booked</span>
+                  </div>
+                  <div className="h-1.5 rounded-full mt-2 overflow-hidden" style={{ background: "hsla(0,0%,100%,0.06)" }}>
+                    <div className="h-full rounded-full" style={{ width: `${totalListed > 0 ? (totalBooked / totalListed) * 100 : 0}%`, background: "hsl(18, 100%, 50%)" }} />
+                  </div>
+                  <p className="text-[10px] text-white/25 mt-1">{slots.length} active slots</p>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
