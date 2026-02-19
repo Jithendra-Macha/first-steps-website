@@ -162,7 +162,7 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
 
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? t.navBg : t.navBgSolid, backdropFilter: "blur(14px)", borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "0 4%" : "0 5%", height: mob ? 52 : 62, boxShadow: scrolled ? `0 2px 20px ${t.shadow}` : "none", transition: "box-shadow .25s" }}>
-      <Link to="/" style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer", color: t.text, textDecoration: "none" }}>coupleofhours<span style={{ color: A }}>.com</span></Link>
+      <a href="/" style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer", color: t.text, textDecoration: "none" }}>coupleofhours<span style={{ color: A }}>.com</span></a>
       {mob ? (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
