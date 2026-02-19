@@ -106,17 +106,12 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
   onSignOut?: () => void;
 }) {
   const [scrolled, setScrolled] = useState(false);
-  const [pastHero, setPastHero] = useState(false);
-  const [stickyQuery, setStickyQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const mob = useIsMobile();
   const t = useThemeColors();
   useEffect(() => {
-    const h = () => {
-      setScrolled(window.scrollY > 50);
-      setPastHero(window.scrollY > 400);
-    };
+    const h = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
@@ -168,20 +163,6 @@ export function Nav({ onSearch, onAuthClick, onProfileClick, onReservationsClick
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 200, background: scrolled ? t.navBg : t.navBgSolid, backdropFilter: "blur(14px)", borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "0 4%" : "0 5%", height: mob ? 52 : 62, boxShadow: scrolled ? `0 2px 20px ${t.shadow}` : "none", transition: "box-shadow .25s" }}>
       <a href="/" style={{ fontSize: mob ? "1rem" : "1.15rem", fontWeight: 900, letterSpacing: "-.02em", cursor: "pointer", color: t.text, textDecoration: "none", flexShrink: 0 }}>coupleofhours<span style={{ color: A }}>.com</span></a>
-      {pastHero && !mob && (
-        <form onSubmit={e => { e.preventDefault(); onSearch(stickyQuery || "Manhattan"); }} style={{ display: "flex", alignItems: "center", background: t.dark ? "#1e1e1e" : "#f5f5f5", borderRadius: 10, height: 38, padding: "0 4px 0 12px", gap: 6, flex: "0 1 340px", marginLeft: 16, transition: "opacity .2s", border: `1px solid ${t.border}` }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-          <input value={stickyQuery} onChange={e => setStickyQuery(e.target.value)} placeholder="Search city or neighborhood..." style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: ".8rem", fontFamily: "inherit", color: t.text }} />
-          <button type="submit" style={{ background: A, color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: ".75rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Search</button>
-        </form>
-      )}
-      {pastHero && mob && (
-        <form onSubmit={e => { e.preventDefault(); onSearch(stickyQuery || "Manhattan"); }} style={{ display: "flex", alignItems: "center", background: t.dark ? "#1e1e1e" : "#f5f5f5", borderRadius: 8, height: 34, padding: "0 4px 0 10px", gap: 4, flex: "1 1 0", marginLeft: 8, marginRight: 8, border: `1px solid ${t.border}` }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-          <input value={stickyQuery} onChange={e => setStickyQuery(e.target.value)} placeholder="Search..." style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: ".75rem", fontFamily: "inherit", color: t.text, minWidth: 0 }} />
-          <button type="submit" style={{ background: A, color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: ".7rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Go</button>
-        </form>
-      )}
       {mob ? (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -631,105 +612,150 @@ export function Hero({ onSearch }: { onSearch: (q: string) => void }) {
   const [hoursOpen, setHoursOpen] = useState(false);
   const [date, setDate] = useState<Date | null>(null);
   const [calOpen, setCalOpen] = useState(false);
+  const [isStuck, setIsStuck] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const HOUR_OPTIONS = ["4", "5", "6", "8", "10", "12"];
   const pills = ["Near JFK Airport", "Manhattan Midtown", "Brooklyn Heights", "Jersey City", "Upper East Side"];
   const fmtDate = (d: Date | null) => d ? format(d, "EEE M/d") : "Select date";
   const mob = useIsMobile();
+  const navH = mob ? 52 : 62;
 
-  return (
-    <div style={{ background: "radial-gradient(ellipse at 65% -10%,#1a2a42 0%,#0d1f38 50%,#081526 100%)", padding: mob ? "3rem 5% 3.5rem" : "5rem 8% 6rem", textAlign: "center", position: "relative" }}>
-      <div style={{ position: "absolute", inset: 0, opacity: .04, pointerEvents: "none", backgroundImage: "linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px)", backgroundSize: "44px 44px" }} />
-      <div style={{ position: "absolute", top: "-60px", left: "20%", width: 400, height: 400, borderRadius: "50%", background: "rgba(255,77,0,.06)", filter: "blur(80px)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: 0, right: "15%", width: 300, height: 300, borderRadius: "50%", background: "rgba(30,80,180,.12)", filter: "blur(60px)", pointerEvents: "none" }} />
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setIsStuck(!entry.isIntersecting),
+      { rootMargin: `-${navH}px 0px 0px 0px`, threshold: 0 }
+    );
+    obs.observe(sentinel);
+    return () => obs.disconnect();
+  }, [navH]);
 
-      <h1 style={{ fontSize: "clamp(1.6rem,5.5vw,3.6rem)", fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-.04em", marginBottom: "1.1rem", position: "relative" }}>
-        Find hourly hotel rooms{!mob && <br />}
-        {mob ? " " : ""}<span style={{ background: "linear-gradient(90deg,#ff7340,#ff4d00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>across New York & New Jersey</span>
-      </h1>
-      <p style={{ fontFamily: "Georgia,serif", fontStyle: "italic", fontSize: "clamp(.85rem,2.2vw,1.2rem)", color: "rgba(255,255,255,.72)", marginBottom: mob ? "1.6rem" : "2.4rem", lineHeight: 1.7, position: "relative" }}>
-        Pay only for the hours you need — perfect for layovers, day stays,{!mob && <br />}business meetings & couple escapes.
-      </p>
-
-      {/* search bar — sticky */}
-      <div style={{ position: "sticky", top: mob ? 52 : 62, zIndex: 100, maxWidth: 860, margin: "0 auto 1.4rem", background: "inherit" }}>
-        <div style={{
-          background: "#fff", borderRadius: 14,
-          display: "flex",
-          flexDirection: mob ? "column" : "row",
-          alignItems: mob ? "stretch" : "center",
-          boxShadow: "0 12px 48px rgba(0,0,0,.28)",
-          height: mob ? "auto" : 58,
-          position: "relative",
-        }}>
-          {/* Location */}
-          <div style={{ flex: 1, display: "flex", alignItems: "center", padding: mob ? "10px 16px" : "0 18px", gap: 10, height: mob ? "auto" : "100%", minWidth: 0 }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>LOCATION</div>
-              <LocationDropdown value={city} onChange={setCity} onSelect={(loc) => setCity(`${loc.name}, ${loc.state}`)} />
-            </div>
-          </div>
-
-          {mob ? <div style={{ height: 1, background: BRD }} /> : <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />}
-
-          {/* Date + Duration */}
-          <div style={{ display: "flex", flexDirection: mob ? "column" : "row", alignItems: mob ? "stretch" : "center", height: mob ? "auto" : "100%" }}>
-            <div onClick={() => setCalOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "10px 16px" : "0 18px", minWidth: mob ? 0 : 170, cursor: "pointer", height: mob ? "auto" : "100%", flexShrink: 0, background: calOpen ? "#f9f9f9" : "transparent", position: "relative" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={date ? A : "#bbb"} strokeWidth="2" style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-              <div>
-                <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>CHECK-IN</div>
-                <div style={{ fontSize: ".84rem", fontWeight: date ? 700 : 400, color: date ? "#111" : "#999", lineHeight: 1 }}>{fmtDate(date)}</div>
-              </div>
-              {calOpen && <HeroCalendar selected={date} onSelect={setDate} onClose={() => setCalOpen(false)} />}
-            </div>
-
-            {mob ? <div style={{ height: 1, background: BRD }} /> : <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />}
-
-            <div style={{ position: "relative", flexShrink: 0 }}>
-              <div onClick={() => setHoursOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "10px 16px" : "0 16px", minWidth: mob ? 0 : 130, cursor: "pointer", height: mob ? "auto" : 58, background: hoursOpen ? "#f9f9f9" : "transparent" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                <div>
-                  <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>DURATION</div>
-                  <div style={{ fontSize: ".84rem", fontWeight: 700, color: "#111", lineHeight: 1 }}>{hours} Hours</div>
-                </div>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
-              </div>
-              {hoursOpen && (
-                <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: mob ? 0 : "auto", minWidth: mob ? "auto" : 160, background: "#fff", borderRadius: 12, boxShadow: "0 8px 28px rgba(0,0,0,.14)", border: `1px solid ${BRD}`, overflow: "hidden", zIndex: 9999 }}>
-                  {HOUR_OPTIONS.map(opt => (
-                    <div key={opt} onClick={() => { setHours(opt); setHoursOpen(false); }} style={{ padding: "10px 16px", fontSize: ".84rem", fontWeight: hours === opt ? 700 : 400, color: hours === opt ? A : "#333", background: hours === opt ? "#fff8f5" : "#fff", cursor: "pointer" }}>{opt} Hours</div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button onClick={() => onSearch(city || "Manhattan")} style={{
-            background: A, color: "#fff", border: "none",
-            height: mob ? 48 : "100%",
-            padding: mob ? "0" : "0 30px",
-            fontSize: ".9rem", fontWeight: 700, fontFamily: "inherit", cursor: "pointer", flexShrink: 0,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            borderRadius: mob ? "0 0 14px 14px" : "0 14px 14px 0",
-            transition: "background .15s",
-          }} onMouseEnter={e => e.currentTarget.style.background = "#e03d00"} onMouseLeave={e => e.currentTarget.style.background = A}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-            Search
-          </button>
+  const searchBar = (
+    <div style={{
+      background: "#fff", borderRadius: isStuck ? 10 : 14,
+      display: "flex",
+      flexDirection: mob ? "column" : "row",
+      alignItems: mob ? "stretch" : "center",
+      boxShadow: isStuck ? "0 4px 20px rgba(0,0,0,.10)" : "0 12px 48px rgba(0,0,0,.28)",
+      height: mob ? "auto" : isStuck ? 52 : 58,
+      position: "relative",
+      transition: "box-shadow .2s, border-radius .2s",
+    }}>
+      {/* Location */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", padding: mob ? "10px 16px" : "0 18px", gap: 10, height: mob ? "auto" : "100%", minWidth: 0 }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>LOCATION</div>
+          <LocationDropdown value={city} onChange={setCity} onSelect={(loc) => setCity(`${loc.name}, ${loc.state}`)} />
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-        <span style={{ fontSize: ".72rem", color: "rgba(255,255,255,.4)", fontWeight: 500 }}>Popular:</span>
-        {pills.slice(0, mob ? 3 : 5).map(p => (
-          <button key={p} onClick={() => onSearch(p)} style={{ background: "rgba(255,255,255,.09)", border: "1px solid rgba(255,255,255,.16)", color: "rgba(255,255,255,.78)", borderRadius: 20, padding: "5px 14px", fontSize: ".72rem", fontWeight: 600, cursor: "pointer" }}
-            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.18)"; e.currentTarget.style.color = "#fff"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.09)"; e.currentTarget.style.color = "rgba(255,255,255,.78)"; }}>
-            {p}
-          </button>
-        ))}
+      {mob ? <div style={{ height: 1, background: BRD }} /> : <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />}
+
+      {/* Date + Duration */}
+      <div style={{ display: "flex", flexDirection: mob ? "column" : "row", alignItems: mob ? "stretch" : "center", height: mob ? "auto" : "100%" }}>
+        <div onClick={() => setCalOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "10px 16px" : "0 18px", minWidth: mob ? 0 : 170, cursor: "pointer", height: mob ? "auto" : "100%", flexShrink: 0, background: calOpen ? "#f9f9f9" : "transparent", position: "relative" }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={date ? A : "#bbb"} strokeWidth="2" style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+          <div>
+            <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>CHECK-IN</div>
+            <div style={{ fontSize: ".84rem", fontWeight: date ? 700 : 400, color: date ? "#111" : "#999", lineHeight: 1 }}>{fmtDate(date)}</div>
+          </div>
+          {calOpen && <HeroCalendar selected={date} onSelect={setDate} onClose={() => setCalOpen(false)} />}
+        </div>
+
+        {mob ? <div style={{ height: 1, background: BRD }} /> : <div style={{ width: 1, alignSelf: "stretch", background: BRD, flexShrink: 0 }} />}
+
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <div onClick={() => setHoursOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 9, padding: mob ? "10px 16px" : "0 16px", minWidth: mob ? 0 : 130, cursor: "pointer", height: mob ? "auto" : isStuck ? 52 : 58, background: hoursOpen ? "#f9f9f9" : "transparent" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+            <div>
+              <div style={{ fontSize: ".6rem", fontWeight: 700, color: "#999", letterSpacing: ".08em", lineHeight: 1, marginBottom: 3, textTransform: "uppercase" }}>DURATION</div>
+              <div style={{ fontSize: ".84rem", fontWeight: 700, color: "#111", lineHeight: 1 }}>{hours} Hours</div>
+            </div>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
+          </div>
+          {hoursOpen && (
+            <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: mob ? 0 : "auto", minWidth: mob ? "auto" : 160, background: "#fff", borderRadius: 12, boxShadow: "0 8px 28px rgba(0,0,0,.14)", border: `1px solid ${BRD}`, overflow: "hidden", zIndex: 9999 }}>
+              {HOUR_OPTIONS.map(opt => (
+                <div key={opt} onClick={() => { setHours(opt); setHoursOpen(false); }} style={{ padding: "10px 16px", fontSize: ".84rem", fontWeight: hours === opt ? 700 : 400, color: hours === opt ? A : "#333", background: hours === opt ? "#fff8f5" : "#fff", cursor: "pointer" }}>{opt} Hours</div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      <button onClick={() => onSearch(city || "Manhattan")} style={{
+        background: A, color: "#fff", border: "none",
+        height: mob ? 48 : "100%",
+        padding: mob ? "0" : "0 30px",
+        fontSize: ".9rem", fontWeight: 700, fontFamily: "inherit", cursor: "pointer", flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        borderRadius: mob ? "0 0 14px 14px" : isStuck ? "0 10px 10px 0" : "0 14px 14px 0",
+        transition: "background .15s",
+      }} onMouseEnter={e => e.currentTarget.style.background = "#e03d00"} onMouseLeave={e => e.currentTarget.style.background = A}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+        Search
+      </button>
     </div>
+  );
+
+  return (
+    <>
+      <div style={{ background: "radial-gradient(ellipse at 65% -10%,#1a2a42 0%,#0d1f38 50%,#081526 100%)", padding: mob ? "3rem 5% 3.5rem" : "5rem 8% 6rem", textAlign: "center", position: "relative" }}>
+        <div style={{ position: "absolute", inset: 0, opacity: .04, pointerEvents: "none", backgroundImage: "linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px)", backgroundSize: "44px 44px" }} />
+        <div style={{ position: "absolute", top: "-60px", left: "20%", width: 400, height: 400, borderRadius: "50%", background: "rgba(255,77,0,.06)", filter: "blur(80px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: 0, right: "15%", width: 300, height: 300, borderRadius: "50%", background: "rgba(30,80,180,.12)", filter: "blur(60px)", pointerEvents: "none" }} />
+
+        <h1 style={{ fontSize: "clamp(1.6rem,5.5vw,3.6rem)", fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-.04em", marginBottom: "1.1rem", position: "relative" }}>
+          Find hourly hotel rooms{!mob && <br />}
+          {mob ? " " : ""}<span style={{ background: "linear-gradient(90deg,#ff7340,#ff4d00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>across New York & New Jersey</span>
+        </h1>
+        <p style={{ fontFamily: "Georgia,serif", fontStyle: "italic", fontSize: "clamp(.85rem,2.2vw,1.2rem)", color: "rgba(255,255,255,.72)", marginBottom: mob ? "1.6rem" : "2.4rem", lineHeight: 1.7, position: "relative" }}>
+          Pay only for the hours you need — perfect for layovers, day stays,{!mob && <br />}business meetings & couple escapes.
+        </p>
+
+        {/* Sentinel — when this scrolls out of view, the bar becomes fixed */}
+        <div ref={sentinelRef} style={{ height: 1 }} />
+
+        {/* In-place search bar (visible when not stuck) */}
+        {!isStuck && (
+          <div ref={searchRef} style={{ maxWidth: 860, margin: "0 auto 1.4rem", position: "relative", zIndex: 100 }}>
+            {searchBar}
+          </div>
+        )}
+
+        {!isStuck && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: ".72rem", color: "rgba(255,255,255,.4)", fontWeight: 500 }}>Popular:</span>
+            {pills.slice(0, mob ? 3 : 5).map(p => (
+              <button key={p} onClick={() => onSearch(p)} style={{ background: "rgba(255,255,255,.09)", border: "1px solid rgba(255,255,255,.16)", color: "rgba(255,255,255,.78)", borderRadius: 20, padding: "5px 14px", fontSize: ".72rem", fontWeight: 600, cursor: "pointer" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.18)"; e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.09)"; e.currentTarget.style.color = "rgba(255,255,255,.78)"; }}>
+                {p}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Fixed Priceline-style sticky strip */}
+      {isStuck && (
+        <div style={{
+          position: "fixed", top: navH, left: 0, right: 0, zIndex: 199,
+          background: "hsl(var(--background))",
+          borderBottom: "1px solid hsl(var(--border))",
+          padding: mob ? "8px 4%" : "8px 8%",
+          boxShadow: "0 2px 12px rgba(0,0,0,.06)",
+          transition: "opacity .2s",
+        }}>
+          <div style={{ maxWidth: 860, margin: "0 auto" }}>
+            {searchBar}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
