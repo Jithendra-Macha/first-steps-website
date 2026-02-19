@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile, useThemeColors, Nav, SectionHeader, Btn } from "./SharedComponents";
 import { LocalBusinessJsonLd, SpeakableJsonLd } from "@/components/seo/GEOSchemas";
@@ -386,8 +387,23 @@ function FeaturedHotels({ data }: { data: LocationPageData }) {
   const mob = useIsMobile();
   const t = useThemeColors();
   const A = "#ff4d00";
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
 
-  // Match hotels by borough or name containing the location name
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 10);
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  };
+
+  const scroll = (dir: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "left" ? -360 : 360, behavior: "smooth" });
+  };
+
   const locationName = data.name.toLowerCase();
   const hotels = HOTEL_DATABASE.filter(h => {
     const borough = h.borough.toLowerCase();
@@ -400,27 +416,56 @@ function FeaturedHotels({ data }: { data: LocationPageData }) {
   return (
     <section style={{ padding: mob ? "2.5rem 5%" : "3.5rem 8%", background: t.bg }}>
       <SectionHeader title="Hotels in" accent={data.name} sub={`${hotels.length} verified hourly hotels available`} />
-      <div className="hotel-scroll" style={{
-        display: "flex",
-        flexDirection: "row",
-        flexWrap: "nowrap",
-        gap: 16,
-        overflowX: "auto",
-        scrollSnapType: "x mandatory",
-        WebkitOverflowScrolling: "touch",
-        paddingBottom: 16,
-        scrollbarWidth: "none",
-        msOverflowStyle: "none" as any,
-      }}>
-        <style>{`.hotel-scroll::-webkit-scrollbar{display:none}`}</style>
-        {hotels.map(hotel => {
-          const cheapest = Math.min(...hotel.rooms.map(r => r.hourly_rate));
-          return (
-            <div key={hotel.id} style={{ flex: "0 0 auto", width: mob ? "85vw" : 340, scrollSnapAlign: "start" }}>
-              <HotelListingCard hotel={hotel} cheapest={cheapest} />
-            </div>
-          );
-        })}
+      <div style={{ position: "relative" }}>
+        {/* Left arrow */}
+        {canLeft && (
+          <button
+            onClick={() => scroll("left")}
+            style={{
+              position: "absolute", left: -16, top: "50%", transform: "translateY(-50%)", zIndex: 10,
+              width: 40, height: 40, borderRadius: "50%", border: "none", cursor: "pointer",
+              background: t.bgCard, boxShadow: "0 2px 12px rgba(0,0,0,.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <ChevronLeft size={20} color={t.navy} />
+          </button>
+        )}
+        {/* Right arrow */}
+        {canRight && (
+          <button
+            onClick={() => scroll("right")}
+            style={{
+              position: "absolute", right: -16, top: "50%", transform: "translateY(-50%)", zIndex: 10,
+              width: 40, height: 40, borderRadius: "50%", border: "none", cursor: "pointer",
+              background: t.bgCard, boxShadow: "0 2px 12px rgba(0,0,0,.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <ChevronRight size={20} color={t.navy} />
+          </button>
+        )}
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="hotel-scroll"
+          style={{
+            display: "flex", flexDirection: "row", flexWrap: "nowrap", gap: 16,
+            overflowX: "auto", scrollSnapType: "x mandatory",
+            WebkitOverflowScrolling: "touch", paddingBottom: 16,
+            scrollbarWidth: "none", msOverflowStyle: "none" as any,
+          }}
+        >
+          <style>{`.hotel-scroll::-webkit-scrollbar{display:none}`}</style>
+          {hotels.map(hotel => {
+            const cheapest = Math.min(...hotel.rooms.map(r => r.hourly_rate));
+            return (
+              <div key={hotel.id} style={{ flex: "0 0 auto", width: mob ? "85vw" : 340, scrollSnapAlign: "start" }}>
+                <HotelListingCard hotel={hotel} cheapest={cheapest} />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
