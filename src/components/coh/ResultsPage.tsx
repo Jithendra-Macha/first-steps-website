@@ -654,6 +654,16 @@ function MapPanel({ hotels, activeIdx, onPin, onHotelClick }: { hotels: Hotel[];
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
 
+  // Resize map when container size changes (e.g. filter sidebar toggle)
+  useEffect(() => {
+    if (!mapContainer.current || !map.current) return;
+    const observer = new ResizeObserver(() => {
+      map.current?.resize();
+    });
+    observer.observe(mapContainer.current);
+    return () => observer.disconnect();
+  });
+
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
@@ -1043,8 +1053,7 @@ export default function ResultsPage({ query, onGoHome, onSearch, onHotelClick }:
         {/* Results list */}
         {view !== "map" && (
           <div style={{
-            flex: "1 1 50%",
-            maxWidth: view === "list" ? "100%" : "50%",
+            flex: 1,
             overflowY: "auto",
             padding: "14px 16px 14px 20px",
             paddingBottom: comparedHotels.length > 0 ? 80 : 14,
