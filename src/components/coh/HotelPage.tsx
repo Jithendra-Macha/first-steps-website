@@ -11,6 +11,17 @@ const NAVY = "#0d1f38";
 const SEC = "#888";
 const BRD = "#e8e8e8";
 
+/* ── Tax rates by state ── */
+function getTaxInfo(hotelAddr: string): { taxRate: number; taxFlatFee: number; stateName: string } {
+  const addr = hotelAddr.toLowerCase();
+  // NJ properties
+  if (addr.includes("jersey") || addr.includes(", nj")) {
+    return { taxRate: 11.625, taxFlatFee: 2.00, stateName: "NJ" };
+  }
+  // Default: NY
+  return { taxRate: 14.75, taxFlatFee: 3.50, stateName: "NY" };
+}
+
 const MAPBOX_TOKEN = "pk.eyJ1Ijoiaml0aGVuZHJhbWFjaGEiLCJhIjoiY21sc2E5YTNvMDN6ZDNjcHpoZnR3M20ydSJ9.EXkOsQuxBxKS_BUo0xLPLQ";
 
 /* ── Room types for this hotel ── */
@@ -47,6 +58,11 @@ export interface BookingData {
   total: number;
   bookingId: string;
   date: string;
+  taxAmount?: number;
+  taxRate?: number;
+  taxFlatFee?: number;
+  subtotal?: number;
+  serviceFee?: number;
 }
 
 /* ── Booking Form Modal ── */
@@ -66,7 +82,9 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
 
   const total = room.price * 6 * rooms;
   const serviceFee = Math.round(total * 0.08);
-  const grandTotal = total + serviceFee;
+  const taxInfo = getTaxInfo(hotel.addr);
+  const taxAmount = parseFloat((total * taxInfo.taxRate / 100 + taxInfo.taxFlatFee).toFixed(2));
+  const grandTotal = total + serviceFee + taxAmount;
 
   const validateStep1 = () => {
     const e: Record<string, string> = {};
@@ -102,6 +120,11 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
         total: grandTotal,
         bookingId,
         date: today.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
+        taxAmount,
+        taxRate: taxInfo.taxRate,
+        taxFlatFee: taxInfo.taxFlatFee,
+        subtotal: total,
+        serviceFee,
       });
     }, 2500);
   };
@@ -229,10 +252,14 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                   <span>Service fee</span>
                   <span style={{ fontWeight: 700 }}>${serviceFee}</span>
                 </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: ".76rem", color: "#555" }}>
+                  <span>Tax ({taxInfo.stateName} {taxInfo.taxRate}% + ${taxInfo.taxFlatFee.toFixed(2)} fee)</span>
+                  <span style={{ fontWeight: 700 }}>${taxAmount.toFixed(2)}</span>
+                </div>
                 <div style={{ height: 1, background: BRD, margin: "8px 0" }} />
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".88rem", fontWeight: 900, color: NAVY }}>
                   <span>Total</span>
-                  <span>${grandTotal}</span>
+                  <span>${grandTotal.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -275,7 +302,7 @@ function BookingModal({ hotel, slot, room, rooms, onClose, onConfirm }: {
                   boxShadow: `0 6px 20px rgba(255,77,0,.3)`,
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 }}>
-                  🔒 Pay ${grandTotal} & Reserve
+                  🔒 Pay ${grandTotal.toFixed(2)} & Reserve
                 </button>
               </div>
             </div>
@@ -439,6 +466,32 @@ export function ConfirmationPage({ booking, onHome }: { booking: BookingData; on
               )}
             </div>
 
+            {/* Price breakdown */}
+            <div style={{
+              padding: "16px 20px", borderRadius: 14,
+              background: "#f8f8f8", marginBottom: 14,
+            }}>
+              <div style={{ fontSize: ".72rem", fontWeight: 700, color: NAVY, marginBottom: 10 }}>Price Breakdown</div>
+              {booking.subtotal !== undefined && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: ".74rem", color: "#555" }}>
+                  <span>{booking.room.name} × {booking.rooms} room{booking.rooms > 1 ? "s" : ""}</span>
+                  <span style={{ fontWeight: 600 }}>${booking.subtotal}</span>
+                </div>
+              )}
+              {booking.serviceFee !== undefined && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: ".74rem", color: "#555" }}>
+                  <span>Service fee</span>
+                  <span style={{ fontWeight: 600 }}>${booking.serviceFee}</span>
+                </div>
+              )}
+              {booking.taxAmount !== undefined && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: ".74rem", color: "#555" }}>
+                  <span>Tax ({booking.taxRate}% + ${booking.taxFlatFee?.toFixed(2)} fee)</span>
+                  <span style={{ fontWeight: 600 }}>${booking.taxAmount.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+
             {/* Total */}
             <div style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -448,7 +501,7 @@ export function ConfirmationPage({ booking, onHome }: { booking: BookingData; on
             }}>
               <div>
                 <div style={{ fontSize: ".68rem", opacity: .6 }}>TOTAL PAID</div>
-                <div style={{ fontSize: "1.6rem", fontWeight: 900, letterSpacing: "-.03em" }}>${booking.total}</div>
+                <div style={{ fontSize: "1.6rem", fontWeight: 900, letterSpacing: "-.03em" }}>${booking.total.toFixed(2)}</div>
               </div>
               <div style={{
                 background: "rgba(10,124,78,.8)", padding: "6px 14px",
