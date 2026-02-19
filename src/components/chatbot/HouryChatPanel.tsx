@@ -569,7 +569,7 @@ export function HouryWidgetLauncher({
   return (
     <motion.button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-[9997] flex items-center gap-2 px-5 py-3 rounded-full shadow-lg text-white font-bold text-sm"
+      className="fixed bottom-6 right-6 z-[9997] flex items-center gap-3 px-6 py-4 rounded-full shadow-lg text-white font-extrabold text-base"
       style={{ background: CORAL, fontFamily: "'Nunito Sans', sans-serif" }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
