@@ -4,6 +4,7 @@ import { useIsMobile, useThemeColors, Nav, SectionHeader, Btn } from "./SharedCo
 import { LocalBusinessJsonLd, SpeakableJsonLd } from "@/components/seo/GEOSchemas";
 import type { LocationPageData } from "@/data/locationPages";
 import { LOCATION_PAGES } from "@/data/locationPages";
+import { HOTEL_DATABASE } from "@/lib/hotelDatabase";
 
 const A = "#ff4d00";
 
@@ -380,6 +381,102 @@ function RelatedCard({ loc }: { loc: LocationPageData }) {
   );
 }
 
+/* ── Featured Hotels Section ── */
+function FeaturedHotels({ data }: { data: LocationPageData }) {
+  const mob = useIsMobile();
+  const t = useThemeColors();
+  const A = "#ff4d00";
+
+  // Match hotels by borough or name containing the location name
+  const locationName = data.name.toLowerCase();
+  const hotels = HOTEL_DATABASE.filter(h => {
+    const borough = h.borough.toLowerCase();
+    const area = h.area.toLowerCase();
+    return borough.includes(locationName) || locationName.includes(borough) || area.includes(locationName);
+  });
+
+  if (hotels.length === 0) return null;
+
+  return (
+    <section style={{ padding: mob ? "2.5rem 5%" : "3.5rem 8%", background: t.bg }}>
+      <SectionHeader title="Hotels in" accent={data.name} sub={`${hotels.length} verified hourly hotels available`} />
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap: 16 }}>
+        {hotels.map(hotel => {
+          const cheapest = Math.min(...hotel.rooms.map(r => r.hourly_rate));
+          return (
+            <HotelListingCard key={hotel.id} hotel={hotel} cheapest={cheapest} />
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function HotelListingCard({ hotel, cheapest }: { hotel: typeof HOTEL_DATABASE[0]; cheapest: number }) {
+  const [hov, setHov] = useState(false);
+  const t = useThemeColors();
+  const A = "#ff4d00";
+  return (
+    <article
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: t.bgCard,
+        border: `1.5px solid ${hov ? A : t.border}`,
+        borderRadius: 18,
+        overflow: "hidden",
+        transform: hov ? "translateY(-4px)" : "none",
+        boxShadow: hov ? `0 12px 32px ${t.shadow}` : "none",
+        transition: "all .25s",
+        cursor: "pointer",
+      }}
+    >
+      {/* Image header */}
+      <div style={{ height: 140, background: hotel.image, position: "relative" }}>
+        <div style={{ position: "absolute", bottom: 10, left: 12, display: "flex", gap: 5, flexWrap: "wrap" }}>
+          {hotel.tags.slice(0, 3).map(tag => (
+            <span key={tag} style={{
+              fontSize: ".58rem", fontWeight: 700, padding: "3px 8px", borderRadius: 8,
+              background: "rgba(0,0,0,.55)", color: "#fff", backdropFilter: "blur(6px)",
+              textTransform: "capitalize",
+            }}>{tag}</span>
+          ))}
+        </div>
+      </div>
+      {/* Content */}
+      <div style={{ padding: "14px 16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+          <h3 style={{ fontSize: ".92rem", fontWeight: 800, color: t.navy, margin: 0, lineHeight: 1.25 }}>{hotel.name}</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+            <span style={{ fontSize: ".7rem" }}>⭐</span>
+            <span style={{ fontSize: ".78rem", fontWeight: 800, color: t.navy }}>{hotel.rating}</span>
+          </div>
+        </div>
+        <p style={{ fontSize: ".72rem", color: t.textSecondary, margin: "0 0 10px" }}>{hotel.area} · {hotel.total_reviews.toLocaleString()} reviews</p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <span style={{ fontSize: "1.1rem", fontWeight: 900, color: A }}>${cheapest}</span>
+            <span style={{ fontSize: ".7rem", color: t.textSecondary }}>/hr</span>
+          </div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {hotel.rooms.map(r => (
+              <span key={r.room_id} style={{
+                fontSize: ".58rem", fontWeight: 600, padding: "2px 7px", borderRadius: 6,
+                background: t.dark ? "rgba(255,77,0,.15)" : "#fff2ee", color: A,
+              }}>{r.type}</span>
+            ))}
+          </div>
+        </div>
+        <div style={{ marginTop: 10, display: "flex", gap: 4, flexWrap: "wrap" }}>
+          {hotel.rooms[0]?.amenities.slice(0, 4).map(a => (
+            <span key={a} style={{ fontSize: ".6rem", color: t.textMuted, background: t.dark ? "rgba(255,255,255,.06)" : "#f5f5f5", padding: "2px 6px", borderRadius: 5 }}>{a}</span>
+          ))}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 /* ── Main Component ── */
 export default function LocationLanding({ data }: { data: LocationPageData }) {
   return (
@@ -390,6 +487,7 @@ export default function LocationLanding({ data }: { data: LocationPageData }) {
       <Nav onSearch={() => {}} />
       <Hero data={data} />
       <GEOSummary data={data} />
+      <FeaturedHotels data={data} />
       <Highlights data={data} />
       <Neighborhoods data={data} />
       <NearbyAirports data={data} />
