@@ -27,10 +27,10 @@ export default function ManagerNotifications() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>Notifications</h1>
-          <p className="text-sm text-white/40 mt-1">{unread} unread</p>
+          <p className="text-sm text-muted-foreground mt-1">{unread} unread</p>
         </div>
         {unread > 0 && (
-          <Button size="sm" variant="outline" className="border-white/10 text-white/50 text-xs" onClick={markAllRead}>
+          <Button size="sm" variant="outline" className="border-border text-muted-foreground text-xs" onClick={markAllRead}>
             <CheckCircle className="h-3.5 w-3.5 mr-1" />Mark all read
           </Button>
         )}
@@ -43,7 +43,7 @@ export default function ManagerNotifications() {
           return (
             <Card
               key={n.id}
-              className={`border-white/8 transition-colors cursor-pointer ${!n.read ? "bg-white/[0.05]" : "bg-white/[0.02]"}`}
+              className={`border-border transition-colors cursor-pointer ${!n.read ? "bg-accent/50" : "bg-card"}`}
               onClick={() => {
                 setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
                 if (n.link) navigate(n.link);
@@ -55,11 +55,11 @@ export default function ManagerNotifications() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-white/80">{n.title}</p>
-                    {!n.read && <span className="h-2 w-2 rounded-full shrink-0" style={{ background: "hsl(18, 100%, 50%)" }} />}
+                    <p className="text-sm font-medium text-foreground/80">{n.title}</p>
+                    {!n.read && <span className="h-2 w-2 rounded-full shrink-0 bg-primary" />}
                   </div>
-                  <p className="text-xs text-white/45 mt-0.5">{n.message}</p>
-                  <p className="text-[10px] text-white/20 mt-1">{new Date(n.timestamp).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                  <p className="text-[10px] text-muted-foreground/50 mt-1">{new Date(n.timestamp).toLocaleString()}</p>
                 </div>
                 <Badge className="text-[9px] border-0 shrink-0" style={{ background: `${config.color}15`, color: config.color }}>{n.type}</Badge>
               </CardContent>
