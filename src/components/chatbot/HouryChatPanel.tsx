@@ -340,7 +340,7 @@ export default function HouryChatPanel({
         const err = await resp.json().catch(() => ({ error: "Something went wrong" }));
         setState(prev => ({
           ...prev,
-          messages: [...prev.messages, { role: "assistant", content: `⚠️ ${err.error || "Request failed"}` }],
+          messages: [...prev.messages, { role: "assistant", content: `${err.error || "Request failed"}` }],
         }));
         setLoading(false);
         return;
