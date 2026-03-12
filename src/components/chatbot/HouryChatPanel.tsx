@@ -392,7 +392,7 @@ export default function HouryChatPanel({
     } catch {
       setState(prev => ({
         ...prev,
-        messages: [...prev.messages, { role: "assistant", content: "⚠️ Network error. Please try again." }],
+        messages: [...prev.messages, { role: "assistant", content: "Network error. Please try again." }],
       }));
     }
     setLoading(false);
