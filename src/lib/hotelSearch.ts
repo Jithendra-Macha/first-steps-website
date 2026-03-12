@@ -104,8 +104,8 @@ export function formatResultsForAI(results: SearchResult[]): string {
     ).join("\n");
 
     return `${i + 1}. ${r.hotel.name} (${r.hotel.area}, ${r.hotel.borough})
-   ⭐ ${r.hotel.rating}/5 (${r.hotel.total_reviews} reviews) | From $${cheapest}/hr
-   Tags: ${r.hotel.tags.join(", ")}${r.hotel.near_airport ? ` | Near ${r.hotel.near_airport} Airport` : ""}
+    Rating: ${r.hotel.rating}/5 (${r.hotel.total_reviews} reviews) | From $${cheapest}/hr
+    Tags: ${r.hotel.tags.join(", ")}${r.hotel.near_airport ? ` | Near ${r.hotel.near_airport} Airport` : ""}
    Address: ${r.hotel.address}
    Rooms:
 ${roomList}
