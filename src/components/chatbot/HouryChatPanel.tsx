@@ -214,7 +214,7 @@ function ConversationStarters({ onSelect }: { onSelect: (s: string) => void }) {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4 px-6">
       <img src={sandyAvatar} alt="Sandy" className="w-14 h-14 rounded-full object-cover mb-2" />
-      <h3 className="text-lg font-bold text-foreground">Hi! I'm Sandy ✨</h3>
+      <h3 className="text-lg font-bold text-foreground">Hi! I'm Sandy</h3>
       <p className="text-sm text-muted-foreground text-center max-w-[280px]">
         Your personal booking assistant. Tell me what you need and I'll find the perfect hourly hotel for you!
       </p>
